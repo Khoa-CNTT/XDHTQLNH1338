@@ -10,7 +10,6 @@ urlpatterns = [
     path('accounts/login/', views.CustomLoginView.as_view(), name='login'),
     path('accounts/logout/', views.logout_view, name='logout'),
 
-
     path('management/', include([
         path('table/', include([
             path('list', views.TableManagementView.as_view(), name='table_list'),
@@ -32,14 +31,14 @@ urlpatterns = [
             path('import/', views.import_product, name='import_product'),
             path('<int:id>/', views.detail_product, name='detail_product')
         ])),
-        
+
         path('customer/', include([
             path('list', views.CustomerManagementView.as_view(), name='customer_list'),
             # path('create/', views.add_product, name='add_product'),
             # path('import/', views.import_product, name='import_product'),
             # path('<int:id>/', views.detail_product, name='detail_product')
         ])),
-        
+
         path('employee/', include([
             path('list', views.EmployeeManagementView.as_view(), name='employee_list'),
             # path('create/', views.add_product, name='add_product'),

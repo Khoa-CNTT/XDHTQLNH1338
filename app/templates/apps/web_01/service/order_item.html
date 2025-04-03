@@ -1,92 +1,56 @@
 {% import "/apps/web_01/commom/macros.html" as macros %}
-<div class="card rounded border shadow-sm">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <h5 class="card-title mb-0">Đơn hàng</h5>
-    </div>
-    <div class="card-body">
-        <div class="p-3 mb-3 border rounded bg-light">
-            <div class="row">
-                <div class="col-md-6">
-                    <p class="mb-1"><strong>Mã bàn:</strong> Bàn {{ table_id }}</p>
-                    <p class="mb-1"><strong>Khách hàng:</strong> {{ customer_name }}</p>
-                </div>
-                <div class="col-md-6 text-end">
-                    <p class="mb-1">
-                        <strong>Thời gian:</strong> 
-                        <span id="orderTimer" class="timer">00:00:00</span>
-                    </p>
-                </div>
-            </div>
+
+<div class="p-3 mb-3 border rounded bg-light">
+    <div class="row">
+        <div class="col-md-6">
+            <p class="mb-1"><strong>Mã bàn:</strong> Bàn {{ table_id }}</p>
+            <p class="mb-1"><strong>Khách hàng:</strong> {{ customer_name }}</p>
         </div>
-
-        <div class="table-responsive">
-            <table class="table table-hover border rounded">
-                <thead class="table-light">
-                    <tr>
-                        <th>#</th>
-                        <th>Món ăn</th>
-                        <th>Số lượng</th>
-                        <th>Giá</th>
-                        <th>Thành tiền</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for detail in order_details %}
-                    <tr>
-                        <td>{{ loop.index }}</td>
-                        <td>{{ detail.product_name }}</td>
-                        <td>{{ detail.quantity }}</td>
-                        <td>{{ macros.format_currency(detail.price) }}</td>
-                        <td>{{ macros.format_currency(detail.total) }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <div class="card-footer p-3">
-        <div class="row g-3">
-            <div class="col-md-4">
-                <label class="form-label">Giảm giá:</label>
-                <div class="d-flex gap-2 mb-3">
-                    <button class="btn btn-outline-primary btn-xxs" onclick="setDiscount(10)">10%</button>
-                    <button class="btn btn-outline-primary btn-xxs" onclick="setDiscount(15)">15%</button>
-                    <button class="btn btn-outline-primary btn-xxs" onclick="setDiscount(20)">20%</button>
-                </div>
-                <div class="input-group input-group-sm">
-                    <input type="number" min="0" max="100" class="form-control" 
-                           id="discountInput" placeholder="Nhập % giảm giá">
-                    <span class="input-group-text">%</span>
-                </div>
-            </div>
-
-            <div class="col-md-8 ">
-               <!-- <button class="btn btn-outline-secondary btn-sm " id="printInvoice">
-                    <i class="fas fa-print"></i> In Hóa Đơn
-                </button>
-                -->
-            </div>
-        </div>
-
-        <hr>
-
-        <div class="row align-items-end">
-            <div class="col-md-6">
-                <h6><strong>Tạm tính:</strong> <span id="subTotal">{{ macros.format_currency(total_amount) }}</span></h6>
-                <h6><strong>Giá giảm:</strong> <span id="discountedAmount">0đ</span></h6>
-                <h5><strong>Thành tiền:</strong> <span id="finalTotal">{{ macros.format_currency(total_amount) }}</span></h5>
-            </div>
-
-            <div class="col-md-6 text-end">
-                <button class="btn btn-outline-success btn-sm" id="confirmPayment">
-                    <i class="fas fa-check"></i> Thanh Toán
-                </button>
-            </div>
+        <div class="col-md-6 text-end">
+            <p class="mb-1">
+                <strong>Thời gian:</strong> 
+                <span id="orderTimer" class="timer">00:00:00</span>
+            </p>
         </div>
     </div>
 </div>
 
+<div class="table-responsive">
+    <table class="table table-hover border rounded">
+        <thead class="table-light">
+            <tr>
+                <th>#</th>
+                <th>Món ăn</th>
+                <th>Số lượng</th>
+                <th>Giá</th>
+                <th>Thành tiền</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for detail in order_details %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ detail.product_name }}</td>
+                <td>{{ detail.quantity }}</td>
+                <td>{{ macros.format_currency(detail.price) }}</td>
+                <td>{{ macros.format_currency(detail.total) }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="row align-items-end">
+    <div class="col-md-6">
+        <h5><strong>Thành tiền:</strong> <span id="finalTotal">{{ macros.format_currency(total_amount) }}</span></h5>
+    </div>
+
+    <div class="col-md-6 text-end">
+        <button class="btn btn-outline-success btn-sm" id="confirmPayment">
+            <i class="fas fa-check"></i> Thanh Toán
+        </button>
+    </div>
+</div>
 {% block script %}
 <script type="text/javascript">
     $(document).ready(function() {
