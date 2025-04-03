@@ -1,0 +1,65 @@
+<div class="card">
+    <div class="card-header ">
+        <h5 class="card-title">Quản lý bàn</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            {% for table in table_list %}
+            <div class="col-2 mb-2">
+                <div class="card text-center shadow-lg">
+                    <div class="card-header bg-primary text-white d-flex justify-content-center">
+                        <h5 class="card-title">Bàn {{ "%02d"|format(table.table_number) }}</h5>
+                    </div>
+                    <div class="card-body parent">
+                        {% if table.qr_image %}
+                            <img src="{{ table.qr_image }}" alt="QR Code" class="img-fluid" style="max-width: 80px;">
+                        {% else %}
+                            <p class="text-muted">Chưa có QR Code</p>
+                        {% endif %}
+                        <p class="mt-2">
+                            <span class="badge light
+                                {% if table.status == 'available' %} badge-success
+                                {% elif table.status == 'occupied' %} badge-danger
+                                {% elif table.status == 'reserved' %} badge-warning
+                                {% endif %}">
+                                {{ table.get_status_display() }}
+                            </span>
+                        </p>
+
+                        <button class="btn-action btn-action-1 btn light btn-primary btn-xs" data-bs-toggle="modal" data-table-id='{{table.id}}' data-bs-target="#modalEditTable">
+                            <i class="fa fa-pencil"></i>
+                        </button>
+
+                        <button class="btn-action btn-action-2 btn light btn-primary btn-xs" data-bs-toggle="modal" data-table-id='{{table.id}}' data-bs-target="#modalDetailTable">
+                            <i class="fa fa-eye"></i>
+                        </button> 
+                    </div>
+                   
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+</div>
+
+
+
+
+
+
+
+
+{% with 
+    modal_id = 'modalEditTable',
+    modal_title='Cập nhật bàn',
+    modal_body_tmp = '/apps/web_01/modal/modal_edit_table.html'
+  %}
+    {% include '/popup/popup_create.html' %}
+{% endwith %}
+
+{% block script %}
+<script type="text/javascript">
+    $(document).ready(function() {
+        $('#table_data').DataTable(DATATABLE_CONFIG);
+    });
+</script>
+{% endblock %}

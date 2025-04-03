@@ -1,0 +1,27 @@
+{
+    "home": "Menu",
+    "login": "Login",
+    "logout": "Logout",
+    "language": "English",
+    "search_placeholder": "What do you want to eat...",
+    "menu": {
+        "title": "Restaurant Menu",
+        "subtitle": "Delicious moments",
+        "Tất cả": "All",
+        "Món khai vị": "Appetizers",
+        "Món Chính": "Main Course",
+        "Món Tráng miệng": "Desserts",
+        "Đồ uống": "Drinks",
+        "Combo đặc biệt": "Special Combo"
+    },
+    "order_summary": {
+        "title": "Order",
+        "items": "{{count}} items",
+        "total_price": "{{price}} VND"
+    },
+    "order_page": {
+        "title": "Your Order",
+        "button": "Order",
+        "total": "Total"
+    }
+}

@@ -1,0 +1,9 @@
+{% if status == "pending" %}
+        <span class="badge light badge-warning">⏳ Chờ</span>
+{% elif status == "in_progress" %}
+        <span class="badge light badge-info">🔄 Đang làm</span>
+{% elif status == "completed" %}
+        <span class="badge light badge-success">✅ Xong</span>
+{% else %}
+        <span class="badge light badge-danger">❌ Hủy</span>
+{% endif %}

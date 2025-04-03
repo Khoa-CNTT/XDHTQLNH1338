@@ -1,0 +1,27 @@
+{
+    "home": "Thực đơn",
+    "login": "Đăng nhập",
+    "logout": "Đăng xuất",
+    "language": "Tiếng Việt",
+    "search_placeholder": "Bạn muốn ăn gì...",
+    "menu": {
+        "title": "Thực đơn quán",
+        "subtitle": "Vị ngon, trọn khoảnh khắc",
+        "Tất cả": "Tất cả",
+        "Món khai vị": "Món khai vị",
+        "Món Chính": "Món chính",
+        "Món Tráng miệng": "Món tráng miệng",
+        "Đồ uống": "Đồ uống",
+        "Combo đặc biệt": "Combo đặt biệt"
+    },
+    "order_summary": {
+        "title": "Đơn hàng",
+        "items": "{{count}} món",
+        "total_price": "{{price}} đ"
+    },
+    "order_page": {
+        "title": "Đơn hàng",
+        "button": "Đặt món",
+        "total": "Tổng tiền"
+    }
+}

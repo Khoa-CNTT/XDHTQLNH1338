@@ -1,0 +1,87 @@
+.cs-bg-header {
+  position: fixed;
+  top     : 0;
+  left    : 0;
+  width   : 100%;
+  z-index : 999;
+  height  : var(--height-header);
+  position: relative;
+}
+
+.cs-logo-large {
+  position: absolute;
+  top     : 0;
+  left    : 0;
+  width   : 100%;
+  height  : 100%;
+  z-index : -1;
+}
+
+.cs-img-large {
+  width          : 100%;
+  height         : 100%;
+  object-fit     : cover;
+  object-position: right top;
+}
+
+.cs-logo {
+  font-size      : 20px;
+  font-family    : 'Dancing Script';
+  color          : #fff;
+  font-weight    : 700;
+  text-decoration: none;
+}
+
+.cs-text-center {
+  font-size      : 16px;
+  color          : #fff;
+  padding        : 5px 20px;
+  text-decoration: none;
+
+  &:hover {
+    cursor: pointer;
+    color : var(--foreignKey);
+  }
+}
+
+.cs-icon {
+  margin   : 10px;
+  font-size: 18px;
+  color    : #fff;
+
+  &:hover {
+    cursor: pointer;
+    color : var(--foreignKey);
+  }
+}
+
+.cs-select-language {
+  border       : none !important;
+  color        : #000 !important;
+  border-radius: 10px !important;
+  margin-left  : 10px !important;
+  height       : 30px;
+
+  &:focus-visible {
+    outline: none !important;
+  }
+}
+
+// ---------- button ----------
+.cs-btn-primary {
+  display           : block;
+  padding           : 8px 30px;
+  background-color  : var(--foreignKey);
+  color             : #fff;
+  border-radius     : 45px;
+  -webkit-transition: all 0.3s;
+  transition        : all 0.3s;
+  border            : none;
+  text-decoration   : none;
+  font-size         : 16px;
+  margin-left       : 10px;
+
+  &:hover {
+    background-color: #e69c00;
+  }
+}
