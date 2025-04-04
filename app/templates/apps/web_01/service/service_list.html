@@ -43,7 +43,7 @@
             <ul class="nav nav-tabs" id="orderTabs" role="tablist">
             </ul>
         </div>
-        <div class='card-body'>
+        <div class='card-body' >
             <div class="tab-content tabcontent-border" id="orderContents">
             </div>
         </div>
@@ -58,10 +58,10 @@
             </div>
             <div class="card-body  pt-4">
                 <div class="input-group d-xl-inline-flex d-none mb-3">
-                    <input type="text" class="form-control" placeholder="Search here...">
+                    <input type="text" class="form-control" id='search-product' placeholder="Search here...">
                     <button class="input-group-text"><i class="flaticon-381-search-2"></i></button>
                 </div>
-                <div id="productLayout">
+                <div id="productLayout" >
                     {% for product in product_list %}
                         <div class="menu-item p-2 border rounded mb-2" draggable="true" data-item-id="{{ product.id }}">
                             <div class="d-flex justify-content-between align-items-center">
@@ -81,14 +81,7 @@
 </div>
 
 
-{% with 
-    modal_id = 'modelPaymentOrder',
-    modal_title='Phiếu thanh toán',
-    modal_class_size='modal-md',
-    modal_body_tmp = '/apps/web_01/service/modal/modal_payment_order.html'
-  %}
-    {% include '/popup/popup_create.html' %}
-  {%endwith%}
+
 
 
 {% endblock %}
@@ -96,6 +89,30 @@
 {% block script %}
 <script type="text/javascript">
     $(document).ready(function () {
+        loadProductList();
+        function loadProductList() {
+            let url = "{{ url('web_01:get_product_service') }}";
+            $.ajax({
+                type: "GET",
+                url: url,
+                dataType: "json",
+                success: function (response) {
+                    $("#productLayout").html(response);
+                },
+                error: function (error) {
+                    console.log(error);
+                }
+            });
+        }
+
+        $('#search-product').on('input', function() {
+            let keyword = $(this).val().trim().toLowerCase();
+            $('#productLayout .menu-item').each(function() {
+                let productName = $(this).find('span:first-of-type').text().trim().toLowerCase();
+                $(this).toggle(productName.includes(keyword));
+            });
+        })
+
         function addOrActivateTab(tableId) {
             let tabId = `tab-${tableId}`;
             let contentId = `content-${tableId}`;

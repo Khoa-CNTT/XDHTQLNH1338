@@ -79,8 +79,16 @@ def get_order_by_table(request):
         "order_details": order_details_list,
         "total_amount": total_amount,
         "customer_name": customer_name,
+        "session": session,
         "table_id": table_id
     })
+
+
+def get_product_service(request):
+    html_template = '/apps/web_01/service/product_item.html'
+    product_name = request.GET.get('name', '')
+    products = Product.objects.filter(name__icontains=product_name)
+    return render(request, html_template, {"product_list": products})
 
 
 @csrf_exempt
@@ -88,7 +96,6 @@ def complete_payment(request):
     if request.method == "POST":
         try:
             data = json.loads(request.body)
-            print('data', data)
             table_id = data.get("table_id")
             total = data.get("total")
             discount = data.get("discount_percent")
