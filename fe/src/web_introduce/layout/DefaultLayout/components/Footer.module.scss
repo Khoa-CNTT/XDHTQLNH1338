@@ -1,0 +1,61 @@
+.cs-bg-footer {
+  padding-top     : 75px;
+  height          : 432px;
+  background-color: var(--gl-footer-dark);
+}
+
+.cs-head-text {
+  font-family  : 'Dancing Script';
+  margin-bottom: 20px;
+}
+
+.cs-text-desc {
+  font-size: 16px;
+  margin   : 5px 0;
+}
+
+.cs-bl-icon {
+  display        : flex;
+  justify-content: center;
+  margin         : 20px 0 10px 0;
+
+  .cs-item-icon {
+    width           : 30px;
+    height          : 30px;
+    border-radius   : 999px;
+    background-color: #fff;
+    display         : flex;
+    justify-content : center;
+    align-items     : center;
+    margin          : 0 3px;
+
+    .cs-icon {
+      font-size: 20px;
+      color    : var(--gl-footer-dark);
+    }
+  }
+}
+
+.cs-text-copyright-1 {
+  font-size  : 16px;
+  padding-top: 60px;
+  color      : #fff;
+  text-align : center;
+}
+
+.cs-text-copyright-2 {
+  font-size  : 16px;
+  padding-top: 16px;
+  color      : #fff;
+  text-align : center;
+}
+
+.cs-map {
+  margin-top   : 30px;
+  text-align   : center;
+
+  iframe {
+    width : 60%;
+    height: 100%;
+  }
+}

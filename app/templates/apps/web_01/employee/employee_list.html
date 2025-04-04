@@ -1,0 +1,157 @@
+{% extends '/base/base.html' %}
+{% import "/apps/web_01/commom/macros.html" as macros %}
+{% block body %}
+<div class="col-lg-12">
+
+    <!-- Card table list-->
+    <div id='data-table-list'>
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title">Quản lý nhân viên</h4>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-responsive-md" id='table_data'>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Nhân viên</th>
+                                <th>Lương cơ bản</th>
+                                <th>Tổng ca làm</th>
+                                <th>Tổng giờ làm</th>
+                                <th>Lương thực tế</th>
+                                <th>Trạng thái & Loại Ca</th>
+                                <th>Ngày tạo</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}
+
+{% block script %}
+<script type="text/javascript">
+    $(document).ready(function () {
+        var table = $('#table_data').DataTable({
+            ...DATATABLE_CONFIG,
+            processing: true,
+            serverSide: true,
+            autoWidth: false,
+            responsive: true,
+            ajax: {
+                url: "{{ url('web_01:employee_list') }}",
+                type: "POST",
+                headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+                beforeSend: function () {
+                    disable_element($('#table_data'));
+                },
+                complete: function () {
+                    enable_element($('#table_data'));
+                },
+                error: function(xhr, status, error) {
+                    console.error("Lỗi tải dữ liệu nhân viên:", error);
+                }
+            },
+            columns: [
+                { data: "index", title: "#" },
+
+                { 
+                    data: "username", title: "Nhân viên",
+                    render: function(data, type, row) {
+                        const username = row.username || "N/A";
+                        return `<i class="fa-solid fa-user-tie"></i> ${username}`;
+                    }
+                },
+
+                { 
+                    data: "salary", title: "Lương cơ bản",
+                    render: function(data) {
+                        return `<span class="badge badge-info">${data}</span>`;
+                    }
+                },
+
+                { 
+                    data: "total_shifts", title: "Tổng ca làm",
+                    render: function(data) {
+                        return `<span class="badge badge-primary">${data}</span>`;
+                    }
+                },
+
+                { 
+                    data: "total_hours", title: "Tổng giờ làm",
+                    render: function(data) {
+                        return `<span class="badge badge-warning">${data}</span>`;
+                    }
+                },
+
+                { 
+                    data: "calculated_salary", title: "Lương thực tế",
+                    render: function(data) {
+                        return `<span class="badge badge-success">${data}</span>`;
+                    }
+                },
+
+                { 
+                    data: null, title: "Trạng thái & Loại Ca",
+                    className: "text-center",  // ✅ Căn giữa nội dung trong DataTables
+                    render: function(data, type, row) {
+                        let shiftTypeLabel = "";
+                        if (row.shift_type === "morning") {
+                            shiftTypeLabel = "☀️ Sáng";
+                        } else if (row.shift_type === "afternoon") {
+                            shiftTypeLabel = "🌞 Chiều";
+                        } else if (row.shift_type === "evening") {
+                            shiftTypeLabel = "🌙 Tối";
+                        } else {
+                            shiftTypeLabel = "❓ Không rõ";
+                        }
+                
+                        let statusLabel = "";
+                        if (row.status === "worked") {
+                            statusLabel = `<span class="badge badge-success d-block text-center">✅ Đã làm</span>`;
+                        } else if (row.status === "off") {
+                            statusLabel = `<span class="badge badge-danger d-block text-center">❌ Nghỉ</span>`;
+                        } else {
+                            statusLabel = `<span class="badge badge-secondary d-block text-center">⚪ Không xác định</span>`;
+                        }
+                
+                        return `<div class="text-center">${statusLabel} <br> <span class="badge badge-dark">${shiftTypeLabel}</span></div>`;
+                    }
+                },
+
+                { 
+                    data: "created_at", title: "Ngày tạo",
+                    render: function(data) {
+                        return `<i class="fa fa-calendar"></i> ${data}`;
+                    }
+                },
+
+                { 
+                    data: "id", title: "Thao tác",
+                    render: function(data, type, row) {
+                        return `
+                            <button type='button' class="btn btn-light btn-primary shadow btn-xs sharp me-1 edit-employee" 
+                            data-id="${row.id}" data-bs-toggle="modal" data-bs-target="#modalEditEmployee">
+                                <i class="fa fa-pencil"></i>
+                            </button>
+
+                            <button type='button' class="btn btn-light btn-danger shadow btn-xs sharp me-1 delete-employee" 
+                            data-id="${row.id}">
+                                <i class="fa fa-trash"></i>
+                            </button>
+                        `;
+                    }
+                }
+            ]
+        });
+    });
+</script>
+{% endblock %}

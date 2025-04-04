@@ -1,0 +1,230 @@
+{% extends '/base/base.html'%}
+{%block body%}
+<div class="col-lg-12">
+
+
+    <div class="card">
+        <div class="card-body">
+            <div class='d-flex' style='gap:8px;'>
+                <div class='d-flex flex-column'>
+                    <label><strong>Danh mục</strong></label>
+                    <select class="multi-select" style="width:100%;" name="category[]" multiple="multiple" class="form-control form-control-sm bg-white" id="select-category">
+                        {% set selected_categories = request.GET.get("category", "").split(",") | map("int") | list %}
+                        {% for id, name in category_list %}
+                            <option value="{{ id }}" {% if id in selected_categories %}selected{% endif %}>{{ name }}</option>
+                        {% endfor %}
+                    </select>
+                    
+                </div>
+
+                <div class='d-flex flex-column'>
+                    <label><strong>Giá</strong></label>
+                    <select  class="form-control form-control-sm" id="select-price">
+                        <option value="-1">-- Giá --</option>
+                        {% set selected_price = request.GET.get("price", "-1") %}
+                        {% for id, name in price_list %}
+                            <option value="{{ id }}" {% if id == selected_price %}selected{% endif %}>{{ name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer">
+            <button type="button" class="btn btn-info btn-sm" id="btn-filter">
+                <i class="fa fa-filter"></i> Lọc
+            </button>
+            <button type="button" class="btn btn-secondary btn-sm" id="btn-reset">
+                <i class="fa fa-times"></i> Xóa lọc
+            </button>
+        </div>
+        
+    </div>
+
+    <!-- Card table list-->
+    <div id='data-table-list'>
+        <div class="card">
+            <div class="card-header">
+                <div class='d-flex justify-content-between align-items-center w-100'>
+                    <h4 class="card-title">Quản lí sản phẩm</h4>
+                    <div>
+                        <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#modalImportProduct">
+                            📥 Nhập từ Excel
+                        </button>
+                        <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalAddProduct">
+                            + Thêm
+                        </button>
+                    </div>
+                    
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-responsive-md" id='table_data'>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Tên sản phẩm</th>
+                                <th>Hình ảnh</th>
+                                <th>Danh mục</th>
+                                <th>Giá</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                    
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+    
+</div>
+
+
+
+{% with 
+    modal_id = 'modalAddProduct',
+    modal_title='Thêm sản phẩm',
+    modal_class_size='modal-lg',
+    modal_body_tmp = '/apps/web_01/modal/modal_add_product.html'
+  %}
+    {% include '/popup/popup_create.html' %}
+  {%endwith%}
+
+  {% with 
+    modal_id = 'modalImportProduct',
+    modal_title='Thêm sản phẩm từ excel',
+    modal_class_size='modal-lg',
+    modal_body_tmp = '/apps/web_01/modal/modal_import_product.html'
+  %}
+    {% include '/popup/popup_create.html' %}
+  {%endwith%}
+
+{% with 
+    modal_id = 'modalDetailProduct',
+    modal_title='Chi tiết sản phẩm',
+    modal_class_size='modal-lg',
+    modal_body_tmp = '/apps/web_01/modal/modal_detail_product.html'
+  %}
+    {% include '/popup/popup_create.html' %}
+  {%endwith%}
+
+{%endblock%}
+
+{% block script %}
+<script type="text/javascript">
+
+    function updateUrlParams() {
+        let selectedCategories = $('#select-category').val() || [];
+        let selectedPrice = $('#select-price').val() || "-1"; // Giá trị mặc định
+    
+        let params = new URLSearchParams(window.location.search);
+    
+        if (selectedCategories.length) {
+            params.set("category", selectedCategories.join(","));
+        } else {
+            params.delete("category");
+        }
+    
+        if (selectedPrice !== "-1") {
+            params.set("price", selectedPrice);
+        } else {
+            params.delete("price");
+        }
+    
+        let newUrl = window.location.pathname + "?" + params.toString();
+        window.history.replaceState(null, "", newUrl); // Cập nhật URL nhưng không reload
+    }
+
+    
+    $(document).ready(function () {
+        var table = $('#table_data').DataTable({
+            ...DATATABLE_CONFIG,
+            processing: true,
+            serverSide: true,
+            autoWidth: false,  // Chặn DataTables tự động đặt width cố định
+            responsive: true,
+            ajax: {
+                url: "{{url('web_01:product_list')}}",
+                type: "POST",
+                headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+                data: function (d) {
+                    let selectedCategories = $('#select-category').val() || [];
+                    d.category = JSON.stringify(selectedCategories); // Chuyển danh mục thành JSON
+
+                    let selectedPrice = $('#select-price').val();
+                    d.price = selectedPrice; // Gửi giá trị bộ lọc giá
+                },
+                beforeSend: function () {
+                    disable_element($('#table_data'));
+                },
+                complete: function () {
+                    enable_element($('#table_data'));
+                }
+            },
+            columns: [
+                { data: "index", title: "#" },
+                { data: "name", title: "Tên sản phẩm" },
+                {
+                    data: "image",
+                    title: "Hình ảnh",
+                    render: function(data) {
+                        return data 
+                            ? `<img src="${data}" alt="Hình ảnh sản phẩm" class="product-image" style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px;" />`
+                            : '<span class="text-muted">Chưa có ảnh</span>';
+                    }
+                },
+                { data: "category", title: "Danh mục" },
+                { data: "price", title: "Giá" },
+                {
+                    data: "id",
+                    title: "",
+                    render: function(data, type, row) {
+                        return `
+                        <button type='button' class="btn light btn-primary shadow btn-xs sharp me-1" 
+                        data-id="${row.id}" 
+                        data-name="${row.name}" 
+                        data-bs-toggle="modal" data-bs-target="#modalDetailProduct"
+                        >
+                            <i class="fa fa-eye"></i> <!-- Xem chi tiết -->
+                        </button>
+                        `;
+                    }
+                }
+            ],
+            columnDefs: [
+                { orderable: false, targets: [2,5] },
+      
+            ]
+        });
+
+        // Khi nhấn nút "Lọc"
+        $('#btn-filter').on('click', function () {
+            updateUrlParams();
+            table.ajax.reload(); // Load lại dữ liệu theo bộ lọc
+        });
+
+        $('#btn-reset').on('click', function () {
+            $('#select-category').val(null).trigger('change'); // Xóa chọn
+            $('#select-price').val('-1').trigger('change'); // Xóa chọn
+            updateUrlParams();
+            table.ajax.reload(); // Load lại dữ liệu
+        });
+    })
+  
+
+    $('#select-category').select2({
+        placeholder: '-- Danh mục --',
+        allowClear: false,
+        width: '200',
+    });
+    $('#select-price').select2({
+        placeholder: '-- Giá --',
+        allowClear: false,
+        width: '220',
+    });
+
+</script>
+{% endblock %}

@@ -1,0 +1,163 @@
+
+{% extends '/base/base.html'%}
+{% import "/apps/web_01/commom/macros.html" as macros %}
+{%block body%}
+<div class="col-lg-12">
+
+    <!-- Card table list-->
+    <div id='data-table-list'>
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title">Quản lí đơn hàng</h4>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-responsive-md" id='table_data'>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Mã đơn</th>
+                                <th>Khách hàng</th>
+                                <th>Mã bàn</th>
+                                <th>Tổng tiền</th>
+                                <th>Ngày tạo</th>
+                                <th>Trạng thái</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                    
+                </div>
+            </div>
+        </div>
+        
+    </div>
+    
+</div>
+
+
+
+{% with 
+    modal_id = 'modalDetailOrder',
+    modal_title='Chi tiết đơn hàng',
+    modal_class_size='modal-lg',
+    modal_body_tmp = '/apps/web_01/modal/modal_detail_order.html'
+  %}
+    {% include '/popup/popup_create.html' %}
+  {%endwith%}
+
+
+  
+{%endblock%}
+
+{% block script %}
+<script type="text/javascript">
+    
+    $(document).ready(function () {
+        var table = $('#table_data').DataTable({
+            ...DATATABLE_CONFIG,
+            processing: true,
+            serverSide: true,
+            autoWidth: false,  // Chặn DataTables tự động đặt width cố định
+            responsive: true,
+            ajax: {
+                url: "{{url('web_01:order_list')}}",
+                type: "POST",
+                headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+                data: function (d) {
+                    let params = {
+                        search: d.search.value,
+                        start: d.start,
+                        length: d.length,
+                        order_column: d.order[0]?.column || 0,
+                        order_dir: d.order[0]?.dir || "asc"
+                    };
+                    d.params = JSON.stringify(params);
+                },
+                beforeSend: function () {
+                    disable_element($('#table_data'));
+                },
+                complete: function () {
+                    enable_element($('#table_data'));
+                }
+            },
+            columns: [
+                { data: "index", title: "#"},
+                { data: "id", title: "Mã đơn hàng",
+                    render: function(data, type, row) {
+                    return `DH_${data}`;
+                    }
+                },
+                { data: "id", title: "Khách hàng",
+                render: function(data, type, row) {
+                    return `${row.username }
+                    <span class='text-muted'>
+                        (${row.first_name })
+                    </span>
+                    `
+                    let badgeClass = "";
+                    switch (row.status) {
+                        case "pending":
+                            return `<span class="badge light badge-warning">⏳ Chờ</span>`;
+                        case "in_progress":
+                            return `<span class="badge light badge-info">🔄 Đang làm</span>`;
+                        case "completed":
+                            return ` <span class="badge light badge-success">✅ Xong</span>`;
+                        default:
+                            return `<span class="badge light badge-danger">❌ Hủy</span>`;
+                    }
+                }
+            },
+                { data: "table", title: "Bàn"},
+                { data: "total", title: "Tổng tiền" },
+                { data: "formatted_created_at", title: "Ngày tạo" },
+                { 
+                    data: "status_display", title: "Trạng thái",
+                    render: function(data, type, row) {
+                        let badgeClass = "";
+                        switch (row.status) {
+                            case "pending":
+                                return `<span class="badge light badge-warning">⏳ Chờ</span>`;
+                            case "in_progress":
+                                return `<span class="badge light badge-info">🔄 Đang làm</span>`;
+                            case "completed":
+                                return ` <span class="badge light badge-success">✅ Xong</span>`;
+                            default:
+                                return `<span class="badge light badge-danger">❌ Hủy</span>`;
+                        }
+                    }
+                },  // Thêm cột trạng thái
+                {
+                    data: "id",
+                    title: "",
+                    render: function(data, type, row) {
+                        return `
+                        <button type='button' class="btn light btn-primary shadow btn-xs sharp me-1" 
+                        data-id="${row.id}" 
+                        data-bs-toggle="modal" data-bs-target="#modalEditOrder"
+                        >
+                            <i class="fa fa-pencil"></i>
+                        </button>
+
+                        <button type='button' class="btn light btn-primary shadow btn-xs sharp me-1" 
+                        data-id="${row.id}" 
+                        data-bs-toggle="modal" data-bs-target="#modalDetailOrder"
+                        >
+                            <i class="fa fa-eye"></i> <!-- Xem chi tiết -->
+                        </button>
+                        `;
+                    }
+                }
+            ]
+        });
+
+       
+    })
+  
+
+  
+
+</script>
+{% endblock %}

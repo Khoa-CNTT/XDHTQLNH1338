@@ -1,0 +1,296 @@
+.container {
+    height: calc(100vh - 57px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow-x: hidden;
+    overflow-y: auto;
+
+
+
+    @media (max-width: 768px) {
+        min-height: calc(100vh - 50px);
+    }
+
+    &::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background-color: #aaa;
+        border-radius: 10px;
+    }
+
+    .cs-title {
+        transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out;
+
+        [data-theme="light"] & {
+            color: black !important; // Khi Light Mode, đổi thành đen
+
+        }
+    }
+
+    .order-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        align-items: center;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 12px;
+        padding: 15px;
+        position: relative;
+        min-width: 800px;
+        justify-content: space-between;
+        color: white;
+        overflow: hidden;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0px 4px 10px rgba(0, 0.15, 0.15, 0.15);
+        transition: all 0.3s ease;
+
+        // transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out;
+
+        &:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        [data-theme="light"] & {
+            color: black !important; // Khi Light Mode, đổi thành đen
+            background-color: white !important; // Đổi nền trắng
+            box-shadow: 0px 4px 10px rgba(0, 0.15, 0.15, 0.15);
+
+        }
+
+        @media (max-width: 768px) {
+            min-width: 100%;
+        }
+    }
+
+    .index {
+        font-weight: bold;
+        font-size: 16px;
+        margin-right: 40px;
+
+        @media (max-width: 768px) {
+            display: none;
+        }
+    }
+
+    .food-image {
+        width: 90px;
+        height: 90px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid rgba(255, 255, 255, 0.2);
+        transition: all 0.3s ease;
+
+        &:hover {
+            transform: scale(1.05);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        @media (max-width: 768px) {
+            width: 80px;
+            height: 80px;
+        }
+    }
+
+    .order-details {
+        flex: 1;
+        margin-left: 20px;
+
+        @media (max-width: 768px) {
+            margin-left: 15px;
+
+        }
+    }
+
+    .food-name {
+        font-size: 16px;
+        font-weight: bold;
+
+        [data-theme="light"] & {
+            color: black !important; // Khi Light Mode, đổi thành đen
+
+        }
+
+        @media (max-width: 768px) {
+            font-size: 14px;
+            width: 200px;
+        }
+    }
+
+    .quantity {
+        font-size: 14px;
+
+        .quantity-multiplier {
+            font-size: 20px;
+            color: rgb(213, 83, 83);
+            font-weight: bold;
+            margin-left: 10px;
+
+            @media (max-width: 768px) {
+                font-size: 15px;
+
+            }
+        }
+
+        .price {
+            [data-theme="light"] & {
+                color: black !important;
+            }
+        }
+
+        @media (max-width: 768px) {
+            font-size: 12px;
+            margin-bottom: 15px;
+
+        }
+    }
+
+    .total-price {
+        text-align: center;
+        font-weight: bold;
+        font-size: 16px;
+        color: #ff6600;
+        flex: 1;
+
+        @media (max-width: 768px) {
+            font-size: 12px;
+            text-align: end;
+            display: none;
+        }
+    }
+
+    .counter {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        background: rgba(255, 255, 255, 0.1);
+        padding: 8px 15px;
+        border-radius: 25px;
+        margin-top: 15px;
+        width: 150px;
+        min-width: 150px;
+        max-width: 150px;
+        flex-shrink: 0;
+        transition: all 0.3s ease;
+
+        [data-theme="light"] & {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+    }
+
+    .button {
+        width: 35px;
+        height: 35px;
+        border: none;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        font-size: 1.2rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+
+        &:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        &:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        [data-theme="light"] & {
+            background: rgba(0, 0, 0, 0.1);
+            color: #333;
+        }
+
+        @media (max-width: 768px) {
+            width: 35px;
+            height: 25px;
+            border: none;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 1rem;
+        }
+    }
+
+    .count {
+        min-width: 40px;
+        text-align: center;
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+
+    .food-add-cart {
+
+        flex: 1;
+
+        @media (max-width: 768px) {}
+    }
+
+    .cs-deleted {
+        cursor: pointer;
+
+        @media (max-width: 768px) {
+            font-size: 15px;
+            text-align: end;
+        }
+
+        [data-theme="light"] & {
+            color: #000 !important;
+
+        }
+    }
+
+    .cs-total-price {
+        color: #ff6600;
+    }
+
+    .cs-title {
+
+        margin-left: 200px;
+        width: 300px;
+        margin-top: 20px;
+
+        @media (max-width: 768px) {
+            margin-left: 0;
+
+        }
+
+        transition: background-color 0.3s ease-in-out,
+        color 0.3s ease-in-out;
+
+        [data-theme="light"] & {
+            color: black !important;
+        }
+    }
+
+    .cs-btn-order {
+        width: 150px;
+        height: 40px;
+        border-radius: 10px;
+        color: #fff;
+        background-color: crimson;
+        border: none;
+        box-shadow: 0px 4px 10px rgba(0, 0.15, 0.15, 0.15);
+
+        @media (max-width: 768px) {
+            width: 150px;
+            height: 40px;
+            border-radius: 10px;
+            color: #fff;
+        }
+    }
+}
