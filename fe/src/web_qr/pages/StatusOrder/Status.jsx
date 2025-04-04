@@ -7,6 +7,7 @@ import { ImBin } from "react-icons/im";
 import { IoClose } from "react-icons/io5";
 import { readCart, updateQuantityCart, deleteCartItem } from "../../services/api";
 import { useCart } from "../../context/CartContext";
+import { Link } from "react-router-dom";
 const cx = classNames.bind(styles)
 
 const Status = () => {
@@ -109,39 +110,51 @@ const Status = () => {
                 <div className="text-center mt-4">
                     <PulseLoader color="#ffffff" />
                 </div>
-            ) : (
-                cartItems.map((item, index) => (
-                    <div className={cx("order-item")} key={item.id}>
-                        <img
-                            src="https://bigboy-ecru.vercel.app/_next/image?url=https%3A%2F%2Fapi-bigboy.duthanhduoc.com%2Fstatic%2F15bd3bf27dad4c27b9d671f9617b0be5.jpg&w=384&q=80"
-                            alt={item.product_name}
-                            className={cx("food-image")}
-                        />
-                        <div className={cx("order-details")}>
-                            <h4 className={cx("food-name")}>{item.product_name}</h4>
-                            <div className={cx("quantity", "mt-3", "text-white")}>
-                                <span className={cx("quantity-multiplier")}> x {item.quantity}</span>
-                            </div>
-                        </div>
-
-                        <div className={cx("cs-status", "completed")}>
-                            <span className={cx("cs-sub-status")}>chờ xác nhận</span>
-                        </div>
-                        <span className={cx("cs-deleted")} onClick={() => handleDeleteItem(item.product)}>
-                            <ImBin />
-                        </span>
+            ) : cartItems.length === 0 ? (
+                <div className={cx("empty-status")}>
+                    <div className={cx("empty-status-content")}>
+                        <h3>Quên chưa đặt món rồi nè bạn ơi?</h3>
+                        <p>Hãy đặt món để theo dõi trạng thái đơn hàng của bạn</p>
+                        <Link to="/menu-order" className={cx("cs-btn-order")}>
+                            Đặt món
+                        </Link>
                     </div>
-                ))
-            )}
+                </div>
+            ) : (
+                <>
+                    {cartItems.map((item, index) => (
+                        <div className={cx("order-item")} key={item.id}>
+                            <img
+                                src="https://bigboy-ecru.vercel.app/_next/image?url=https%3A%2F%2Fapi-bigboy.duthanhduoc.com%2Fstatic%2F15bd3bf27dad4c27b9d671f9617b0be5.jpg&w=384&q=80"
+                                alt={item.product_name}
+                                className={cx("food-image")}
+                            />
+                            <div className={cx("order-details")}>
+                                <h4 className={cx("food-name")}>{item.product_name}</h4>
+                                <div className={cx("quantity", "mt-3", "text-white")}>
+                                    <span className={cx("quantity-multiplier")}> x {item.quantity}</span>
+                                </div>
+                            </div>
 
-            <div className="row mt-3 pb-3">
-                <div className="col-6">
-                    <button type="button" className={cx("cs-btn-order")}>Gọi thêm món</button>
-                </div>
-                <div className="col-6">
-                    <button type="button" className={cx("cs-btn-order")} onClick={() => setShowPaymentModal(true)}>Thanh toán</button>
-                </div>
-            </div>
+                            <div className={cx("cs-status", "completed")}>
+                                <span className={cx("cs-sub-status")}>chờ xác nhận</span>
+                            </div>
+                            <span className={cx("cs-deleted")} onClick={() => handleDeleteItem(item.product)}>
+                                <ImBin />
+                            </span>
+                        </div>
+                    ))}
+
+                    <div className="row mt-3 pb-3">
+                        <div className="col-6">
+                            <button type="button" className={cx("cs-btn-order")}>Gọi thêm món</button>
+                        </div>
+                        <div className="col-6">
+                            <button type="button" className={cx("cs-btn-order")} onClick={() => setShowPaymentModal(true)}>Thanh toán</button>
+                        </div>
+                    </div>
+                </>
+            )}
 
             {/* Payment Modal */}
             {showPaymentModal && (

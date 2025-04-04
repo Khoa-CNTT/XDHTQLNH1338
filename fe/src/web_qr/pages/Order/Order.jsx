@@ -138,6 +138,10 @@ const Order = () => {
                 <div className="text-center mt-4">
                     <PulseLoader color="#ffffff" />
                 </div>
+            ) : cartItems.length === 0 ? (
+                <div className="text-center mt-4 text-white">
+                    <h4>{t("order_page.empty_cart")}</h4>
+                </div>
             ) : (
                 cartItems.map((item, index) => (
                     <div className="row mt-3 w-100" key={item.id}>
@@ -187,19 +191,23 @@ const Order = () => {
                 ))
             )}
 
-            <div className="row mt-3 text-white">
-                <div className="col-3">
-                </div>
-                <div className="col-8">
-                    <h4 className={cx("cs-title", "fw-bold")}>{t("order_page.total")}:  <span className={cx("cs-total-price")}>{totalOrderPrice.toLocaleString()} đ</span></h4>
-                </div>
-            </div>
+            {cartItems.length > 0 && (
+                <>
+                    <div className="row mt-3 text-white">
+                        <div className="col-3">
+                        </div>
+                        <div className="col-8">
+                            <h4 className={cx("cs-title", "fw-bold")}>{t("order_page.total")}:  <span className={cx("cs-total-price")}>{totalOrderPrice.toLocaleString()} đ</span></h4>
+                        </div>
+                    </div>
 
-            <div className="row mt-3 pb-3">
-                <div className="col-12">
-                    <button type="button" className={cx("cs-btn-order")} onClick={handleOrderSubmit}>{t("order_page.button")}</button>
-                </div>
-            </div>
+                    <div className="row mt-3 pb-3">
+                        <div className="col-12">
+                            <button type="button" className={cx("cs-btn-order")} onClick={handleOrderSubmit}>{t("order_page.button")}</button>
+                        </div>
+                    </div>
+                </>
+            )}
         </div>
     );
 };
