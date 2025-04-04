@@ -28,10 +28,17 @@ class ProductSerializer(serializers.ModelSerializer):
 class CartItemSerializer(serializers.ModelSerializer):
     product_name = serializers.CharField(source='product.name', read_only=True)
     product_price = serializers.IntegerField(source='product.price', read_only=True)
+    product_image_url = serializers.SerializerMethodField()  # Trả về URL đầy đủ  # Trả về URL đầy đủ
 
     class Meta:
         model = CartItem
-        fields = ['id', 'product', 'product_name', 'product_price', 'quantity']
+        fields = ['id', 'product', 'product_name', 'product_image_url', 'product_price', 'quantity']
+
+    def get_product_image_url(self, obj):
+        request = self.context.get('request')
+        if obj.product.image:
+            return obj.product.image.url
+        return None
 
 
 class CartSerializer(serializers.ModelSerializer):
