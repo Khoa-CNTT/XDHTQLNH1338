@@ -140,12 +140,12 @@ const Order = () => {
                 </div>
             ) : (
                 cartItems.map((item, index) => (
-                    <div className="row mt-3" key={item.id}>
+                    <div className="row mt-3 w-100" key={item.id}>
                         <div className="col-12">
                             <div className={cx("order-item")}>
                                 <span className={cx("index")}>{index + 1}</span>
                                 <img
-                                    src="https://bigboy-ecru.vercel.app/_next/image?url=https%3A%2F%2Fapi-bigboy.duthanhduoc.com%2Fstatic%2F15bd3bf27dad4c27b9d671f9617b0be5.jpg&w=384&q=80"
+                                    src={item.product_image_url}
                                     alt={item.product_name}
                                     className={cx("food-image")}
                                 />
