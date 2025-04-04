@@ -3,15 +3,20 @@
 <div class="p-3 mb-3 border rounded bg-light">
     <div class="row">
         <div class="col-md-6">
-            <p class="mb-1"><strong><i class="fas fa-chair text-secondary"></i> Bàn:</strong> Bàn {{ table_id }}</p>
-            <p class="mb-1"><strong><i class="fas fa-user me-1"></i>Khách hàng:</strong> {{ customer_name }}</p>
+            <p class="mb-1"><strong><i class="fas fa-chair text-secondary"></i> Bàn:</strong> 
+                <span id="tableNumber">Bàn {{ table_id }}</span>
+            </p>
+            <p class="mb-1"><strong><i class="fas fa-user me-1"></i>Khách hàng:</strong> 
+                <span id="customerName">{{ customer_name }}</span>
+            </p>
         </div>
         <div class="col-md-6 text-end">
             <p class="mb-1">
                 <strong>
                     <i class="fas fa-clock me-1"></i>
+                    Giờ vào:
                 </strong> 
-                <span id="orderTimer" class="timer">00:00:00</span>
+                <span id="entryTime" class="timer">{{ session.started_at.strftime('%d/%m/%Y %H:%M') }}</span>
             </p>
         </div>
     </div>
@@ -42,26 +47,119 @@
     </table>
 </div>
 
+<div class="row g-3">
+    <div class="col-md-4">
+        <label class="form-label">Giảm giá:</label>
+        <div class="d-flex gap-2 mb-3">
+            <button class="btn btn-outline-primary btn-xxs" onclick="setDiscount(5)">5%</button>
+            <button class="btn btn-outline-primary btn-xxs" onclick="setDiscount(10)">10%</button>
+            <button class="btn btn-outline-primary btn-xxs" onclick="setDiscount(15)">15%</button>
+            <button class="btn btn-outline-primary btn-xxs" onclick="setDiscount(20)">20%</button>
+        </div>
+        <div class="input-group input-group-sm">
+            <input type="number" min="0" max="100" class="form-control" 
+                   id="discountInput" placeholder="Nhập % giảm giá">
+            <span class="input-group-text">%</span>
+        </div>
+    </div>
+</div>
+
+<div class="form-group mt-3">
+    <label><strong>Hình thức thanh toán:</strong></label>
+    <div class="payment-methods d-flex flex-wrap " style='gap:10px;'>
+        <button class="btn btn-outline-info active btn-sm" data-value='cash' id="btn-cash">
+            <i class="fas fa-money-bill-wave"></i> Tiền mặt
+        </button>
+        <button class="btn btn-outline-info btn-sm" id="btn-card" data-value='card'>
+            <i class="fas fa-credit-card"></i> Thẻ
+        </button>
+        <button class="btn btn-outline-info btn-sm" id="btn-bank" data-value="bank_transfer">
+            <i class="fas fa-university"></i> Chuyển khoản
+        </button>
+   
+    </div>
+</div>
+
+<hr/>
 <div class="row align-items-end">
     <div class="col-md-6">
-        <h5><strong>Thành tiền:</strong> <span id="finalTotal">{{ macros.format_currency(total_amount) }}</span></h5>
+        <h5><strong>Thành tiền:</strong> 
+            <span id="finalTotal">{{ macros.format_currency(total_amount) }}</span>
+        </h5>
+        <!-- 👇 Hidden subtotal để dùng trong tính toán -->
+        <span id="totalAmount" hidden>{{ total_amount }}</span>
     </div>
 
     <div class="col-md-6 text-end">
-        <button class="btn btn-outline-success btn-sm"  data-table-id="{{table_id}}" 
-        data-bs-toggle="modal" data-bs-target="#modelPaymentOrder" >
+        <button class="btn btn-outline-success btn-sm" onclick="confirm_payment()" data-table-id="{{table_id}}" >
             <i class="fas fa-check"></i> Thanh Toán
         </button>
     </div>
 </div>
+
+{% with 
+    modal_id = 'modalPreviewPayment',
+    modal_title='Phiếu thanh toán',
+    modal_class_size='modal-md'
+  %}
+    {% include '/popup/popup_preview.html' %}
+{%endwith%}
+
+
 {% block script %}
 <script type="text/javascript">
+
+    function confirm_payment() {
+        $('#modalPreviewPayment').modal('show');
+    
+        // Lấy dữ liệu cần thiết
+        let tableNumber = $('#tableNumber').text();
+        let entryTime = $('#entryTime').text();
+        let customerName = $('#customerName').text();
+        let totalAmount = parseFloat($('#totalAmount').text().replace(/[^\d]/g, '')) || 0;
+        let discountPercent = parseInt($('#discountInput').val()) || 0;
+        let discountAmount = Math.round((totalAmount * discountPercent) / 100);
+        let amountDue = totalAmount - discountAmount;
+    
+        // Phương thức thanh toán (dựa vào button được active)
+        let paymentMethod = $(".payment-methods .btn.active").html();
+     
+        // HTML xem trước
+        let html_preview = `
+            <div class="preview-payment">
+                <p><strong>Bàn:</strong> ${tableNumber}</p>
+                <p><strong>Ngày & Giờ vào:</strong> ${entryTime}</p>
+                <p><strong>Khách hàng:</strong> ${customerName}</p>
+                <hr/>
+                <p><strong>Tạm tính:</strong> ${totalAmount.toLocaleString()}đ</p>
+                <p><strong>Tiền giảm (${discountPercent}%):</strong> ${discountAmount.toLocaleString()}đ</p>
+                <p><strong>Tổng tiền phải trả:</strong> ${amountDue.toLocaleString()}đ</p>
+                <p><strong>Phương thức thanh toán:</strong> ${paymentMethod}</p>
+                <hr/>
+                <div class="text-end">
+                    <button id="confirmPayment" class="btn btn-success">
+                        <i class="fas fa-check-circle"></i> Xác nhận thanh toán
+                    </button>
+                </div>
+            </div>
+        `;
+    
+        $('#modalPreviewPayment #modalBody').html(html_preview);
+    }
+
     $(document).ready(function() {
-        const totalAmount = parseFloat($("#subTotal").text().replace(/[^\d]/g, ''));
         // Update discount amount and final total
+        $(".payment-methods .btn").click(function () {
+            $(".payment-methods .btn").removeClass("active");
+            $(this).addClass("active");
+        });
+
+        
+
+        
         function updateDiscount(percent) {
-            const discountAmount = Math.round((totalAmount * percent) / 100);
-            $("#discountedAmount").text(discountAmount.toLocaleString() + 'đ');
+            var totalAmount = {{total_amount}};
+            const discountAmount = Math.round(( totalAmount * percent) / 100);
             $("#finalTotal").text((totalAmount - discountAmount).toLocaleString() + 'đ');
         }
 
@@ -80,31 +178,42 @@
             updateDiscount(percent);
         };
 
-          // 🔹 Xử lý thanh toán
-        $("#confirmPayment").click(function() {
-        const orderData = {
-            table_id: {{ table_id }},
-            customer_name: "{{ customer_name }}",
-            discount_percent: parseInt($("#discountInput").val()) || 0,
-            subtotal: totalAmount,
-            discount_amount: parseFloat($("#discountedAmount").text().replace(/[^\d]/g, '')),
-            total: parseFloat($("#finalTotal").text().replace(/[^\d]/g, '')),
-        };
 
-        $.ajax({
-            url: "{{url('web_01:complete_payment')}}",
-            type: "POST",
-            headers: { 'X-CSRFToken': '{{ csrf_token }}' },
-            data: JSON.stringify(orderData),
-            success: function(response) {
-                location.reload();
-            },
-            error: function(error) {
-                console.error(error);
-            }
-        });
+        $('#modalPreviewPayment').on('click','#confirmPayment',function() {
+                 // Lấy thông tin từ DOM
+            const discountPercent = parseInt($("#discountInput").val()) || 0;
+            const subtotal = parseFloat($("#totalAmount").text()) || 0;  // ẩn trong DOM
+            const finalTotalText = $("#finalTotal").text().replace(/[^\d]/g, '');
+            const finalTotal = parseFloat(finalTotalText) || 0;
+            const payment_method = $(".payment-methods .btn.active").data('value');
+        
+            const orderData = {
+                table_id: {{ table_id }},
+                customer_name: $("#customerName").text().trim(),
+                discount_percent: discountPercent,
+                subtotal: subtotal,
+                discount_amount: subtotal - finalTotal,
+                total: finalTotal,
+                payment_method: payment_method
+            };
+        
+            $.ajax({
+                url: "{{ url('web_01:complete_payment') }}",
+                type: "POST",
+                contentType: "application/json",
+                headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+                data: JSON.stringify(orderData),
+                success: function (response) {
+                    location.reload();
+                },
+                error: function (error) {
+                    console.error("Lỗi khi xác nhận thanh toán:", error);
+                    alert("Đã xảy ra lỗi khi thanh toán. Vui lòng thử lại.");
+                }
+            });
+        })
+       
     });
      
-    });
 </script>
 {% endblock %}
