@@ -3,12 +3,14 @@
 <div class="p-3 mb-3 border rounded bg-light">
     <div class="row">
         <div class="col-md-6">
-            <p class="mb-1"><strong>Mã bàn:</strong> Bàn {{ table_id }}</p>
-            <p class="mb-1"><strong>Khách hàng:</strong> {{ customer_name }}</p>
+            <p class="mb-1"><strong><i class="fas fa-chair text-secondary"></i> Bàn:</strong> Bàn {{ table_id }}</p>
+            <p class="mb-1"><strong><i class="fas fa-user me-1"></i>Khách hàng:</strong> {{ customer_name }}</p>
         </div>
         <div class="col-md-6 text-end">
             <p class="mb-1">
-                <strong>Thời gian:</strong> 
+                <strong>
+                    <i class="fas fa-clock me-1"></i>
+                </strong> 
                 <span id="orderTimer" class="timer">00:00:00</span>
             </p>
         </div>
@@ -46,7 +48,8 @@
     </div>
 
     <div class="col-md-6 text-end">
-        <button class="btn btn-outline-success btn-sm" id="confirmPayment">
+        <button class="btn btn-outline-success btn-sm"  data-table-id="{{table_id}}" 
+        data-bs-toggle="modal" data-bs-target="#modelPaymentOrder" >
             <i class="fas fa-check"></i> Thanh Toán
         </button>
     </div>
@@ -89,7 +92,7 @@
         };
 
         $.ajax({
-            url: "{{url('web_01:order_payment')}}",
+            url: "{{url('web_01:complete_payment')}}",
             type: "POST",
             headers: { 'X-CSRFToken': '{{ csrf_token }}' },
             data: JSON.stringify(orderData),

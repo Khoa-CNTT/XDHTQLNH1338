@@ -79,6 +79,18 @@
         </div>
     </div>
 </div>
+
+
+{% with 
+    modal_id = 'modelPaymentOrder',
+    modal_title='Phiếu thanh toán',
+    modal_class_size='modal-md',
+    modal_body_tmp = '/apps/web_01/service/modal/modal_payment_order.html'
+  %}
+    {% include '/popup/popup_create.html' %}
+  {%endwith%}
+
+
 {% endblock %}
 
 {% block script %}

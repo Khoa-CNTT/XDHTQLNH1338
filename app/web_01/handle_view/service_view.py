@@ -34,6 +34,7 @@ class ServiceManagementView(LoginRequiredMixin, TemplateView):
 @login_required
 def get_order_by_table(request):
     table_id = request.GET.get('table_id')
+    is_payment = request.GET.get('is_payment')
 
     # Kiểm tra nếu không có table_id
     if not table_id:
@@ -69,9 +70,12 @@ def get_order_by_table(request):
 
     # Lấy thông tin khách hàng (nếu có)
     customer_name = session.customer.user.username if session.customer else "Khách vãng lai"
-
+    if is_payment:
+        html_template = 'apps/web_01/service/modal/content_payment_order.html'
+    else:
+        html_template = 'apps/web_01/service/order_item.html'
     # Trả về template với danh sách đã gộp
-    return render(request, "apps/web_01/service/order_item.html", {
+    return render(request, html_template, {
         "order_details": order_details_list,
         "total_amount": total_amount,
         "customer_name": customer_name,
@@ -80,7 +84,7 @@ def get_order_by_table(request):
 
 
 @csrf_exempt
-def order_payment(request):
+def complete_payment(request):
     if request.method == "POST":
         try:
             data = json.loads(request.body)

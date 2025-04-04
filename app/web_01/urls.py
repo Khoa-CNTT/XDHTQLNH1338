@@ -18,7 +18,8 @@ urlpatterns = [
         path('service/', include([
             path('list', views.ServiceManagementView.as_view(), name='service_list'),
             path('get-orders/', views.get_order_by_table, name='get_order_by_table'),
-            path('order-payment/', views.order_payment, name='order_payment'),
+            path('complete-payment/', views.complete_payment, name='complete_payment'),
+
         ])),
         path('order/', include([
              path('list', views.OrderManagementView.as_view(), name='order_list'),

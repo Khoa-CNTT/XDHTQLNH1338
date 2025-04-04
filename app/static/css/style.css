@@ -32717,3 +32717,22 @@ font-weight: 600;
   border: 2px solid #f94687;
   background-color: #f9468726;
 }
+
+
+.payment-methods .btn {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ddd;
+    margin: 5px;
+    font-size: 14px;
+    text-align: center;
+}
+
+.payment-methods .btn i {
+    margin-right: 5px;
+}
+
+.payment-methods .btn.active {
+    background-color: #007bff;
+    color: #fff;
+}
