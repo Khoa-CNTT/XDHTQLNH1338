@@ -1,6 +1,6 @@
 {
     "home": "Menu",
-    "login": "Login",
+    "order": "Order",
     "logout": "Logout",
     "language": "English",
     "search_placeholder": "What do you want to eat...",
@@ -22,6 +22,7 @@
     "order_page": {
         "title": "Your Order",
         "button": "Order",
-        "total": "Total"
+        "total": "Total",
+        "empty_cart": "Cart is empty"
     }
 }
