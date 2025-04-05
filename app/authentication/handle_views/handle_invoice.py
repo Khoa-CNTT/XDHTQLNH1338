@@ -2,7 +2,7 @@ from core.__Include_Library import *
 from rest_framework.response import Response
 from rest_framework import status
 from authentication.mixins import AuthenticationPermissionMixin
-from authentication.serializers import InvoiceSerializer
+from authentication.serializers import InvoiceSerializer, InvoiceDetailSerializer
 from web_01.models import Invoice, Cart, CartItem, Order, OrderDetail
 
 
@@ -56,3 +56,19 @@ class InvoiceViewSet(AuthenticationPermissionMixin, ViewSet):
         # Trả về thông tin Invoice
         serializer = InvoiceSerializer(invoice)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @action(detail=False, methods=['get'], url_path='current')
+    def current(self, request):
+        print('request.user', request.user)
+        customer = request.user.customer
+        active_session = customer.session_set.filter(status='active').first()
+
+        if not active_session:
+            return Response({'error': 'Không có session nào đang active!'}, status=status.HTTP_400_BAD_REQUEST)
+
+        invoice = Invoice.objects.filter(session=active_session).first()
+        if not invoice:
+            return Response({'error': 'Chưa có hóa đơn nào trong session hiện tại!'}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = InvoiceDetailSerializer(invoice)
+        return Response(serializer.data)
