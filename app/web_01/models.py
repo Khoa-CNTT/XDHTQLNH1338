@@ -256,7 +256,7 @@ class Order(BaseModel):
     status = models.CharField(max_length=15, choices=[
         ('pending', 'Chờ'),
         ('in_progress', 'Đang làm'),
-        ('completed', 'Xong'),
+        ('completed', 'Hoàn thành'),
         ('cancelled', 'Hủy')
     ], default='pending')
 
@@ -277,7 +277,7 @@ class OrderDetail(BaseModel):
     status = models.CharField(max_length=15, choices=[
         ('pending', 'Chờ'),
         ('in_progress', 'Đang làm'),
-        ('completed', 'Xong'),
+        ('completed', 'Hoàn thành'),
         ('cancelled', 'Hủy')
     ], default='pending')  # Trạng thái của từng món
 
