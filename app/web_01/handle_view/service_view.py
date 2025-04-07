@@ -4,7 +4,7 @@ from django.shortcuts import render
 from django.views.generic import TemplateView
 import json
 from django.views.decorators.csrf import csrf_exempt
-from web_01.models import Table, Order, Product, Invoice, Session
+from web_01.models import Table, Order, Product, Invoice, Session, OrderDetail
 from django import forms
 from django.contrib.auth.decorators import login_required
 
@@ -52,21 +52,36 @@ def get_order_by_table(request):
     if not invoices.exists():
         return JsonResponse({"success": False, "message": "Bàn này chưa có đơn nào!"}, status=404)
 
-    # Gộp tất cả các OrderDetail vào một danh sách duy nhất
     order_details_list = []
-    total_amount = 0  # Tổng tiền của tất cả hóa đơn
+    total_amount = 0
 
     for invoice in invoices:
         for order in invoice.order_set.all():
+            order_data = {
+                "order_id": order.id,
+                "status": order.status,
+                "status_display": order.get_status_display(),
+                "order_details": [],
+                "order_total": 0
+            }
+
             for detail in order.orderdetail_set.all():
-                order_details_list.append({
+                item = {
+                    "item_id": detail.id,
                     "product_name": detail.product.name,
+                    "product_image_url": detail.product.image.url if detail.product.image else '',
                     "quantity": detail.quantity,
                     "price": detail.price,
                     "total": detail.total,
-                    "status": detail.status
-                })
-                total_amount += detail.total  # Cộng dồn tổng tiền
+                    "status": detail.status,
+                    "status_display": detail.get_status_display(),
+                }
+                order_data["order_details"].append(item)
+                if detail.status != 'cancelled':
+                    order_data["order_total"] += detail.total
+                    total_amount += detail.total
+
+            order_details_list.append(order_data)
 
     # Lấy thông tin khách hàng (nếu có)
     customer_name = session.customer.user.username if session.customer else "Khách vãng lai"
@@ -130,3 +145,68 @@ def complete_payment(request):
             return JsonResponse({"message": str(e), "status": "error"}, status=400)
 
     return JsonResponse({"message": "Phương thức không hợp lệ!"}, status=405)
+
+
+def complete_payment_multi_order(request):
+    try:
+        data = json.loads(request.body)
+
+        order_ids = data.get('order_ids', [])
+        discount_percent = data.get('discount_percent', 0)
+        payment_method = data.get('payment_method', 'cash')
+        total_amount = data.get('total', 0)
+
+        if not order_ids:
+            return JsonResponse({'success': False, 'message': 'Không có đơn hàng nào được chọn.'}, status=400)
+
+        # Lấy danh sách các order
+        orders = Order.objects.filter(id__in=order_ids).select_related('invoice')
+        if not orders.exists():
+            return JsonResponse({'success': False, 'message': 'Không tìm thấy đơn hàng.'}, status=404)
+
+        with transaction.atomic():
+            # Duyệt qua các đơn và cập nhật trạng thái đã thanh toán
+            for order in orders:
+                order.status = 'completed'
+                order.save()
+
+                # Cập nhật trạng thái hóa đơn nếu tất cả đơn trong hóa đơn đã thanh toán
+                invoice = order.invoice
+                related_orders = invoice.order_set.all()
+                if all(o.status == 'completed' for o in related_orders):
+                    invoice.status = 'completed'
+                    invoice.save()
+
+            # TODO: Ghi lại lịch sử thanh toán nếu muốn
+            # PaymentHistory.objects.create(...)
+
+        return JsonResponse({'success': True, 'message': 'Thanh toán thành công.'})
+
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': f'Đã xảy ra lỗi: {str(e)}'}, status=500)
+
+
+def update_item_status(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        order_id = data.get('order_id')
+        item_id = data.get('item_id')
+        new_status = data.get('status')
+
+        try:
+            item = OrderDetail.objects.get(id=item_id, order_id=order_id)
+            old_status = item.status  # Trạng thái cũ trước khi cập nhật
+            item.status = new_status
+            item.save()
+
+            # Nếu chuyển từ trạng thái khác sang 'cancelled' => cập nhật tổng tiền
+            if new_status == 'cancelled':
+                order = item.order  # Quan hệ FK đến Order
+                order.total -= item.price * item.quantity  # hoặc item.total_price nếu có
+                order.save()
+
+            return JsonResponse({'success': True})
+        except OrderDetail.DoesNotExist:
+            return JsonResponse({'error': 'Item not found'}, status=404)
+
+    return JsonResponse({'error': 'Invalid request'}, status=400)

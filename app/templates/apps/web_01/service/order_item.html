@@ -22,78 +22,117 @@
     </div>
 </div>
 
-<div class="table-responsive">
-    <table class="table table-hover border rounded">
-        <thead class="table-light">
-            <tr>
-                <th>#</th>
-                <th>Món ăn</th>
-                <th>Số lượng</th>
-                <th>Giá</th>
-                <th>Thành tiền</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for detail in order_details %}
-            <tr>
-                <td>{{ loop.index }}</td>
-                <td>{{ detail.product_name }}</td>
-                <td>{{ detail.quantity }}</td>
-                <td>{{ macros.format_currency(detail.price) }}</td>
-                <td>{{ macros.format_currency(detail.total) }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
-
-<div class="row g-3">
-    <div class="col-md-4">
-        <label class="form-label">Giảm giá:</label>
-        <div class="d-flex gap-2 mb-3">
-            <button class="btn btn-outline-primary btn-xxs" onclick="setDiscount(5)">5%</button>
-            <button class="btn btn-outline-primary btn-xxs" onclick="setDiscount(10)">10%</button>
-            <button class="btn btn-outline-primary btn-xxs" onclick="setDiscount(15)">15%</button>
-            <button class="btn btn-outline-primary btn-xxs" onclick="setDiscount(20)">20%</button>
+{% for order in order_details %}
+    <div class="card mb-3 border shadow-sm {% if order.status == 'paid' %}opacity-50{% endif %}">
+        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+            <div>
+                <input class="form-check-input me-2 order-checkbox"
+                       type="checkbox"
+                       value="{{ order.order_id }}"
+                       data-total="{{ order.order_total }}"
+                       {% if order.status == 'completed' %}checked disabled{% endif %}>
+                <strong>Đơn #{{ loop.index }}</strong>
+            </div>
+            <div>
+                <span class="badge 
+                    {% if order.status == 'completed' %}bg-success{% elif order.status == 'pending' %}bg-warning{% else %}bg-secondary{% endif %}">
+                    {% if order.status == 'completed' %}Đã thanh toán{% elif order.status == 'pending' %}Chưa thanh toán{% else %}{% endif %}
+                    <span class="ms-1 fa fa-check"></span>
+                </span>
+                <span class="text-muted">Tổng: {{ macros.format_currency(order.order_total) }}</span>
+            </div>
         </div>
-        <div class="input-group input-group-sm">
-            <input type="number" min="0" max="100" class="form-control" 
-                   id="discountInput" placeholder="Nhập % giảm giá">
-            <span class="input-group-text">%</span>
+        <div class="card-body p-2">
+            <table class="table table-sm mb-0">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Món</th>
+                        <th>Số lượng</th>
+                        <th>Giá</th>
+                        <th>Thành tiền</th>
+                        <th>Trạng thái</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in order.order_details %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>
+                            <img src="{{ item.product_image_url }}" width="35" class="me-2 rounded">
+                            {{ item.product_name }}
+                        </td>
+                        <td>{{ item.quantity }}</td>
+                        <td>{{ macros.format_currency(item.price) }}</td>
+                        <td>{{ macros.format_currency(item.total) }}</td>
+                        <td>
+                            {% if item.status == 'pending' %}
+                                <span class="badge badge-warning ">Chờ</span>
+                            {% elif item.status == 'in_progress' %}
+                                <span class="badge badge-info ">Đang làm</span>
+                            {% elif item.status == 'completed' %}
+                                <span class="badge badge-success ">Hoàn thành</span>
+                            {% else %}
+                                <span class="badge badge-danger ">Đã hủy</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="dropdown text-sans-serif">
+                                <button class="btn btn-sm btn-light sharp {% if item.status == 'completed' %}disabled{% endif %}"
+                                        type="button"
+                                        id="dropdown-item-{{ item.item_id }}"
+                                        data-bs-toggle="dropdown"
+                                        aria-haspopup="true"
+                                        aria-expanded="false"
+                                        {% if item.status in ['completed','cancelled'] %}disabled{% endif %}>
+                                    <svg width="18px" height="18px" viewBox="0 0 24 24">
+                                        <g fill="none" fill-rule="evenodd">
+                                            <circle fill="#000000" cx="5" cy="12" r="2"></circle>
+                                            <circle fill="#000000" cx="12" cy="12" r="2"></circle>
+                                            <circle fill="#000000" cx="19" cy="12" r="2"></circle>
+                                        </g>
+                                    </svg>
+                                </button>
+                                {% if item.status != 'completed' %}
+                                <div class="dropdown-menu dropdown-menu-end border py-0"
+                                     aria-labelledby="dropdown-item-{{ item.item_id }}">
+                                    <div class="py-2">
+                                        <a class="dropdown-item update-status-option" href="#!"
+                                           data-order-id="{{ order.order_id }}"
+                                           data-item-id="{{ item.item_id }}" data-status="pending">Chờ</a>
+                                        <a class="dropdown-item update-status-option" href="#!"
+                                           data-order-id="{{ order.order_id }}"
+                                           data-item-id="{{ item.item_id }}" data-status="in_progress">Đang làm</a>
+                                        <a class="dropdown-item update-status-option" href="#!"
+                                           data-order-id="{{ order.order_id }}"
+                                           data-item-id="{{ item.item_id }}" data-status="completed">Hoàn thành</a>
+                                        <a class="dropdown-item update-status-option" href="#!"
+                                           data-order-id="{{ order.order_id }}"
+                                           data-item-id="{{ item.item_id }}" data-status="cancelled">Hủy</a>
+                                        <div class="dropdown-divider"></div>
+                                        <a class="dropdown-item text-danger" href="#!"
+                                           onclick="deleteItem({{ item.item_id }})">Xoá</a>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                            
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
-</div>
+{% endfor %}
 
-<div class="form-group mt-3">
-    <label><strong>Hình thức thanh toán:</strong></label>
-    <div class="payment-methods d-flex flex-wrap " style='gap:10px;'>
-        <button class="btn btn-outline-info active btn-sm" data-value='cash' id="btn-cash">
-            <i class="fas fa-money-bill-wave"></i> Tiền mặt
-        </button>
-        <button class="btn btn-outline-info btn-sm" id="btn-card" data-value='card'>
-            <i class="fas fa-credit-card"></i> Thẻ
-        </button>
-        <button class="btn btn-outline-info btn-sm" id="btn-bank" data-value="bank_transfer">
-            <i class="fas fa-university"></i> Chuyển khoản
-        </button>
-   
-    </div>
-</div>
-
-<hr/>
-<div class="row align-items-end">
-    <div class="col-md-6">
-        <h5><strong>Thành tiền:</strong> 
-            <span id="finalTotal">{{ macros.format_currency(total_amount) }}</span>
-        </h5>
-        <!-- 👇 Hidden subtotal để dùng trong tính toán -->
-        <span id="totalAmount" hidden>{{ total_amount }}</span>
-    </div>
-
-    <div class="col-md-6 text-end">
-        <button class="btn btn-outline-success btn-sm" onclick="confirm_payment()" data-table-id="{{table_id}}" >
-            <i class="fas fa-check"></i> Thanh Toán
-        </button>
+<div class="text-end mb-3">
+    <button class="btn btn-primary" onclick="confirm_payment()">
+        <i class="fas fa-money-bill-wave"></i> Thanh toán các đơn đã chọn
+    </button>
+    <div class="mt-2 text-muted">
+        Tổng tiền đã chọn: <strong id="finalSelectedTotal">0đ</strong>
     </div>
 </div>
 
@@ -105,26 +144,44 @@
     {% include '/popup/popup_preview.html' %}
 {%endwith%}
 
-
 {% block script %}
 <script type="text/javascript">
 
+    function updateSelectedOrdersTotal() {
+        let total = 0;
+        $(".order-checkbox:checked").each(function () {
+            total += parseFloat($(this).data("total"));
+        });
+        $("#finalSelectedTotal").text(total.toLocaleString() + "đ");
+    }
+
     function confirm_payment() {
+        const selectedOrders = $(".order-checkbox:checked").map(function () {
+            return $(this).val();
+        }).get();
+
+        if (selectedOrders.length === 0) {
+            alert("Vui lòng chọn ít nhất một đơn hàng để thanh toán!");
+            return;
+        }
+
         $('#modalPreviewPayment').modal('show');
     
-        // Lấy dữ liệu cần thiết
         let tableNumber = $('#tableNumber').text();
         let entryTime = $('#entryTime').text();
         let customerName = $('#customerName').text();
-        let totalAmount = parseFloat($('#totalAmount').text().replace(/[^\d]/g, '')) || 0;
+
+        let totalAmount = 0;
+        $(".order-checkbox:checked").each(function () {
+            totalAmount += parseFloat($(this).data("total"));
+        });
+
         let discountPercent = parseInt($('#discountInput').val()) || 0;
         let discountAmount = Math.round((totalAmount * discountPercent) / 100);
         let amountDue = totalAmount - discountAmount;
-    
-        // Phương thức thanh toán (dựa vào button được active)
+
         let paymentMethod = $(".payment-methods .btn.active").html();
-     
-        // HTML xem trước
+    
         let html_preview = `
             <div class="preview-payment">
                 <p><strong>Bàn:</strong> ${tableNumber}</p>
@@ -133,7 +190,7 @@
                 <hr/>
                 <p><strong>Tạm tính:</strong> ${totalAmount.toLocaleString()}đ</p>
                 <p><strong>Tiền giảm (${discountPercent}%):</strong> ${discountAmount.toLocaleString()}đ</p>
-                <p><strong>Tổng tiền phải trả:</strong> ${amountDue.toLocaleString()}đ</p>
+                <p><strong>Tổng tiền phải trả:</strong> <span id="finalTotal">${amountDue.toLocaleString()}đ</span></p>
                 <p><strong>Phương thức thanh toán:</strong> ${paymentMethod}</p>
                 <hr/>
                 <div class="text-end">
@@ -148,22 +205,24 @@
     }
 
     $(document).ready(function() {
-        // Update discount amount and final total
+        $(document).on('change', '.order-checkbox', function () {
+            updateSelectedOrdersTotal();
+        });
+
         $(".payment-methods .btn").click(function () {
             $(".payment-methods .btn").removeClass("active");
             $(this).addClass("active");
         });
 
-        
-
-        
         function updateDiscount(percent) {
-            var totalAmount = {{total_amount}};
-            const discountAmount = Math.round(( totalAmount * percent) / 100);
-            $("#finalTotal").text((totalAmount - discountAmount).toLocaleString() + 'đ');
+            let total = 0;
+            $(".order-checkbox:checked").each(function () {
+                total += parseFloat($(this).data("total"));
+            });
+            const discountAmount = Math.round((total * percent) / 100);
+            $("#finalTotal").text((total - discountAmount).toLocaleString() + 'đ');
         }
 
-        // Handle discount input changes
         $("#discountInput").on('input', function() {
             let percent = parseInt($(this).val()) || 0;
             if (percent < 0) percent = 0;
@@ -172,33 +231,37 @@
             updateDiscount(percent);
         });
 
-        // Set discount from preset buttons
         window.setDiscount = function(percent) {
             $("#discountInput").val(percent);
             updateDiscount(percent);
         };
 
-
         $('#modalPreviewPayment').on('click','#confirmPayment',function() {
-                 // Lấy thông tin từ DOM
             const discountPercent = parseInt($("#discountInput").val()) || 0;
-            const subtotal = parseFloat($("#totalAmount").text()) || 0;  // ẩn trong DOM
+            const selectedOrders = $(".order-checkbox:checked").map(function () {
+                return $(this).val();
+            }).get();
+
+            let total = 0;
+            $(".order-checkbox:checked").each(function () {
+                total += parseFloat($(this).data("total"));
+            });
+
             const finalTotalText = $("#finalTotal").text().replace(/[^\d]/g, '');
             const finalTotal = parseFloat(finalTotalText) || 0;
             const payment_method = $(".payment-methods .btn.active").data('value');
-        
+
             const orderData = {
                 table_id: {{ table_id }},
-                customer_name: $("#customerName").text().trim(),
+                order_ids: selectedOrders,
                 discount_percent: discountPercent,
-                subtotal: subtotal,
-                discount_amount: subtotal - finalTotal,
+                discount_amount: total - finalTotal,
                 total: finalTotal,
                 payment_method: payment_method
             };
-        
+
             $.ajax({
-                url: "{{ url('web_01:complete_payment') }}",
+                url: "{{ url('web_01:complete_payment_multi_order') }}",
                 type: "POST",
                 contentType: "application/json",
                 headers: { 'X-CSRFToken': '{{ csrf_token }}' },
@@ -211,9 +274,34 @@
                     alert("Đã xảy ra lỗi khi thanh toán. Vui lòng thử lại.");
                 }
             });
-        })
-       
+        });
+
+
+        $(document).on('click', '.update-status-option', function () {
+            const orderId = $(this).data('order-id');
+            const itemId = $(this).data('item-id');
+            const status = $(this).data('status');
+    
+            $.ajax({
+                url: "{{ url('web_01:update_item_status') }}",
+                method: "POST",
+                headers: { "X-CSRFToken": "{{ csrf_token }}" },
+                contentType: "application/json",
+                data: JSON.stringify({
+                    order_id: orderId,
+                    item_id: itemId,
+                    status: status
+                }),
+                success: function (res) {
+                    location.reload(); // hoặc bạn có thể cập nhật DOM động nếu muốn
+                },
+                error: function (err) {
+                    alert("Cập nhật trạng thái thất bại!");
+                    console.error(err);
+                }
+            });
+        });
+
     });
-     
 </script>
 {% endblock %}

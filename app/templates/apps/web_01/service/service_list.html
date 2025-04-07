@@ -3,15 +3,15 @@
 {% block body %}
 <div class="row">
     <!-- Khu vực quản lý bàn -->
-    <div class="col-md-3">
+    <div class="col-md-12">
         <div class="card border rounded">
             <div class="card-header text-white">
                 <h5 class="card-title">Sơ Đồ Bàn</h5>
             </div>
             <div class="card-body" >
-                <div class="row" id="tableLayout">
+                <div class="row" id="tableLayout" >
                     {% for table in table_list %}
-                    <div class="col-md-4 mb-3">
+                    <div class="col-md-1 mb-3">
                         <div class="table-item text-center rounded shadow-sm 
                                     {% if table.status == 'available' %}table-empty{% else %}table-occupied{% endif %}
                                     {% if request.GET.get('table','')|string == table.id|string %} active{% endif %}"
@@ -37,7 +37,7 @@
     </div>
 
     <!-- Khu vực order -->
-    <div class="col-md-6" id='orderLayout' >
+    <div class="col-md-9" id='orderLayout' >
         <div class="card rounded border">
         <div class="card-header text-white p-0" style="min-height: 57px;">
             <ul class="nav nav-tabs" id="orderTabs" role="tablist">
@@ -90,6 +90,11 @@
 <script type="text/javascript">
     $(document).ready(function () {
         loadProductList();
+        var active_table_id = "{{request.GET.get('table','')}}";
+        
+        if(active_table_id) {
+            addOrActivateTab(active_table_id)
+        }
         function loadProductList() {
             let url = "{{ url('web_01:get_product_service') }}";
             $.ajax({
@@ -116,7 +121,9 @@
         function addOrActivateTab(tableId) {
             let tabId = `tab-${tableId}`;
             let contentId = `content-${tableId}`;
-        
+             // Kích hoạt tab
+            window.history.replaceState({}, '', `?table=${tableId}`);
+
             // Nếu tab đã tồn tại, chỉ cần active nó
             if ($(`#${tabId}`).length > 0) {
                 $(`#${tabId}`).tab('show');
@@ -155,6 +162,8 @@
                     $(`#${tabId}`).tab('show');
                 }
             });
+
+           
         
             // Xử lý đóng tab
             $(`#orderTabs`).on("click", `#${tabId} .close-tab`, function (e) {
