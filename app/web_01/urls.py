@@ -23,6 +23,8 @@ urlpatterns = [
             path('complete-payment-multi-order/', views.complete_payment_multi_order, name='complete_payment_multi_order'),
             path('update-item-status/', views.update_item_status, name='update_item_status'),
             path('end-session/', views.end_session, name='end_session'),
+            path('add-product-to-order/', views.add_product_to_order, name='add_product_to_order'),
+            
 
         ])),
         path('order/', include([

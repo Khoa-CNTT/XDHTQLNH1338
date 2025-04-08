@@ -31,11 +31,7 @@ class ServiceManagementView(LoginRequiredMixin, TemplateView):
         return context
 
 
-@login_required
-def get_order_by_table(request):
-    table_id = request.GET.get('table_id')
-    is_payment = request.GET.get('is_payment')
-
+def process_data_order(request, table_id, is_payment=0):
     # Kiểm tra nếu không có table_id
     if not table_id:
         return JsonResponse({"success": False, "message": "Vui lòng chọn bàn!"}, status=400)
@@ -102,6 +98,13 @@ def get_order_by_table(request):
     })
 
 
+@login_required
+def get_order_by_table(request):
+    table_id = request.GET.get('table_id')
+    is_payment = request.GET.get('is_payment')
+    return process_data_order(request, table_id, is_payment)
+
+
 def get_product_service(request):
     html_template = '/apps/web_01/service/product_item.html'
     product_name = request.GET.get('name', '')
@@ -155,6 +158,7 @@ def complete_payment_multi_order(request):
         data = json.loads(request.body)
 
         order_ids = data.get('order_ids', [])
+        table_id = data.get('table_id')
         discount_percent = data.get('discount_percent', 0)
         payment_method = data.get('payment_method', 'cash')
         total_amount = data.get('total', 0)
@@ -183,7 +187,7 @@ def complete_payment_multi_order(request):
             # TODO: Ghi lại lịch sử thanh toán nếu muốn
             # PaymentHistory.objects.create(...)
 
-        return JsonResponse({'success': True, 'message': 'Thanh toán thành công.'})
+        return process_data_order(request, table_id)
 
     except Exception as e:
         return JsonResponse({'success': False, 'message': f'Đã xảy ra lỗi: {str(e)}'}, status=500)
@@ -192,6 +196,7 @@ def complete_payment_multi_order(request):
 def update_item_status(request):
     if request.method == 'POST':
         data = json.loads(request.body)
+        table_id = data.get('table_id')
         order_id = data.get('order_id')
         item_id = data.get('item_id')
         new_status = data.get('status')
@@ -208,7 +213,7 @@ def update_item_status(request):
                 order.total -= item.price * item.quantity  # hoặc item.total_price nếu có
                 order.save()
 
-            return JsonResponse({'success': True})
+            return process_data_order(request, table_id)
         except OrderDetail.DoesNotExist:
             return JsonResponse({'error': 'Item not found'}, status=404)
 
@@ -233,3 +238,38 @@ def end_session(request):
             return JsonResponse({'error': 'Session not found'}, status=404)
 
     return JsonResponse({'error': 'Invalid request'}, status=400)
+
+
+def add_product_to_order(request):
+    data = json.loads(request.body)
+    order_id = data.get("order_id")
+    table_id = data.get("table_id")
+    product_id = data.get("product_id")
+    quantity = data.get("quantity", 1)
+
+    try:
+        order = Order.objects.get(id=order_id)
+        product = Product.objects.get(id=product_id)
+
+        # Kiểm tra sản phẩm đã có trong đơn chưa
+        item, created = OrderDetail.objects.get_or_create(
+            order=order,
+            product=product,
+            defaults={
+                'quantity': quantity,
+                'price': product.price,
+                'total': product.price * quantity,
+                'status': 'pending'
+            }
+        )
+
+        if not created:
+            # Nếu đã tồn tại -> cập nhật quantity và total
+            item.quantity += quantity
+            item.total = item.price * item.quantity
+            item.save()
+
+        return process_data_order(request, table_id)
+
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
