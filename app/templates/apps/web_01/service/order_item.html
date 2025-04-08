@@ -24,22 +24,44 @@
 
 {% for order in order_details %}
     <div class="card mb-3 border shadow-sm {% if order.status == 'paid' %}opacity-50{% endif %}">
-        <div class="card-header bg-light d-flex justify-content-between align-items-center">
-            <div>
+        <div class="card-header bg-light d-flex justify-content-between align-items-center py-2 px-3 rounded-top">
+            <!-- Trái: Checkbox + Tên đơn -->
+            <div class="d-flex align-items-center">
                 <input class="form-check-input me-2 order-checkbox"
                        type="checkbox"
                        value="{{ order.order_id }}"
                        data-total="{{ order.order_total }}"
                        {% if order.status == 'completed' %}checked disabled{% endif %}>
-                <strong>Đơn #{{ loop.index }}</strong>
+                <strong>Đơn hàng #{{ loop.index }}</strong>
             </div>
-            <div>
-                <span class="badge 
-                    {% if order.status == 'completed' %}bg-success{% elif order.status == 'pending' %}bg-warning{% else %}bg-secondary{% endif %}">
-                    {% if order.status == 'completed' %}Đã thanh toán{% elif order.status == 'pending' %}Chưa thanh toán{% else %}{% endif %}
-                    <span class="ms-1 fa fa-check"></span>
+        
+            <!-- Phải: Trạng thái + Tổng tiền -->
+            <div class="d-flex align-items-center gap-3">
+                <!-- Trạng thái với tooltip -->
+                {% if order.status == 'completed' %}
+                    <span class="badge bg-success d-inline-flex align-items-center"
+                          data-bs-toggle="tooltip" data-bs-placement="top"
+                          title="Đơn đã được thanh toán">
+                        <i class="fas fa-check-circle me-1"></i> Đã thanh toán
+                    </span>
+                {% elif order.status == 'pending' %}
+                    <span class="badge bg-warning d-inline-flex align-items-center"
+                          data-bs-toggle="tooltip" data-bs-placement="top"
+                          title="Đơn chưa được thanh toán">
+                        <i class="fas fa-hourglass-half me-1"></i> Chưa thanh toán
+                    </span>
+                {% else %}
+                    <span class="badge bg-secondary d-inline-flex align-items-center"
+                          data-bs-toggle="tooltip" data-bs-placement="top"
+                          title="Trạng thái khác">
+                        <i class="fas fa-question-circle me-1"></i> Không xác định
+                    </span>
+                {% endif %}
+        
+                <!-- Tổng tiền -->
+                <span class="text-muted small">
+                    Tổng: <strong class="text-dark">{{ macros.format_currency(order.order_total) }}</strong>
                 </span>
-                <span class="text-muted">Tổng: {{ macros.format_currency(order.order_total) }}</span>
             </div>
         </div>
         <div class="card-body p-2">
@@ -67,18 +89,26 @@
                         <td>{{ macros.format_currency(item.price) }}</td>
                         <td>{{ macros.format_currency(item.total) }}</td>
                         <td>
-                            {% if item.status == 'pending' %}
-                                <span class="badge badge-warning ">Chờ</span>
-                            {% elif item.status == 'in_progress' %}
-                                <span class="badge badge-info ">Đang làm</span>
-                            {% elif item.status == 'completed' %}
-                                <span class="badge badge-success ">Hoàn thành</span>
-                            {% else %}
-                                <span class="badge badge-danger ">Đã hủy</span>
-                            {% endif %}
+                        {% if item.status == 'pending' %}
+                            <span class="badge bg-warning " data-bs-toggle="tooltip" data-bs-placement="top" title="Mặt hàng đang chờ xử lý">
+                                <span class="fas fa-stream me-1"></span> Chờ
+                            </span>
+                        {% elif item.status == 'in_progress' %}
+                            <span class="badge bg-primary" data-bs-toggle="tooltip" data-bs-placement="top" title="Mặt hàng đang được chế biến">
+                                <i class="fas fa-redo me-1"></i> Đang chế biến
+                            </span>
+                        {% elif item.status == 'completed' %}
+                            <span class="badge bg-success" data-bs-toggle="tooltip" data-bs-placement="top" title="Mặt hàng đã hoàn thành">
+                                <i class="fas fa-check me-1"></i> Hoàn thành
+                            </span>
+                        {% else %}
+                            <span class="badge bg-danger" data-bs-toggle="tooltip" data-bs-placement="top" title="Mặt hàng đã bị hủy">
+                                <i class="fas fa-times me-1"></i> Đã hủy
+                            </span>
+                        {% endif %}
                         </td>
                         <td>
-                            <div class="dropdown text-sans-serif">
+                            <div class="dropdown text-sans-serif"  {% if item.status in ['completed','cancelled'] %}data-toggle="tooltip" data-placement="top" title="Sản phẩm đã hoàn thành/hủy không thể chỉnh sửa."{% endif %}>
                                 <button class="btn btn-sm btn-light sharp {% if item.status == 'completed' %}disabled{% endif %}"
                                         type="button"
                                         id="dropdown-item-{{ item.item_id }}"
@@ -98,21 +128,28 @@
                                 <div class="dropdown-menu dropdown-menu-end border py-0"
                                      aria-labelledby="dropdown-item-{{ item.item_id }}">
                                     <div class="py-2">
-                                        <a class="dropdown-item update-status-option" href="#!"
-                                           data-order-id="{{ order.order_id }}"
-                                           data-item-id="{{ item.item_id }}" data-status="pending">Chờ</a>
-                                        <a class="dropdown-item update-status-option" href="#!"
-                                           data-order-id="{{ order.order_id }}"
-                                           data-item-id="{{ item.item_id }}" data-status="in_progress">Đang làm</a>
-                                        <a class="dropdown-item update-status-option" href="#!"
-                                           data-order-id="{{ order.order_id }}"
-                                           data-item-id="{{ item.item_id }}" data-status="completed">Hoàn thành</a>
-                                        <a class="dropdown-item update-status-option" href="#!"
-                                           data-order-id="{{ order.order_id }}"
-                                           data-item-id="{{ item.item_id }}" data-status="cancelled">Hủy</a>
-                                        <div class="dropdown-divider"></div>
-                                        <a class="dropdown-item text-danger" href="#!"
-                                           onclick="deleteItem({{ item.item_id }})">Xoá</a>
+                                        {% if item.status in ['in_progress','pending'] %}
+
+                                            {% if item.status != 'in_progress' %}
+                                            <a class="dropdown-item update-status-option" href="#!"
+                                                data-order-id="{{ order.order_id }}"
+                                                data-item-id="{{ item.item_id }}" 
+                                            
+                                                data-status="in_progress">
+                                                <i class="fas fa-redo me-1"></i> Chế biến
+                                             </a>
+                                            {%endif%}
+                                            <a class="dropdown-item update-status-option" href="#!"
+                                                data-order-id="{{ order.order_id }}"
+                                                data-item-id="{{ item.item_id }}" data-status="completed">
+                                                <i class="fas fa-check me-1"></i> Hoàn thành   
+                                            </a>
+                                            <a class="dropdown-item update-status-option" href="#!"
+                                                data-order-id="{{ order.order_id }}"
+                                                data-item-id="{{ item.item_id }}" data-status="cancelled">
+                                                <i class="fas fa-trash-alt me-1"></i> Hủy
+                                            </a>
+                                        {% endif %}
                                     </div>
                                 </div>
                                 {% endif %}
@@ -127,21 +164,58 @@
     </div>
 {% endfor %}
 
-<div class="text-end mb-3">
-    <button class="btn btn-primary me-2" onclick="confirm_payment()">
-        <i class="fas fa-money-bill-wave"></i> Thanh toán các đơn đã chọn
-    </button>
-    <span class='h-100 d-inline-block' data-toggle="tooltip" data-placement="top" title="Cần thanh toán trước khi đóng phiên bàn.">
-        <button type="button"
-                class="btn btn-secondary"
-                {% if not all_paid %}disabled{% endif %}>
-            <i class="fas fa-sign-out-alt"></i> Kết thúc phiên
-        </button>
-    </span>
-    <div class="mt-2 text-muted">
-        Tổng tiền đã chọn: <strong id="finalSelectedTotal">0đ</strong>
+<div class="row g-3">
+    <div class="col-md-6">
+        <label class="form-label">Phương thức thanh toán:</label>
+        <div class="payment-methods d-flex flex-wrap " style='gap:10px;'>
+            <button class="btn btn-outline-info active btn-sm" data-value='cash' id="btn-cash">
+                <i class="fas fa-money-bill-wave"></i> Tiền mặt
+            </button>
+            <button class="btn btn-outline-info btn-sm" id="btn-card" data-value='card'>
+                <i class="fas fa-credit-card"></i> Thẻ
+            </button>
+            <button class="btn btn-outline-info btn-sm" id="btn-bank" data-value="bank_transfer">
+                <i class="fas fa-university"></i> Chuyển khoản
+            </button>
+       
+        </div>
+    </div>
+    <div class="col-md-6">
+        <label class="form-label">Giảm giá:</label>
+        <div class="d-flex gap-2 mb-3">
+            <button class="btn btn-outline-primary btn-xxs" onclick="setDiscount(5)">5%</button>
+            <button class="btn btn-outline-primary btn-xxs" onclick="setDiscount(10)">10%</button>
+            <button class="btn btn-outline-primary btn-xxs" onclick="setDiscount(15)">15%</button>
+            <button class="btn btn-outline-primary btn-xxs" onclick="setDiscount(20)">20%</button>
+        </div>
+        <div class="input-group input-group-sm">
+            <input type="number" min="0" max="100" class="form-control" 
+                   id="discountInput" placeholder="Nhập % giảm giá">
+            <span class="input-group-text">%</span>
+        </div>
     </div>
 </div>
+<hr/>
+
+<div class="row mb-3 align-items-center">
+    <div class='col-md-4 text-start'>
+        Tổng tiền đã chọn: <strong id="finalSelectedTotal">0đ</strong>
+    </div>
+    <div class='col-md-8 text-end'>
+        <button class="btn btn-primary me-2" data-toggle="tooltip" data-placement="top" title="Thanh toán các hóa đơn đã được chọn." onclick="confirm_payment()">
+            <i class="fas fa-money-bill-wave"></i> Thanh toán
+        </button>
+        <span class='h-100 d-inline-block' data-toggle="tooltip" data-placement="top" title="Cần thanh toán trước khi đóng phiên bàn.">
+            <button type="button"
+                    class="btn btn-secondary"
+                    onclick='end_session({{session.id}})'
+                    {% if not all_paid %}disabled
+                    {% endif %}>
+                <i class="fas fa-sign-out-alt"></i> Kết thúc phiên
+            </button>
+        </span>
+    </div>
+ </div>
 
 {% with 
     modal_id = 'modalPreviewPayment',
@@ -159,6 +233,8 @@
         $(".order-checkbox:checked").each(function () {
             total += parseFloat($(this).data("total"));
         });
+        let percent = parseInt($('#discountInput').val()) || 0;
+        total = total - (total * percent/100);
         $("#finalSelectedTotal").text(total.toLocaleString() + "đ");
     }
 
@@ -215,7 +291,7 @@
                 <hr/>
                 <p><strong>Tạm tính:</strong> ${totalAmount.toLocaleString()}đ</p>
                 <p><strong>Tiền giảm (${discountPercent}%):</strong> ${discountAmount.toLocaleString()}đ</p>
-                <p><strong>Tổng tiền phải trả:</strong> <span id="finalTotal">${amountDue.toLocaleString()}đ</span></p>
+                <p><strong>Tổng tiền phải trả:</strong> <span id="finalSelectedTotal">${amountDue.toLocaleString()}đ</span></p>
                 <p><strong>Phương thức thanh toán:</strong> ${paymentMethod}</p>
                 <hr/>
                 <div class="text-end">
@@ -246,7 +322,7 @@
                 total += parseFloat($(this).data("total"));
             });
             const discountAmount = Math.round((total * percent) / 100);
-            $("#finalTotal").text((total - discountAmount).toLocaleString() + 'đ');
+            $("#finalSelectedTotal").text((total - discountAmount).toLocaleString() + 'đ');
         }
 
         $("#discountInput").on('input', function() {
@@ -273,16 +349,16 @@
                 total += parseFloat($(this).data("total"));
             });
 
-            const finalTotalText = $("#finalTotal").text().replace(/[^\d]/g, '');
-            const finalTotal = parseFloat(finalTotalText) || 0;
+            const finalSelectedTotalText = $("#finalSelectedTotal").text().replace(/[^\d]/g, '');
+            const finalSelectedTotal = parseFloat(finalSelectedTotalText) || 0;
             const payment_method = $(".payment-methods .btn.active").data('value');
 
             const orderData = {
                 table_id: {{ table_id }},
                 order_ids: selectedOrders,
                 discount_percent: discountPercent,
-                discount_amount: total - finalTotal,
-                total: finalTotal,
+                discount_amount: total - finalSelectedTotal,
+                total: finalSelectedTotal,
                 payment_method: payment_method
             };
 
