@@ -54,7 +54,7 @@ def get_order_by_table(request):
 
     order_details_list = []
     total_amount = 0
-
+    all_paid = True  # giả định tất cả đã thanh toán
     for invoice in invoices:
         for order in invoice.order_set.all():
             order_data = {
@@ -64,6 +64,8 @@ def get_order_by_table(request):
                 "order_details": [],
                 "order_total": 0
             }
+            if order.status != 'completed':
+                all_paid = False  # phát hiện 1 đơn chưa thanh toán
 
             for detail in order.orderdetail_set.all():
                 item = {
@@ -95,7 +97,8 @@ def get_order_by_table(request):
         "total_amount": total_amount,
         "customer_name": customer_name,
         "session": session,
-        "table_id": table_id
+        "table_id": table_id,
+        "all_paid": all_paid
     })
 
 
@@ -208,5 +211,25 @@ def update_item_status(request):
             return JsonResponse({'success': True})
         except OrderDetail.DoesNotExist:
             return JsonResponse({'error': 'Item not found'}, status=404)
+
+    return JsonResponse({'error': 'Invalid request'}, status=400)
+
+
+def end_session(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        session_id = data.get('session_id')
+
+        try:
+            session = Session.objects.get(id=session_id)
+            session.table.status = 'available'
+            session.ended_at = timezone.now()
+            session.status = 'closed'
+            session.save()
+            session.save()
+            session.table.save()
+            return JsonResponse({'success': True})
+        except Session.DoesNotExist:
+            return JsonResponse({'error': 'Session not found'}, status=404)
 
     return JsonResponse({'error': 'Invalid request'}, status=400)

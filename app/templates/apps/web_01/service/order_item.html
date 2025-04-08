@@ -128,9 +128,16 @@
 {% endfor %}
 
 <div class="text-end mb-3">
-    <button class="btn btn-primary" onclick="confirm_payment()">
+    <button class="btn btn-primary me-2" onclick="confirm_payment()">
         <i class="fas fa-money-bill-wave"></i> Thanh toán các đơn đã chọn
     </button>
+    <span class='h-100 d-inline-block' data-toggle="tooltip" data-placement="top" title="Cần thanh toán trước khi đóng phiên bàn.">
+        <button type="button"
+                class="btn btn-secondary"
+                {% if not all_paid %}disabled{% endif %}>
+            <i class="fas fa-sign-out-alt"></i> Kết thúc phiên
+        </button>
+    </span>
     <div class="mt-2 text-muted">
         Tổng tiền đã chọn: <strong id="finalSelectedTotal">0đ</strong>
     </div>
@@ -153,6 +160,24 @@
             total += parseFloat($(this).data("total"));
         });
         $("#finalSelectedTotal").text(total.toLocaleString() + "đ");
+    }
+
+    function end_session(session_id) {
+        if (!confirm("Bạn có chắc chắn muốn kết thúc phiên này?")) return;
+    
+        $.ajax({
+            url: "{{ url('web_01:end_session') }}",
+            type: "POST",
+            headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+            contentType: "application/json",
+            data: JSON.stringify({ session_id: session_id }),
+            success: function (res) {
+                location.reload()
+            },
+            error: function (err) {
+                console.error(err);
+            }
+        });
     }
 
     function confirm_payment() {
@@ -205,6 +230,7 @@
     }
 
     $(document).ready(function() {
+        $('[data-toggle="tooltip"]').tooltip();
         $(document).on('change', '.order-checkbox', function () {
             updateSelectedOrdersTotal();
         });
