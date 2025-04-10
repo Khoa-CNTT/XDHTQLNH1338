@@ -53,12 +53,14 @@ class OrderDetailSerializer(serializers.ModelSerializer):
     product_name = serializers.CharField(source='product.name', read_only=True)
     product_price = serializers.IntegerField(source='product.price', read_only=True)
     product_image_url = serializers.SerializerMethodField()
+    status = serializers.SerializerMethodField()
 
     class Meta:
         model = OrderDetail
         fields = [
             'product_id',
             'product_name',
+            'status',
             'product_price',
             'product_image_url',
             'quantity',
@@ -72,13 +74,20 @@ class OrderDetailSerializer(serializers.ModelSerializer):
             return request.build_absolute_uri(obj.product.image.url) if request else obj.product.image.url
         return None
 
+    def get_status(self, obj):
+        return obj.get_status_display()
+
 
 class OrderSerializer(serializers.ModelSerializer):
     order_details = OrderDetailSerializer(many=True, source='orderdetail_set')
+    status = serializers.SerializerMethodField()
 
     class Meta:
         model = Order
         fields = ['id', 'total', 'status', 'order_details']
+
+    def get_status(self, obj):
+        return obj.get_status_display()
 
 
 class InvoiceSerializer(serializers.ModelSerializer):
