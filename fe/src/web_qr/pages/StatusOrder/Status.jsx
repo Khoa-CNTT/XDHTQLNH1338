@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { PulseLoader } from "react-spinners";
 import { ImBin } from "react-icons/im";
 import { IoClose } from "react-icons/io5";
-import { readCart, updateQuantityCart, deleteCartItem } from "../../services/api";
+import { readCart, readInvoice, deleteCartItem } from "../../services/api";
 import { useCart } from "../../context/CartContext";
 import { Link } from "react-router-dom";
 const cx = classNames.bind(styles)
@@ -18,10 +18,12 @@ const Status = () => {
     const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(null);
     const [showCashConfirmation, setShowCashConfirmation] = useState(false);
+    const [orderDetails, setOrderDetails] = useState([]);
+
 
     // Tính tổng tiền
     const totalAmount = cartItems.reduce((total, item) => {
-        return total + (item.price * item.quantity);
+        return total + (item.product_price * item.quantity);
     }, 0);
 
     // Format tiền tệ
@@ -32,32 +34,39 @@ const Status = () => {
         }).format(amount);
     };
 
-    const fetchCart = async () => {
-        setLoading(true);
-        try {
-            const response = await readCart();
-            if (response.data && Array.isArray(response.data.items)) {
-                setCart(response.data);
-            } else {
-                setCart({ items: [] });
-            }
-        } catch (error) {
-            console.error("Lỗi khi lấy giỏ hàng:", error);
-            setCart({ items: [] });
-        } finally {
-            setLoading(false);
-        }
-    };
-
+    // Lấy giỏ hàng
     useEffect(() => {
-        fetchCart();
+        const fetchInvoice = async () => {
+            try {
+                const invoice = await readInvoice(); // Gọi API
+                const orders = invoice.data.orders || [];
+                console.log(invoice)
+                // Gộp tất cả order_details từ các đơn hàng
+                const allOrderDetails = orders.flatMap(order => order.order_details || []);
+
+                setOrderDetails(allOrderDetails);
+
+
+            } catch (error) {
+                console.error("Lỗi khi lấy hóa đơn:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchInvoice();
     }, []);
+
+
+
+
+
 
     // Xử lý xóa item
     const handleDeleteItem = async (productId) => {
         try {
             await deleteCartItem(productId);
-            fetchCart(); // Cập nhật lại giỏ hàng
+            fetchCart();
         } catch (error) {
             console.error("Lỗi khi xóa sản phẩm:", error);
         }
@@ -110,7 +119,7 @@ const Status = () => {
                 <div className="text-center mt-4">
                     <PulseLoader color="#ffffff" />
                 </div>
-            ) : cartItems.length === 0 ? (
+            ) : orderDetails.length === 0 ? (
                 <div className={cx("empty-status")}>
                     <div className={cx("empty-status-content")}>
                         <h3>Quên chưa đặt món rồi nè bạn ơi?</h3>
@@ -122,10 +131,10 @@ const Status = () => {
                 </div>
             ) : (
                 <>
-                    {cartItems.map((item, index) => (
-                        <div className={cx("order-item")} key={item.id}>
+                    {orderDetails.map((item, index) => (
+                        <div className={cx("order-item")} key={item.product_id}>
                             <img
-                                src="https://bigboy-ecru.vercel.app/_next/image?url=https%3A%2F%2Fapi-bigboy.duthanhduoc.com%2Fstatic%2F15bd3bf27dad4c27b9d671f9617b0be5.jpg&w=384&q=80"
+                                src={item.product_image_url}
                                 alt={item.product_name}
                                 className={cx("food-image")}
                             />
@@ -139,7 +148,7 @@ const Status = () => {
                             <div className={cx("cs-status", "completed")}>
                                 <span className={cx("cs-sub-status")}>chờ xác nhận</span>
                             </div>
-                            <span className={cx("cs-deleted")} onClick={() => handleDeleteItem(item.product)}>
+                            <span className={cx("cs-deleted")}>
                                 <ImBin />
                             </span>
                         </div>

@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useEffect, useState } from "react";
 import { PulseLoader } from "react-spinners";
 import { ImBin } from "react-icons/im";
-import { readCart, updateQuantityCart, deleteCartItem, createInvoice } from "../../services/api";
+import { readCart, updateQuantityCart, createInvoice } from "../../services/api";
 import { useCart } from "../../context/CartContext";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
