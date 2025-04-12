@@ -9,6 +9,13 @@ const cx = classNames.bind(styles);
 const BookTable = () => {
   const [listTable, setListTable] = useState([]);
   const [selectedTable, setSelectedTable] = useState(null); // Lưu bàn đang chọn
+  const [formData, setFormData] = useState({
+    name: '',
+    phone: '',
+    persons: '',
+    time: '00:00',
+    date: ''
+  });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -26,6 +33,15 @@ const BookTable = () => {
     if (table.status === "available") {
       setSelectedTable(table.table_number); // Lưu bàn đang chọn
     }
+  };
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    const bookingInfo = {
+      ...formData,
+      table: selectedTable
+    };
+    console.log('Booking Information:', bookingInfo);
   };
 
   return (
