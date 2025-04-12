@@ -19,8 +19,6 @@ const Order = () => {
     const cartItems = cart.items || [];
     const navigate = useNavigate()
 
-
-
     const fetchCart = async () => {
         setLoading(true);
         try {
@@ -39,12 +37,7 @@ const Order = () => {
         }
     };
 
-
-    useEffect(() => {
-        fetchCart();
-    }, []);
-
-
+    useEffect(() => {fetchCart();}, []);
 
     // Tăng số lượng sản phẩm
     const handleIncreaseQuantity = async (product_id, currentQuantity) => {
