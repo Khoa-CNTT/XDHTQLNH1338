@@ -22,7 +22,7 @@ const Status = () => {
 
 
     // Tính tổng tiền
-    const totalAmount = cartItems.reduce((total, item) => {
+    const totalAmount = orderDetails.reduce((total, item) => {
         return total + (item.product_price * item.quantity);
     }, 0);
 
@@ -107,6 +107,22 @@ const Status = () => {
         setSelectedPaymentMethod(null);
     };
 
+    // Lấy trạng thái đơn hàng
+    const getStatusClass = (status) => {
+        switch (status.toLowerCase()) {
+            case "chờ":
+                return "pending";
+            case "đang làm":
+                return "confirmed";
+            case "hủy":
+                return "canceled";
+            case "hoàn thành":
+                return "completed";
+            default:
+                return "";
+        }
+    };
+
     return (
         <div className={cx("container")}>
             <div className="row">
@@ -145,8 +161,8 @@ const Status = () => {
                                 </div>
                             </div>
 
-                            <div className={cx("cs-status", "completed")}>
-                                <span className={cx("cs-sub-status")}>chờ xác nhận</span>
+                            <div className={cx("cs-status", getStatusClass(item.status))}>
+                                <span className={cx("cs-sub-status")}>{item.status}</span>
                             </div>
                             <span className={cx("cs-deleted")}>
                                 <ImBin />
