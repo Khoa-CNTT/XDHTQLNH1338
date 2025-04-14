@@ -20,6 +20,9 @@ urlpatterns = [
             path('get-orders/', views.get_order_by_table, name='get_order_by_table'),
             path('get-product-service/', views.get_product_service, name='get_product_service'),
             path('complete-payment/', views.complete_payment, name='complete_payment'),
+            path('complete-payment-multi-order/', views.complete_payment_multi_order, name='complete_payment_multi_order'),
+            path('update-item-status/', views.update_item_status, name='update_item_status'),
+            path('end-session/', views.end_session, name='end_session'),
 
         ])),
         path('order/', include([

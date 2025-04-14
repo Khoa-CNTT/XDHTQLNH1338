@@ -24,9 +24,8 @@ class InvoiceViewSet(AuthenticationPermissionMixin, ViewSet):
             return Response({'error': 'Không có session nào đang active!'}, status=status.HTTP_400_BAD_REQUEST)
 
         # Tạo Invoice
-        invoice = Invoice.objects.create(
-            session=active_session,
-            total_amount=0  # Cập nhật sau
+        invoice, _ = Invoice.objects.get_or_create(
+            session=active_session
         )
 
         # Tạo Order
