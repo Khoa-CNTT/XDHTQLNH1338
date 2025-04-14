@@ -192,11 +192,12 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'vi'
 
-TIME_ZONE = 'Asia/Ho_Chi_Minh'
+TIME_ZONE = 'Asia/Ho_Chi_Minh'  # ← đúng rồi
 
 USE_I18N = True
+USE_L10N = True  # optional (hữu ích khi dùng định dạng số/ngày địa phương)
 
-USE_TZ = True
+USE_TZ = False  # ⚠️ QUAN TRỌNG: TẮT timezone-aware để Django lưu theo local time
 
 
 # Static files (CSS, JavaScript, Images)

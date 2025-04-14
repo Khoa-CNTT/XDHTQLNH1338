@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useEffect, useState } from "react";
 import { PulseLoader } from "react-spinners";
 import { ImBin } from "react-icons/im";
-import { readCart, updateQuantityCart, deleteCartItem, createInvoice } from "../../services/api";
+import { readCart, updateQuantityCart, createInvoice } from "../../services/api";
 import { useCart } from "../../context/CartContext";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
@@ -18,8 +18,6 @@ const Order = () => {
     const { cart, setCart } = useCart();
     const cartItems = cart.items || [];
     const navigate = useNavigate()
-
-
 
     const fetchCart = async () => {
         setLoading(true);
@@ -39,12 +37,7 @@ const Order = () => {
         }
     };
 
-
-    useEffect(() => {
-        fetchCart();
-    }, []);
-
-
+    useEffect(() => {fetchCart();}, []);
 
     // Tăng số lượng sản phẩm
     const handleIncreaseQuantity = async (product_id, currentQuantity) => {
@@ -138,14 +131,18 @@ const Order = () => {
                 <div className="text-center mt-4">
                     <PulseLoader color="#ffffff" />
                 </div>
+            ) : cartItems.length === 0 ? (
+                <div className="text-center mt-4 text-white">
+                    <h4>{t("order_page.empty_cart")}</h4>
+                </div>
             ) : (
                 cartItems.map((item, index) => (
-                    <div className="row mt-3" key={item.id}>
+                    <div className="row mt-3 w-100" key={item.id}>
                         <div className="col-12">
                             <div className={cx("order-item")}>
                                 <span className={cx("index")}>{index + 1}</span>
                                 <img
-                                    src="https://bigboy-ecru.vercel.app/_next/image?url=https%3A%2F%2Fapi-bigboy.duthanhduoc.com%2Fstatic%2F15bd3bf27dad4c27b9d671f9617b0be5.jpg&w=384&q=80"
+                                    src={item.product_image_url}
                                     alt={item.product_name}
                                     className={cx("food-image")}
                                 />
@@ -187,19 +184,23 @@ const Order = () => {
                 ))
             )}
 
-            <div className="row mt-3 text-white">
-                <div className="col-3">
-                </div>
-                <div className="col-8">
-                    <h4 className={cx("cs-title", "fw-bold")}>{t("order_page.total")}:  <span className={cx("cs-total-price")}>{totalOrderPrice.toLocaleString()} đ</span></h4>
-                </div>
-            </div>
+            {cartItems.length > 0 && (
+                <>
+                    <div className="row mt-3 text-white">
+                        <div className="col-3">
+                        </div>
+                        <div className="col-8">
+                            <h4 className={cx("cs-title", "fw-bold")}>{t("order_page.total")}:  <span className={cx("cs-total-price")}>{totalOrderPrice.toLocaleString()} đ</span></h4>
+                        </div>
+                    </div>
 
-            <div className="row mt-3 pb-3">
-                <div className="col-12">
-                    <button type="button" className={cx("cs-btn-order")} onClick={handleOrderSubmit}>{t("order_page.button")}</button>
-                </div>
-            </div>
+                    <div className="row mt-3 pb-3">
+                        <div className="col-12">
+                            <button type="button" className={cx("cs-btn-order")} onClick={handleOrderSubmit}>{t("order_page.button")}</button>
+                        </div>
+                    </div>
+                </>
+            )}
         </div>
     );
 };

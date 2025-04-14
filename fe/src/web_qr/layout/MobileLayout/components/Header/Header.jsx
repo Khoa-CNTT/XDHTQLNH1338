@@ -52,7 +52,7 @@ const Header = () => {
                         {!location.pathname.includes("/login-menu") && (
                             <>
                                 <Link to={`/menu-order/${lang}`} className="fs-6 fw-bold me-4" style={{ textDecoration: 'none', color: theme === "light" ? "black" : "white" }}>{t("home")}</Link>
-                                {/* <Link to={`/login-menu`} className="fs-6 fw-bold me-4" style={{ textDecoration: 'none', color: theme === "light" ? "black" : "white" }}>{t("login")}</Link> */}
+                                <Link to={`/status-order`} className="fs-6 fw-bold me-4" style={{ textDecoration: 'none', color: theme === "light" ? "black" : "white" }}>{t("order")}</Link>
                             </>
                         )}
                         {/* {!location.pathname.includes("/login-menu") && (
@@ -94,7 +94,8 @@ const Header = () => {
                             <div className="offcanvas-body d-lg-none">
                                 <ul className="navbar-nav justify-content-end flex-grow-1 pe-3">
                                     <li className="nav-item">
-                                        <Link to={`/menu-order/${lang}`} ỏỏ className="nav-link active text-white fs-5 fw-bold" aria-current="page" href="#">{t("home")}</Link>
+                                        <Link to={`/menu-order/${lang}`} className="nav-link active text-white fs-5 fw-bold" aria-current="page" href="#">{t("home")}</Link>
+                                        <Link to={`/status-order/${lang}`} className="nav-link active text-white fs-5 fw-bold" aria-current="page" href="#">{t("order")}</Link>
                                     </li>
                                     {/* <li className="nav-item">
                                         <a className="nav-link text-white fs-5 fw-bold" href="#">Đăng nhập</a>

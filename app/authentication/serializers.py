@@ -28,10 +28,17 @@ class ProductSerializer(serializers.ModelSerializer):
 class CartItemSerializer(serializers.ModelSerializer):
     product_name = serializers.CharField(source='product.name', read_only=True)
     product_price = serializers.IntegerField(source='product.price', read_only=True)
+    product_image_url = serializers.SerializerMethodField()  # Trả về URL đầy đủ  # Trả về URL đầy đủ
 
     class Meta:
         model = CartItem
-        fields = ['id', 'product', 'product_name', 'product_price', 'quantity']
+        fields = ['id', 'product', 'product_name', 'product_image_url', 'product_price', 'quantity']
+
+    def get_product_image_url(self, obj):
+        request = self.context.get('request')
+        if obj.product.image:
+            return obj.product.image.url
+        return None
 
 
 class CartSerializer(serializers.ModelSerializer):
@@ -43,17 +50,44 @@ class CartSerializer(serializers.ModelSerializer):
 
 
 class OrderDetailSerializer(serializers.ModelSerializer):
+    product_name = serializers.CharField(source='product.name', read_only=True)
+    product_price = serializers.IntegerField(source='product.price', read_only=True)
+    product_image_url = serializers.SerializerMethodField()
+    status = serializers.SerializerMethodField()
+
     class Meta:
         model = OrderDetail
-        fields = ['product', 'quantity', 'price', 'total']
+        fields = [
+            'product_id',
+            'product_name',
+            'status',
+            'product_price',
+            'product_image_url',
+            'quantity',
+            'price',
+            'total'
+        ]
+
+    def get_product_image_url(self, obj):
+        request = self.context.get('request')
+        if obj.product.image:
+            return request.build_absolute_uri(obj.product.image.url) if request else obj.product.image.url
+        return None
+
+    def get_status(self, obj):
+        return obj.get_status_display()
 
 
 class OrderSerializer(serializers.ModelSerializer):
     order_details = OrderDetailSerializer(many=True, source='orderdetail_set')
+    status = serializers.SerializerMethodField()
 
     class Meta:
         model = Order
         fields = ['id', 'total', 'status', 'order_details']
+
+    def get_status(self, obj):
+        return obj.get_status_display()
 
 
 class InvoiceSerializer(serializers.ModelSerializer):
@@ -80,3 +114,11 @@ class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = ['id', 'name', 'description', 'parent', 'status']
+
+
+class InvoiceDetailSerializer(serializers.ModelSerializer):
+    orders = OrderSerializer(source='order_set', many=True)
+
+    class Meta:
+        model = Invoice
+        fields = ['id', 'total_amount', 'session', 'orders']

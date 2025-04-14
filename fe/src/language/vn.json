@@ -1,6 +1,6 @@
 {
     "home": "Thực đơn",
-    "login": "Đăng nhập",
+    "order": "Đơn hàng",
     "logout": "Đăng xuất",
     "language": "Tiếng Việt",
     "search_placeholder": "Bạn muốn ăn gì...",
@@ -22,6 +22,7 @@
     "order_page": {
         "title": "Đơn hàng",
         "button": "Đặt món",
-        "total": "Tổng tiền"
+        "total": "Tổng tiền",
+        "empty_cart": "Giỏ hàng trống"
     }
 }

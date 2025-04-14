@@ -31,7 +31,6 @@ const MenuOrder = () => {
     const { cart } = useCart();
     const [foodItems, setFoodItems] = useState([]);
 
-
     useEffect(() => {
         const fetchCheckSessionUser = async () => {
             try {
@@ -47,9 +46,7 @@ const MenuOrder = () => {
     }, []);
 
     useEffect(() => {
-        if (lang) {
-            i18n.changeLanguage(lang);
-        }
+        if (lang) { i18n.changeLanguage(lang); }
     }, [lang]);
 
     useEffect(() => {
@@ -100,7 +97,6 @@ const MenuOrder = () => {
             (selectedCategoryId ? item.category_id === selectedCategoryId : true)
         );
     }, [foodItems, searchTerm, selectedCategoryId]);
-
 
     return (
         <div className={cx("container")}>

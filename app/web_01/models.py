@@ -241,7 +241,7 @@ class Session(models.Model):
 
 class Invoice(BaseModel):
     session = models.ForeignKey(Session, on_delete=models.CASCADE)
-    payment_method = models.CharField(max_length=15, choices=[('cash', 'Cash'), ('bank transfer', 'Bank Transfer'), ('QR', 'QR')], null=True, blank=True)
+    payment_method = models.CharField(max_length=15, choices=[('cash', 'Tiền mặt'), ('bank_transfer', 'Chuyển khoản'), ('card', 'Thẻ')], null=True, blank=True)
     total_amount = models.IntegerField(default=0)
     discount = models.IntegerField(default=0)
 
@@ -256,7 +256,7 @@ class Order(BaseModel):
     status = models.CharField(max_length=15, choices=[
         ('pending', 'Chờ'),
         ('in_progress', 'Đang làm'),
-        ('completed', 'Xong'),
+        ('completed', 'Hoàn thành'),
         ('cancelled', 'Hủy')
     ], default='pending')
 
@@ -277,7 +277,7 @@ class OrderDetail(BaseModel):
     status = models.CharField(max_length=15, choices=[
         ('pending', 'Chờ'),
         ('in_progress', 'Đang làm'),
-        ('completed', 'Xong'),
+        ('completed', 'Hoàn thành'),
         ('cancelled', 'Hủy')
     ], default='pending')  # Trạng thái của từng món
 
