@@ -37,7 +37,7 @@ const Order = () => {
         }
     };
 
-    useEffect(() => {fetchCart();}, []);
+    useEffect(() => { fetchCart(); }, []);
 
     // Tăng số lượng sản phẩm
     const handleIncreaseQuantity = async (product_id, currentQuantity) => {
@@ -92,6 +92,9 @@ const Order = () => {
     // Tính tổng tiền đơn hàng
     const totalOrderPrice = cartItems.reduce((total, item) => total + item.product_price * item.quantity, 0);
 
+    // Tính tổng số lượng món
+    const totalQuantity = cartItems.reduce((total, item) => total + item.quantity, 0);
+
     // Dat mon
     const handleOrderSubmit = async () => {
         if (cartItems.length === 0) {
@@ -110,7 +113,7 @@ const Order = () => {
                 await fetchCart();
                 setCart({ items: [] });
                 setTimeout(() => {
-                    navigate("/menu-order");
+                    navigate("/status-order");
                 }, 500);
 
             }
@@ -186,17 +189,29 @@ const Order = () => {
 
             {cartItems.length > 0 && (
                 <>
-                    <div className="row mt-3 text-white">
-                        <div className="col-3">
-                        </div>
-                        <div className="col-8">
-                            <h4 className={cx("cs-title", "fw-bold")}>{t("order_page.total")}:  <span className={cx("cs-total-price")}>{totalOrderPrice.toLocaleString()} đ</span></h4>
-                        </div>
-                    </div>
-
-                    <div className="row mt-3 pb-3">
+                    <div className="row w-100">
                         <div className="col-12">
-                            <button type="button" className={cx("cs-btn-order")} onClick={handleOrderSubmit}>{t("order_page.button")}</button>
+                            <div className={cx("order-summary")}>
+                                <div className={cx("summary-content")}>
+                                    <div className={cx("summary-row")}>
+                                        <span className={cx("summary-label")}>{t("order_page.quantity")}</span>
+                                        <span className={cx("summary-value")}>{totalQuantity} món</span>
+                                    </div>
+                                    <div className={cx("summary-row", "total-row")}>
+                                        <span className={cx("summary-label", "total-label")}>{t("order_page.total")}</span>
+                                        <span className={cx("summary-value", "total-value")}>{totalOrderPrice.toLocaleString()} đ</span>
+                                    </div>
+                                </div>
+                                <div className={cx("order-action")}>
+                                    <button
+                                        type="button"
+                                        className={cx("cs-btn-order")}
+                                        onClick={handleOrderSubmit}
+                                    >
+                                        {t("order_page.button")}
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </>
