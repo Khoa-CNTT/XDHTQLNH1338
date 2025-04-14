@@ -23,6 +23,30 @@
         "title": "Đơn hàng",
         "button": "Đặt món",
         "total": "Tổng tiền",
-        "empty_cart": "Giỏ hàng trống"
+        "empty_cart": "Giỏ hàng trống",
+        "quantity": "Số lượng"
+    },
+    "status_order": {
+        "title": "Đơn hàng đã đặt",
+        "empty_title": "Quên chưa đặt món rồi nè bạn ơi?",
+        "empty_message": "Hãy đặt món để theo dõi trạng thái đơn hàng của bạn",
+        "add_more": "Gọi thêm món",
+        "payment": "Thanh toán",
+        "payment_method": "Chọn phương thức thanh toán",
+        "cash_payment": "Thanh toán tiền mặt",
+        "bank_transfer": "Chuyển khoản ngân hàng",
+        "cash_confirm_title": "Xác nhận thanh toán tiền mặt",
+        "cash_confirm_message": "Vui lòng chuẩn bị số tiền: {{amount}} để thanh toán khi nhân viên đến",
+        "confirm": "Xác nhận",
+        "cancel": "Hủy",
+        "close": "Đóng",
+        "qr_title": "Quét mã QR để thanh toán",
+        "qr_instruction": "Vui lòng quét mã QR bằng ứng dụng ngân hàng để thanh toán",
+        "status": {
+            "pending": "Chờ",
+            "confirmed": "Đang làm",
+            "canceled": "Hủy",
+            "completed": "Hoàn thành"
+        }
     }
 }

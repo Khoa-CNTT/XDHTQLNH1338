@@ -24,7 +24,6 @@
 
         [data-theme="light"] & {
             color: black !important; // Khi Light Mode, đổi thành đen
-
         }
     }
 
@@ -70,8 +69,8 @@
     }
 
     .food-image {
-        width: 90px;
-        height: 90px;
+        width: 90px !important;
+        height: 90px !important;
         border-radius: 50%;
         object-fit: cover;
 
@@ -152,14 +151,17 @@
         border-radius: 20px;
         text-transform: uppercase;
         cursor: default;
+        min-width: 120px;
         box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
         transition: all 0.3s ease-in-out;
+        margin-left: 82px;
 
         @media (max-width: 768px) {
             font-size: 10px;
             // margin-left: 10px !important;
             margin-right: 0 !important;
-
+            min-width: 100px; // Giảm kích thước tối thiểu cho mobile
+            padding: 6px 12px;
         }
 
         &.pending {

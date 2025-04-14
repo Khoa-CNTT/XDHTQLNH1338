@@ -23,6 +23,30 @@
         "title": "Your Order",
         "button": "Order",
         "total": "Total",
-        "empty_cart": "Cart is empty"
+        "empty_cart": "Cart is empty",
+        "quantity": "Quantity"
+    },
+    "status_order": {
+        "title": "Your Orders",
+        "empty_title": "Forgot to order?",
+        "empty_message": "Order now to track your order status",
+        "add_more": "Add More",
+        "payment": "Payment",
+        "payment_method": "Choose Payment Method",
+        "cash_payment": "Cash Payment",
+        "bank_transfer": "Bank Transfer",
+        "cash_confirm_title": "Cash Payment Confirmation",
+        "cash_confirm_message": "Please prepare the amount: {{amount}} to pay when staff arrives",
+        "confirm": "Confirm",
+        "cancel": "Cancel",
+        "close": "Close",
+        "qr_title": "Scan QR Code to Pay",
+        "qr_instruction": "Please scan the QR code using your banking app to make payment",
+        "status": {
+            "pending": "Pending",
+            "confirmed": "In Progress",
+            "canceled": "Canceled",
+            "completed": "Completed"
+        }
     }
 }
