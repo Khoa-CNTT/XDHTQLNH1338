@@ -7,7 +7,8 @@ import { ImBin } from "react-icons/im";
 import { IoClose } from "react-icons/io5";
 import { readCart, readInvoice, deleteCartItem } from "../../services/api";
 import { useCart } from "../../context/CartContext";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 const cx = classNames.bind(styles)
 
 const Status = () => {
@@ -123,6 +124,7 @@ const Status = () => {
                 return "";
         }
     };
+
 
     return (
         <div className={cx("container")}>

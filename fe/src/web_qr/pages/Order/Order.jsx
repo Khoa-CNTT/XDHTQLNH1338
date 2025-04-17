@@ -97,24 +97,17 @@ const Order = () => {
 
     // Dat mon
     const handleOrderSubmit = async () => {
-        if (cartItems.length === 0) {
-            toast.info("Giỏ hàng trống!");
-            setTimeout(() => {
-                navigate("/menu-order");
-            }, 500);
-            return;
-        }
 
         try {
             const response = await createInvoice();
             const statusCode = response?.status || response?.headers?.status;
             if (statusCode === 201) {
-                toast.success("Đặt hàng thành công!");
                 await fetchCart();
                 setCart({ items: [] });
                 setTimeout(() => {
-                    navigate("/status-order");
+                    navigate("/menu-order");
                 }, 500);
+                toast.success("Đặt món thành công!!")
 
             }
         } catch (error) {
