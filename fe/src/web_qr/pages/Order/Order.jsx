@@ -9,6 +9,8 @@ import { useCart } from "../../context/CartContext";
 import { toast } from 'react-toastify';
 import { useNavigate } from "react-router-dom";
 import config from "../../config";
+import { FaArrowLeft } from "react-icons/fa";
+
 
 
 const cx = classNames.bind(styles);
@@ -123,6 +125,12 @@ const Order = () => {
         <div className={cx("container")}>
             <div className="row">
                 <div className="col-12 text-center mt-3 text-white">
+                    <button
+                        onClick={() => navigate("/menu-order")}
+                        className={cx("back-button")}
+                    >
+                        <FaArrowLeft />
+                    </button>
                     <h2 className={cx("", "fw-bold")}>{t("order_page.title")}</h2>
                 </div>
             </div>

@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { PulseLoader } from "react-spinners";
 import { ImBin } from "react-icons/im";
 import { IoClose } from "react-icons/io5";
+import { FaStar } from "react-icons/fa";
 import { readCart, readInvoice, deleteCartItem } from "../../services/api";
 import { useCart } from "../../context/CartContext";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -21,7 +22,10 @@ const Status = () => {
     const [showCashConfirmation, setShowCashConfirmation] = useState(false);
     const [orderDetails, setOrderDetails] = useState([]);
     const navigate = useNavigate();
-
+    const [showRatingModal, setShowRatingModal] = useState(false);
+    const [rating, setRating] = useState(0);
+    const [hover, setHover] = useState(0);
+    const [feedback, setFeedback] = useState("");
 
     // Tính tổng tiền
     const totalAmount = orderDetails.reduce((total, item) => {
@@ -76,6 +80,23 @@ const Status = () => {
         // Xử lý logic thanh toán ở đây
         toast.success("Thanh toán thành công");
         handleCloseModal();
+
+        // Hiển thị modal đánh giá sau 3 giây
+        setTimeout(() => {
+            setShowRatingModal(true);
+        }, 3000);
+    };
+
+    // Xử lý gửi đánh giá
+    const handleSubmitRating = () => {
+        if (rating === 0) {
+            toast.warning(t("status_order.rating_warning"));
+            return;
+        }
+        toast.success(t("status_order.rating_success"));
+        setShowRatingModal(false);
+        setRating(0);
+        setFeedback("");
     };
 
     // URL QR code (tạm thời)
@@ -113,6 +134,13 @@ const Status = () => {
             default:
                 return "";
         }
+    };
+
+    // Xử lý đóng modal đánh giá
+    const handleCloseRating = () => {
+        setShowRatingModal(false);
+        setRating(0);
+        setFeedback("");
     };
 
     return (
@@ -239,6 +267,53 @@ const Status = () => {
                                 {t("status_order.close")}
                             </button>
                         )}
+                    </div>
+                </div>
+            )}
+
+            {/* Rating Modal */}
+            {showRatingModal && (
+                <div className={styles['modal-overlay']} onClick={handleCloseRating}>
+                    <div className={styles['modal-content']} onClick={e => e.stopPropagation()}>
+                        <button className={styles['close-rating']} onClick={handleCloseRating}>
+                            <IoClose />
+                        </button>
+                        <div className={styles['modal-header']}>
+                            <h2 className={styles['modal-title']}>{t("status_order.rating_title")}</h2>
+                        </div>
+                        <div className={styles['rating-section']}>
+                            <div className={styles['star-rating']}>
+                                {[...Array(5)].map((star, index) => {
+                                    const ratingValue = index + 1;
+                                    return (
+                                        <label key={index}>
+                                            <input
+                                                type="radio"
+                                                name="rating"
+                                                value={ratingValue}
+                                                onClick={() => setRating(ratingValue)}
+                                            />
+                                            <FaStar
+                                                className={styles['star']}
+                                                color={ratingValue <= (hover || rating) ? "#ffc107" : "#e4e5e9"}
+                                                size={40}
+                                                onMouseEnter={() => setHover(ratingValue)}
+                                                onMouseLeave={() => setHover(0)}
+                                            />
+                                        </label>
+                                    );
+                                })}
+                            </div>
+                            <textarea
+                                className={styles['feedback-input']}
+                                placeholder={t("status_order.feedback_placeholder")}
+                                value={feedback}
+                                onChange={(e) => setFeedback(e.target.value)}
+                            />
+                            <button className={styles['submit-rating']} onClick={handleSubmitRating}>
+                                {t("status_order.submit_rating")}
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
