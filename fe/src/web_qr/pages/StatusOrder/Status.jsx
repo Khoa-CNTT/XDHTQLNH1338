@@ -42,15 +42,11 @@ const Status = () => {
             try {
                 const invoice = await readInvoice(); // Gọi API
                 const orders = invoice.data.orders || [];
-                console.log(invoice)
                 // Gộp tất cả order_details từ các đơn hàng
                 const allOrderDetails = orders.flatMap(order => order.order_details || []);
-
                 setOrderDetails(allOrderDetails);
-
-
             } catch (error) {
-                console.error("Lỗi khi lấy hóa đơn:", error);
+                toast.error("Lỗi khi lấy hóa đơn:", error);
             } finally {
                 setLoading(false);
             }
@@ -59,18 +55,12 @@ const Status = () => {
         fetchInvoice();
     }, []);
 
-
-
-
-
-
     // Xử lý xóa item
     const handleDeleteItem = async (productId) => {
         try {
             await deleteCartItem(productId);
-            fetchCart();
         } catch (error) {
-            console.error("Lỗi khi xóa sản phẩm:", error);
+            toast.error("Lỗi khi xóa sản phẩm:", error);
         }
     };
 
@@ -84,7 +74,7 @@ const Status = () => {
     // Xử lý xác nhận thanh toán
     const handleConfirmPayment = () => {
         // Xử lý logic thanh toán ở đây
-        console.log("Payment confirmed");
+        toast.success("Thanh toán thành công");
         handleCloseModal();
     };
 
@@ -100,7 +90,7 @@ const Status = () => {
 
     const handleCashConfirm = () => {
         // Xử lý thanh toán tiền mặt
-        console.log("Payment method: cash - confirmed");
+        toast.success("Thanh toán thành công");
         setShowCashConfirmation(false);
         setShowPaymentModal(false);
     };
@@ -124,7 +114,6 @@ const Status = () => {
                 return "";
         }
     };
-
 
     return (
         <div className={cx("container")}>
@@ -151,7 +140,7 @@ const Status = () => {
             ) : (
                 <>
                     {orderDetails.map((item, index) => (
-                        <div className="row mt-3 w-100" key={item.product_id}>
+                        <div className="row mt-3 w-100" key={`${item.product_id}-${item.order_id}-${index}`}>
                             <div className="col-12"></div>
                             <div className={cx("order-item")} >
                                 <img

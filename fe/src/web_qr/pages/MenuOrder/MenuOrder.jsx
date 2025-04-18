@@ -8,9 +8,8 @@ import { useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useEffect, useState, useMemo } from "react";
 import i18n from "../../../language/i18n";
-import { Bounce, toast, ToastContainer } from 'react-toastify';
+import { toast } from 'react-toastify';
 import { PulseLoader } from "react-spinners";
-import axios from "axios";
 import { useCart } from "../../context/CartContext";
 import { useAuth } from "../../context/AuthContext";
 import { readSession } from "../../services/api";
@@ -134,7 +133,6 @@ const MenuOrder = () => {
             <div className={cx("row mt-3")}>
                 <OrderSummary isFooterVisible={isFooterVisible} foodItems={filteredFoodItems} />
             </div>
-            <ToastContainer position="top-center" autoClose={3000} hideProgressBar={false} newestOnTop={false} closeOnClick={false} rtl={false} pauseOnFocusLoss draggable pauseOnHover theme="dark" transition={Bounce} />
         </div>
     );
 };

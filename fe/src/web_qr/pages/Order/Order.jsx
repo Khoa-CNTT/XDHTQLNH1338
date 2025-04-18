@@ -6,8 +6,9 @@ import { PulseLoader } from "react-spinners";
 import { ImBin } from "react-icons/im";
 import { readCart, updateQuantityCart, createInvoice } from "../../services/api";
 import { useCart } from "../../context/CartContext";
-import { toast } from "react-toastify";
+import { toast } from 'react-toastify';
 import { useNavigate } from "react-router-dom";
+import config from "../../config";
 
 
 const cx = classNames.bind(styles);
@@ -25,12 +26,11 @@ const Order = () => {
             const response = await readCart();
             if (response.data && Array.isArray(response.data.items)) {
                 setCart(response.data);
-                console.log(response.data)
             } else {
                 setCart({ items: [] });
             }
         } catch (error) {
-            console.error("Lỗi khi lấy giỏ hàng:", error);
+            toast.error("Lỗi khi lấy giỏ hàng:", error);
             setCart({ items: [] });
         } finally {
             setLoading(false);
@@ -51,7 +51,7 @@ const Order = () => {
                 return { ...prevCart, items: updatedItems };
             });
         } catch (error) {
-            console.error("Lỗi khi tăng số lượng:", error);
+            toast.error("Lỗi khi tăng số lượng:", error);
         }
     };
 
@@ -68,7 +68,7 @@ const Order = () => {
                 return { ...prevCart, items: updatedItems };
             });
         } catch (error) {
-            console.error("Lỗi khi giảm số lượng:", error);
+            toast.error("Lỗi khi giảm số lượng:", error);
         }
     };
 
@@ -84,7 +84,7 @@ const Order = () => {
             fetchCart();
 
         } catch (error) {
-            console.error("Lỗi khi xóa sản phẩm:", error);
+            toast.error("Lỗi khi xóa sản phẩm:", error);
             fetchCart();
         }
     };
@@ -97,24 +97,28 @@ const Order = () => {
 
     // Dat mon
     const handleOrderSubmit = async () => {
-
         try {
             const response = await createInvoice();
             const statusCode = response?.status || response?.headers?.status;
-            if (statusCode === 201) {
-                await fetchCart();
-                setCart({ items: [] });
-                setTimeout(() => {
-                    navigate("/menu-order");
-                }, 500);
-                toast.success("Đặt món thành công!!")
 
+            if (statusCode === 201) {
+                toast.success("Đặt món thành công!!", {
+                    autoClose: 1000,
+                    onClose: async () => {
+                        // Đợi 1 tí cho chắc chắn toast biến mất (nếu cần)
+                        await new Promise(resolve => setTimeout(resolve, 50));
+                        await fetchCart();
+                        await setCart({ items: [] });
+                        navigate(`${config.routes.statusOrder}`);
+                    },
+                });
             }
         } catch (error) {
-            console.error("Lỗi khi đặt hàng:", error);
             toast.error(error.response?.data?.error || "Có lỗi xảy ra khi đặt hàng!");
         }
     };
+
+
     return (
         <div className={cx("container")}>
             <div className="row">
