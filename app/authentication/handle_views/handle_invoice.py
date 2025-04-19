@@ -52,12 +52,6 @@ class InvoiceViewSet(AuthenticationPermissionMixin, ViewSet):
         # Xóa giỏ hàng
         cart_items.delete()
 
-        Notification.objects.create(
-            user=request.user,
-            session=active_session,
-            message=f'Đơn hàng đã được tạo',
-            type='order_status'
-        )
         # Trả về thông tin Invoice
         serializer = InvoiceSerializer(invoice)
         return Response(serializer.data, status=status.HTTP_201_CREATED)

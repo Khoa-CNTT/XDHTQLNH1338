@@ -115,3 +115,4 @@ virtualenv==20.25.1
 whitenoise==6.7.0
 yarl==1.9.4
 qrcode==8.0
+uvicorn[standard]==0.34.2

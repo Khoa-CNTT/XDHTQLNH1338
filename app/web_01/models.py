@@ -305,14 +305,29 @@ class CartItem(models.Model):
 
 class Notification(BaseModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    session = models.ForeignKey(Session, on_delete=models.CASCADE, null=True, blank=True)
     message = models.TextField()
-    type = models.CharField(max_length=15, choices=[('order_status', 'Order Status'), ('promotion', 'Promotion'), ('reminder', 'Reminder')])
-    status = models.CharField(max_length=10, choices=[('read', 'Read'), ('unread', 'Unread')], default='unread')
+    type = models.CharField(
+        max_length=15,
+        choices=[
+            ('order_status', 'Order Status'),
+            ('promotion', 'Promotion'),
+            ('reminder', 'Reminder'),
+            ('custom', 'Custom'),
+        ]
+    )
+    status = models.CharField(
+        max_length=10,
+        choices=[('read', 'Read'), ('unread', 'Unread')],
+        default='unread'
+    )
+    data = models.JSONField(blank=True, null=True)  # 👈 Thêm JSON field
 
     class Meta:
         db_table = 'notification'
         ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.type} | {self.message[:30]}"
 
 # ✅ Models hoàn tất!
 
