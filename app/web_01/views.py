@@ -11,7 +11,7 @@ from web_01.handle_view.service_view import (ServiceManagementView, get_order_by
                                              complete_payment_multi_order, update_item_status, end_session, add_product_to_order)
 from web_01.handle_view.customer_view import (CustomerManagementView)
 from web_01.handle_view.employee_view import (EmployeeManagementView)
-from web_01.handle_view.table_reservation_view import (TableReservationManagementView)
+from web_01.handle_view.inventory_view import (InventoryManagementView,inventory_log_list,import_ingredient)
 
 
 class DashboardView(LoginRequiredMixin, TemplateView):

@@ -19,7 +19,7 @@ const cx = classNames.bind(styles);
 
 const Order = () => {
     const { t } = useTranslation();
-    const { user } = useAuth();
+    const { session } = useAuth();
     const [loading, setLoading] = useState(true);
     const { cart, setCart } = useCart();
     const cartItems = cart.items || [];
@@ -112,7 +112,8 @@ const Order = () => {
                 if (socket && socket.readyState === WebSocket.OPEN) {
                     socket.send(
                         JSON.stringify({
-                            type: "order_status"
+                            type: "order_status",
+                            session:session
                         })
                     );
                 }

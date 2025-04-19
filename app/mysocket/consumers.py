@@ -26,15 +26,15 @@ class NotifyConsumer(AsyncWebsocketConsumer):
         Handle incoming WebSocket data and process based on notification type.
         """
         data = json.loads(text_data)
-        recipient_group = self.group_name
 
-        data['message'] = 'Khách hàng A - Bàn 1 - đã gửi một đơn hàng!'
-        # Broadcast the notification
+        notification_data = await self.create_notification(data)
+
+        # Sau khi tạo xong notification → broadcast
         await self.channel_layer.group_send(
-            recipient_group,
+            self.group_name,
             {
                 "type": "send_notification",
-                "data": data,
+                "data": notification_data,
             },
         )
 
@@ -53,15 +53,29 @@ class NotifyConsumer(AsyncWebsocketConsumer):
         from django.contrib.auth.models import User
         return User.objects.get(id=user_id)
 
-    # @database_sync_to_async
-    # def create_notification(self, user, title, message, notification_type):
-    #     """
-    #     Create a notification record in the database.
-    #     """
-    #     from f1_web.models import Notification
-    #     return Notification.objects.create(
-    #         user=user,
-    #         title=title,
-    #         message=message,
-    #         type=notification_type,
-    #     )
+    @database_sync_to_async
+    def create_notification(self, data):
+        from web_01.models import Notification, Session
+
+        session = Session.objects.get(id=data['session']['session_id'])
+
+        notification_type = data['type']
+        table_number = session.table.table_number
+        message = f'Đơn hàng mới từ bàn {table_number} - {session.customer.user.first_name}.'
+
+        # Tạo notification trong DB (synchronous)
+        Notification.objects.create(
+            user=session.customer.user,
+            type=notification_type,
+            message=message,
+            data={
+                "session": session.id
+            }
+        )
+
+        return {
+            "user": session.customer.user.id,
+            "type": notification_type,
+            "message": message,
+            "data": data
+        }

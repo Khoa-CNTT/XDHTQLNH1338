@@ -685,7 +685,13 @@
 				let html = response.notification_html; // ✅ sửa ở đây
 				let len_notification = response.notification_len; // ✅ sửa ở đây
 				$("#DZ_W_Notification1").html(html);
-				$("#number-of-notification").html(len_notification);
+				$("#number-of-notification")
+				.text(len_notification)
+				.addClass("badge-update");
+		
+				setTimeout(() => {
+					$("#number-of-notification").removeClass("badge-update");
+				}, 500); // xóa class sau hiệu ứng
 			  },
 			  error: function (xhr, status, error) {
 				console.error("Lỗi khi tải thông báo:", error);

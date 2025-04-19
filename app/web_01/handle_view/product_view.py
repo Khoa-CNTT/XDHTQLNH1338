@@ -38,7 +38,6 @@ class ProductManagementView(LoginRequiredMixin, TemplateView):
             # Lấy dữ liệu từ request
             category = request.POST.get("category", "[]")  # Nếu không có, mặc định là []
             price = request.POST.get("price", "-1")
-            print('category', category)
             category_ids = json.loads(category)  # Chuyển từ JSON thành danh sách Python
 
             order_column_index = int(request.POST.get("order[0][column]", 0))
