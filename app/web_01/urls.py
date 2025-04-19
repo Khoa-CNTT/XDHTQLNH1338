@@ -10,7 +10,7 @@ urlpatterns = [
     path('accounts/login/', views.CustomLoginView.as_view(), name='login'),
     path('accounts/logout/', views.logout_view, name='logout'),
 
-path('get-notifications', views.get_notification, name='get_notification'),
+    path('get-notifications', views.get_notification, name='get_notification'),
 
     path('management/', include([
         path('table/', include([
@@ -44,6 +44,13 @@ path('get-notifications', views.get_notification, name='get_notification'),
 
         path('employee/', include([
             path('list', views.EmployeeManagementView.as_view(), name='employee_list'),
-        ]))
+        ])),
+
+        path('inventory/', include([
+             path('list', views.InventoryManagementView.as_view(), name='inventory_list'),
+             path('import', views.import_ingredient, name='import_ingredient'),
+             path('log/<int:ingredient_id>/list', views.inventory_log_list, name='inventory_log_list'),
+             
+             ]))
     ]))
 ]

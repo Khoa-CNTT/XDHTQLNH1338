@@ -1,0 +1,39 @@
+
+<div class="row">
+    <div class="col-12">
+        <h5 class="mb-3">Nhật ký tồn kho: {{ ingredient.name }}</h5>
+        <h5 class="mb-3">Tồn kho hiện tại: {{ current_stock }}</h5>
+        <h5 class="mb-3">Người thay đổi gần nhất: {{ latest_user }}</h5>
+        <table class="table table-bordered table-sm">
+            <thead class="thead-light">
+                <tr>
+                    <th>#</th>
+                    <th>Thay đổi</th>
+                    <th>Tồn kho trước</th>
+                    <th>Tồn kho sau</th>
+                    <th>Ghi chú</th>
+                    <th>Thời gian</th>
+                    <th>Người thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs %}
+                <tr>
+                    <td >
+                        {{loop.index}}
+                    </td>
+                    <td class="{% if log.change > 0 %}text-success{% else %}text-danger{% endif %}">
+                        {% if log.change > 0 %}+{% endif %}{{ log.change }}
+                    </td>
+                    <td>{{ log.stock_before or '-' }}</td>  <!-- 🆕 -->
+                    <td>{{ log.stock_after or '-' }}</td>   <!-- ✅ -->
+                    <td>{{ log.note }}</td>
+                    <td>{{ log.last_updated.strftime('%Y/%m/%d %H:%M') }}</td>
+                    <td>{{ log.user.first_name if log.user else '-' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            
+        </table>
+    </div>
+</div>
