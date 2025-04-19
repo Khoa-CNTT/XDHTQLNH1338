@@ -45,6 +45,10 @@ urlpatterns = [
         path('employee/', include([
             path('list', views.EmployeeManagementView.as_view(), name='employee_list'),
         ])),
+        
+        path('table-reservation/', include([
+            path('list', views.TableReservationManagementView.as_view(), name='table_reservation_list'),
+        ])),
 
         path('inventory/', include([
              path('list', views.InventoryManagementView.as_view(), name='inventory_list'),
