@@ -49,7 +49,7 @@ const BookTable = () => {
       <div className={cx('container')}>
         <div className={cx('cx-body')}>
           <div className='row'>
-            <div className='col-md-6 d-flex justify-content-center'>
+            {/* <div className='col-md-6 d-flex justify-content-center'>
               <div className={cx('cs-table', 'd-flex flex-wrap justify-content-between')}>
                 {listTable.map((item, index) => {
                   const isSelected = selectedTable === item.table_number;
@@ -76,7 +76,7 @@ const BookTable = () => {
                   );
                 })}
               </div>
-            </div>
+            </div> */}
             <div className='col-md-6'>
               <div className={cx('cs-header')}>Book A Table</div>
               <div className={cx('cs-form-info')}>
