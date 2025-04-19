@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from authentication.mixins import AuthenticationPermissionMixin
 from authentication.serializers import InvoiceSerializer, InvoiceDetailSerializer
-from web_01.models import Invoice, Cart, CartItem, Order, OrderDetail
+from web_01.models import Invoice, Cart, CartItem, Order, OrderDetail, Notification
 
 
 class InvoiceViewSet(AuthenticationPermissionMixin, ViewSet):
@@ -52,6 +52,12 @@ class InvoiceViewSet(AuthenticationPermissionMixin, ViewSet):
         # Xóa giỏ hàng
         cart_items.delete()
 
+        Notification.objects.create(
+            user=request.user,
+            session=active_session,
+            message=f'Đơn hàng đã được tạo',
+            type='order_status'
+        )
         # Trả về thông tin Invoice
         serializer = InvoiceSerializer(invoice)
         return Response(serializer.data, status=status.HTTP_201_CREATED)

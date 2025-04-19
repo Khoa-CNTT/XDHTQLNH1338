@@ -1,0 +1,26 @@
+<ul class="timeline">
+    {% for notif in notifications %}
+        <div class="timeline-panel border-start ps-3
+            {% if notif.type == 'order_status' %} border-primary
+            {% elif notif.type == 'promotion' %} border-success
+            {% elif notif.type == 'reminder' %} border-warning
+            {% else %} border-secondary
+            {% endif %}">
+            
+            <div class="media me-2">
+                <img alt="image" width="50" src="/static/images/avatar/1.jpg">
+            </div>
+    
+            <div class="media-body">
+                <h6 class="mb-1"> 
+                    {{ notif.message|safe }}
+                </h6>
+                <small class="d-block">
+                    <i class="fa-solid fa-user"></i> {{notif.user.first_name}} {{notif.user.last_name}}
+                    <br/>
+                    {{ notif.created_at.strftime('%Y/%m/%d %H:%M') }}
+                </small>
+            </div>
+        </div>
+    {%endfor%}
+</ul>

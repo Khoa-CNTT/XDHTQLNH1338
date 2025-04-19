@@ -305,12 +305,15 @@ class CartItem(models.Model):
 
 class Notification(BaseModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+    session = models.ForeignKey(Session, on_delete=models.CASCADE, null=True, blank=True)
     message = models.TextField()
     type = models.CharField(max_length=15, choices=[('order_status', 'Order Status'), ('promotion', 'Promotion'), ('reminder', 'Reminder')])
     status = models.CharField(max_length=10, choices=[('read', 'Read'), ('unread', 'Unread')], default='unread')
 
     class Meta:
         db_table = 'notification'
+        ordering = ['-created_at']
+
 # ✅ Models hoàn tất!
 
 

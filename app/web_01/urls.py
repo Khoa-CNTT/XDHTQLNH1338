@@ -10,6 +10,8 @@ urlpatterns = [
     path('accounts/login/', views.CustomLoginView.as_view(), name='login'),
     path('accounts/logout/', views.logout_view, name='logout'),
 
+path('get-notifications', views.get_notification, name='get_notification'),
+
     path('management/', include([
         path('table/', include([
             path('list', views.TableManagementView.as_view(), name='table_list'),
@@ -23,10 +25,7 @@ urlpatterns = [
             path('complete-payment-multi-order/', views.complete_payment_multi_order, name='complete_payment_multi_order'),
             path('update-item-status/', views.update_item_status, name='update_item_status'),
             path('end-session/', views.end_session, name='end_session'),
-            path('add-product-to-order/', views.add_product_to_order, name='add_product_to_order'),
-            
-
-        ])),
+            path('add-product-to-order/', views.add_product_to_order, name='add_product_to_order'),])),
         path('order/', include([
              path('list', views.OrderManagementView.as_view(), name='order_list'),
              path('<int:id>/', views.detail_order, name='detail_order')
@@ -41,16 +40,10 @@ urlpatterns = [
 
         path('customer/', include([
             path('list', views.CustomerManagementView.as_view(), name='customer_list'),
-            # path('create/', views.add_product, name='add_product'),
-            # path('import/', views.import_product, name='import_product'),
-            # path('<int:id>/', views.detail_product, name='detail_product')
         ])),
 
         path('employee/', include([
             path('list', views.EmployeeManagementView.as_view(), name='employee_list'),
-            # path('create/', views.add_product, name='add_product'),
-            # path('import/', views.import_product, name='import_product'),
-            # path('<int:id>/', views.detail_product, name='detail_product')
         ]))
     ]))
 ]

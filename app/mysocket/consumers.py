@@ -26,17 +26,9 @@ class NotifyConsumer(AsyncWebsocketConsumer):
         Handle incoming WebSocket data and process based on notification type.
         """
         data = json.loads(text_data)
-        notification_type = data.get("type")
-        title = data.get("title", "No Title")
-        message = data.get("message")
-        user_id = data.get("user_id", None)
         recipient_group = self.group_name
 
-        if notification_type == "order_update":
-            # Process order update notification
-            user = await self.get_user(user_id)
-            await self.create_notification(user, title, message, notification_type)
-
+        data['message'] = 'Khách hàng A - Bàn 1 - đã gửi một đơn hàng!'
         # Broadcast the notification
         await self.channel_layer.group_send(
             recipient_group,
@@ -61,15 +53,15 @@ class NotifyConsumer(AsyncWebsocketConsumer):
         from django.contrib.auth.models import User
         return User.objects.get(id=user_id)
 
-    @database_sync_to_async
-    def create_notification(self, user, title, message, notification_type):
-        """
-        Create a notification record in the database.
-        """
-        from f1_web.models import Notification
-        return Notification.objects.create(
-            user=user,
-            title=title,
-            message=message,
-            type=notification_type,
-        )
+    # @database_sync_to_async
+    # def create_notification(self, user, title, message, notification_type):
+    #     """
+    #     Create a notification record in the database.
+    #     """
+    #     from f1_web.models import Notification
+    #     return Notification.objects.create(
+    #         user=user,
+    #         title=title,
+    #         message=message,
+    #         type=notification_type,
+    #     )
