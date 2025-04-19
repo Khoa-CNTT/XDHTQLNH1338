@@ -44,6 +44,10 @@ path('get-notifications', views.get_notification, name='get_notification'),
 
         path('employee/', include([
             path('list', views.EmployeeManagementView.as_view(), name='employee_list'),
+        ])),
+        
+        path('table-reservation/', include([
+            path('list', views.TableReservationManagementView.as_view(), name='table_reservation_list'),
         ]))
     ]))
 ]
