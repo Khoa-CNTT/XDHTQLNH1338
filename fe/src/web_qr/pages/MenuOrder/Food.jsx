@@ -22,7 +22,6 @@ export default function Food({ searchTerm, selectedCategoryId }) {
         const fetchData = async () => {
             setLoading(true);
             try {
-                // Thêm điều kiện lọc vào API
                 const params = {
                     page: currentPage,
                     page_size: pageSize
@@ -31,20 +30,29 @@ export default function Food({ searchTerm, selectedCategoryId }) {
                 if (selectedCategoryId) params.category_id = selectedCategoryId;
 
                 const response = await readProduct(params);
+
+                // Simulate loading delay
                 setTimeout(() => {
                     setFoodItems(response.data.results);
                     setLoading(false);
                 }, 1000);
+
                 setTotalPages(Math.ceil(response.data.count / pageSize));
             } catch (error) {
                 console.error("Lỗi khi lấy danh sách món ăn:", error);
                 setLoading(false);
-
             }
         };
 
         fetchData();
     }, [searchTerm, selectedCategoryId, currentPage]);
+
+    // Reset về trang 1 nếu chọn loại món ăn mới hoặc search
+    useEffect(() => {
+        setCurrentPage(1);
+        setLoading(true); // để hiệu ứng loading khi filter thay đổi
+    }, [searchTerm, selectedCategoryId]);
+
 
     useEffect(() => {
         if (cart?.items?.length) {

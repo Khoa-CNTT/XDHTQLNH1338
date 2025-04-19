@@ -127,6 +127,13 @@ class ProductForm(forms.ModelForm):
     class Meta:
         model = Product
         fields = ['name', 'category', 'price', 'description', 'image']
+        labels = {
+            'name': 'Tên sản phẩm',
+            'category': 'Loại sản phẩm',
+            'price': 'Giá',
+            'description': 'Mô tả',
+            'image': 'Hình ảnh',
+        }
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control form-control-sm'}),
             'category': forms.Select(attrs={'id': 'category-select', 'class': 'form-control form-control-sm-'}),

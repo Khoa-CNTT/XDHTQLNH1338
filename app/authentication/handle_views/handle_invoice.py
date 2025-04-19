@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from authentication.mixins import AuthenticationPermissionMixin
 from authentication.serializers import InvoiceSerializer, InvoiceDetailSerializer
-from web_01.models import Invoice, Cart, CartItem, Order, OrderDetail
+from web_01.models import Invoice, Cart, CartItem, Order, OrderDetail, Notification
 
 
 class InvoiceViewSet(AuthenticationPermissionMixin, ViewSet):
@@ -24,9 +24,8 @@ class InvoiceViewSet(AuthenticationPermissionMixin, ViewSet):
             return Response({'error': 'Không có session nào đang active!'}, status=status.HTTP_400_BAD_REQUEST)
 
         # Tạo Invoice
-        invoice = Invoice.objects.create(
-            session=active_session,
-            total_amount=0  # Cập nhật sau
+        invoice, _ = Invoice.objects.get_or_create(
+            session=active_session
         )
 
         # Tạo Order

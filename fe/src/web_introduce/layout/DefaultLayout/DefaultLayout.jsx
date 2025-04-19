@@ -3,7 +3,7 @@ export const ThemeContext = createContext(null)
 import classNames from "classnames/bind"
 import styles from "./DefaultLayout.module.scss"
 
-// import { SocketProvider } from "../../../main/context/SocketContext"
+
 import Header from "./components/Header"
 import Footer from "./components/Footer"
 import { useParams } from "react-router-dom"

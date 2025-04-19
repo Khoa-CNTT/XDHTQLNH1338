@@ -41,6 +41,7 @@ class TableForm(forms.ModelForm):
         widgets = {
             'table_number': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Số bàn', 'disabled': 'disabled'}),
             'status': forms.Select(attrs={'class': 'form-control'}),
+            'qr_image': forms.ClearableFileInput(attrs={'class': 'form-control'}),
         }
 
 

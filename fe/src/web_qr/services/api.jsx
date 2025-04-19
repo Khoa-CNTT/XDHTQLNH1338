@@ -19,7 +19,8 @@ const deleteCartItem = (id) => { return axios.delete("/api/order", { params: { i
 const readCategories = (data) => { return axios.get("/api/categories/", { params: data }) }
 const readProduct = (data) => { return axios.get("/api/products/list/", { params: data }) }
 const createInvoice = (data) => axios.post("/api/invoices/");
+const readInvoice = (data) => axios.get("/api/invoices/current/", { params: data })
 export {
   loginAccount, readSession,
-  updateCart, updateQuantityCart, readCart, deleteCartItem, readCategories, readProduct, createInvoice
+  updateCart, updateQuantityCart, readCart, deleteCartItem, readCategories, readProduct, createInvoice, readInvoice
 }

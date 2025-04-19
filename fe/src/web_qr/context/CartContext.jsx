@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import axios from "axios";
 import { readCart, updateCart, updateQuantityCart } from "../services/api";
+import { toast } from "react-toastify";
 
 const CartContext = createContext();
 
@@ -29,13 +30,10 @@ export const CartProvider = ({ children }) => {
     const addItem = async (product_id, quantity) => {
         try {
             const response = await updateCart({ product_id, quantity });
-
             setCart(prevCart => ({
                 ...prevCart,
                 items: response.data.items || prevCart.items,
             }));
-
-
         } catch (error) {
             console.error("Error adding item:", error);
         }

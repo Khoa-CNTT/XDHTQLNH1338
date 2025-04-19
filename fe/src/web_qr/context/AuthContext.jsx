@@ -8,18 +8,22 @@ const AuthContext = createContext()
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null)
+  const [session, setSession] = useState(null)
 
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
         const fetchSession = await readSession()
         if (fetchSession.status === 200) {
+          setSession(fetchSession?.data?.session)
           setUser(fetchSession?.data?.session?.status)
         } else {
           setUser(null)
+          setSession(null)
         }
       } catch (error) {
         setUser(null)
+        setSession(null)
       }
     }
     fetchUserProfile()
@@ -35,7 +39,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login }}>
+    <AuthContext.Provider value={{ user,session, login }}>
       {children}
     </AuthContext.Provider>
   )

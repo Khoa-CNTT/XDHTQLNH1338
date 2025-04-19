@@ -1,12 +1,14 @@
 from core.__Include_Library import *
 from django.views.generic import TemplateView
 from django import forms
+from web_01.models import Notification
 
 
 from web_01.handle_view.table_view import (TableManagementView, edit_table)
 from web_01.handle_view.order_view import (OrderManagementView, detail_order)
 from web_01.handle_view.product_view import (ProductManagementView, add_product, import_product, detail_product)
-from web_01.handle_view.service_view import (ServiceManagementView, get_order_by_table, complete_payment, get_product_service)
+from web_01.handle_view.service_view import (ServiceManagementView, get_order_by_table, complete_payment, get_product_service,
+                                             complete_payment_multi_order, update_item_status, end_session, add_product_to_order)
 from web_01.handle_view.customer_view import (CustomerManagementView)
 from web_01.handle_view.employee_view import (EmployeeManagementView)
 
@@ -59,3 +61,16 @@ class CustomLoginView(FormView):
 def logout_view(request):
     logout(request)
     return redirect(reverse_lazy('web_01:login'))
+
+
+@login_required
+def get_notification(request):
+    notifications = Notification.objects.all()
+
+    notification_html = render_to_string('apps/web_01/commom/notifcation.html', {"notifications": notifications})
+    notification_len = notifications.count()
+
+    return JsonResponse({
+        'notification_html': notification_html,  # ✅ sửa key ở đây
+        'notification_len': notification_len,
+    })

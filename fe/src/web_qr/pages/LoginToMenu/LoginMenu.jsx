@@ -39,7 +39,6 @@ const LoginPage = () => {
         setLoading(true);
         setError(null);
 
-        // Validation
         if (!formData.phoneNumber.trim()) {
             toast.error("Số điện thoại không được để trống!");
             setLoading(false);
