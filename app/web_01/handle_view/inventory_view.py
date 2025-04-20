@@ -2,7 +2,7 @@ from core.__Include_Library import *
 from django.views.generic import TemplateView
 from web_01.models import Ingredient, InventoryLog
 from web_01.utils.utils import get_username
-
+from django.db.models import Q
 class InventoryManagementView(LoginRequiredMixin, TemplateView):
     template_name = '/apps/web_01/inventory/inventory_list.html'
 
