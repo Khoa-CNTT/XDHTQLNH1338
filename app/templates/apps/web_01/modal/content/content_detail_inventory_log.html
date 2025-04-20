@@ -1,9 +1,10 @@
 
 <div class="row">
     <div class="col-12">
-        <h5 class="mb-3">Nhật ký tồn kho: {{ ingredient.name }}</h5>
-        <h5 class="mb-3">Tồn kho hiện tại: {{ current_stock }}</h5>
-        <h5 class="mb-3">Người thay đổi gần nhất: {{ latest_user }}</h5>
+        <h5 class="mb-3">Nhật ký tồn kho: <strong>{{ ingredient.name }}</strong></h5>
+        <h5 class="mb-3">Đơn vị tính: <strong>{{ ingredient.unit }}</strong></h5>
+        <h5 class="mb-3">Tồn kho hiện tại: <strong>{{ current_stock }}</strong></h5>
+        <h5 class="mb-3">Người thay đổi gần nhất: <strong>{{ latest_user }}</strong></h5>
         <table class="table table-bordered table-sm">
             <thead class="thead-light">
                 <tr>
@@ -29,7 +30,7 @@
                     <td>{{ log.stock_after or '-' }}</td>   <!-- ✅ -->
                     <td>{{ log.note }}</td>
                     <td>{{ log.last_updated.strftime('%Y/%m/%d %H:%M') }}</td>
-                    <td>{{ log.user.first_name if log.user else '-' }}</td>
+                    <td>{{ log.user.first_name or log.user.last_name or log.user.username or '-' if log.user else '-' }}</td>
                 </tr>
                 {% endfor %}
             </tbody>

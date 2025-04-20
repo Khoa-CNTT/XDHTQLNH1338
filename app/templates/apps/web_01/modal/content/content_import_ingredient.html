@@ -9,16 +9,16 @@
                 <div class="row ingredient-item align-items-center mb-2">
                     <div class="col-md-5">
                         <label class="form-label">Nguyên liệu</label>
-                        <select name="ingredient[]" class="ingredient-select form-control form-control-sm" required>
+                        <select name="ingredient[]" class="ingredient-select form-control form-control-sm" >
                             <option value="">Chọn nguyên liệu...</option>
                             {% for ingredient in ingredients %}
-                                <option value="{{ ingredient.id }}">{{ ingredient.name }}</option>
+                                <option value="{{ ingredient.id }}">{{ ingredient.name }}({{ingredient.unit}})</option>
                             {% endfor %}
                         </select>
                     </div>
                     <div class="col-md-3">
                         <label class="form-label">Số lượng</label>
-                        <input type="number" name="change[]" class="form-control form-control-sm text-center" min="1" value="1" required>
+                        <input type="number" name="change[]" class="form-control form-control-sm text-center" min="1" value="1" >
                     </div>
                     <div class="col-md-3">
                         <label class="form-label">Ghi chú</label>
@@ -75,7 +75,7 @@
                         <select name="ingredient[]" class="ingredient-select form-control form-control-sm">
                             <option value="">Chọn nguyên liệu...</option>
                             {% for ingredient in ingredients %}
-                                <option value="{{ ingredient.id }}">{{ ingredient.name }}</option>
+                                <option value="{{ ingredient.id }}">{{ ingredient.name }}({{ingredient.unit}})</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -95,6 +95,7 @@
             $("#ingredient-list").append(newIngredient);
 
             validateIngredients();
+            updateDisabledIngredients();
         }
 
         // Không cho trùng nguyên liệu
@@ -118,10 +119,40 @@
 
         // Chỉ hiển thị nút xóa khi có nhiều hơn 1 dòng
         function validateIngredients() {
-            $(".remove-ingredient").toggle($(".ingredient-item").length > 1);
-        }
+            let form = $('#importForm');
+            let validator = form.data('bootstrapValidator');
+        
+            form.find('[name="ingredient[]"]').each(function () {
+                validator.addField($(this), {
+                    validators: {
+                        notEmpty: {
+                            message: 'Vui lòng chọn nguyên liệu'
+                        }
+                    }
+                });
+            });
+        
+            form.find('[name="change[]"]').each(function () {
+                validator.addField($(this), {
+                    validators: {
+                        notEmpty: {
+                            message: 'Vui lòng nhập số lượng'
+                        },
+                        numeric: {
+                            message: 'Chỉ được nhập số'
+                        }
+                    }
+                });
+            });
 
-        validateIngredients();
+
+            $('.ingredient-select').select2({
+                dropdownParent: $("#modalImportIngredient") ,
+                placeholder: '-- Nguyên Liệu --',
+                allowClear: false,
+            });
+        }
+        
 
         // Validate + Submit form qua AJAX
         $('#importForm').bootstrapValidator({
@@ -154,16 +185,25 @@
                     $('#importForm')[0].reset();
                     $('.ingredient-item:gt(0)').remove(); // xóa các dòng trừ dòng đầu
                     updateDisabledIngredients();
-                    validateIngredients();
                     is_reloading = true;
                     enable_element($('#importForm'));
                 },
                 error: function (xhr) {
                     let res = xhr.responseJSON;
-                    show_msg_error('#message', res?.error || 'Lỗi hệ thống!');
+                    
                 }
             });
         });
+
+
+        $('.ingredient-select').select2({
+            dropdownParent: $("#modalImportIngredient") ,
+            placeholder: '-- Nguyên Liệu --',
+            allowClear: false,
+        });
+      
+
+
     });
 </script>
 {% endblock %}
