@@ -405,3 +405,13 @@ class TableReservation(models.Model):
 
     class Meta:
         db_table = 'table_reservation'
+
+class ChatHistory(models.Model):
+    user_message = models.TextField()  # Tin nhắn người dùng
+    bot_reply = models.TextField()  # Phản hồi của chatbot
+    created_at = models.DateTimeField(auto_now_add=True)  # Thời gian gửi tin nhắn
+
+    def __str__(self):
+        return f"User: {self.user_message[:20]}... | Bot: {self.bot_reply[:20]}..."
+    class Meta:
+        db_table = 'chat_history'

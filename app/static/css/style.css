@@ -32820,6 +32820,7 @@ font-weight: 600;
 #chatbot-container .card-body {
   overflow-y: auto; /* Ensure scrolling */
   max-height: 400px; /* Control height */
+ height: 400px; 
 }
 
 /* Optional: Style for chat bubbles */

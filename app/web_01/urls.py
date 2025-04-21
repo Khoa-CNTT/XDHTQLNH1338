@@ -9,7 +9,8 @@ urlpatterns = [
     path('', views.DashboardView.as_view(), name='dashboard'),
     path('accounts/login/', views.CustomLoginView.as_view(), name='login'),
     path('accounts/logout/', views.logout_view, name='logout'),
-
+    path("chatbot/", views.chatbot_api, name="chatbot_api"),
+    path("get-chat-history/", views.get_chat_history, name="get_chat_history"),
     path('get-notifications', views.get_notification, name='get_notification'),
 
     path('management/', include([
