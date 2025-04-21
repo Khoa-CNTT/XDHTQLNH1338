@@ -32812,12 +32812,12 @@ font-weight: 600;
 }
 
 /* Optional: Style the card header */
-.card-header {
+#chatbot-container .card-header {
   background-color: #f8f9fa;
   border-bottom: 1px solid #ddd;
 }
 
-.card-body {
+#chatbot-container .card-body {
   overflow-y: auto; /* Ensure scrolling */
   max-height: 400px; /* Control height */
 }
@@ -32836,7 +32836,7 @@ font-weight: 600;
 }
 
 /* Optional: Fix card footer position */
-.card-footer {
+#chatbot-container .card-footer {
   background-color: #f8f9fa;
   border-top: 1px solid #ddd;
   padding: 15px;
