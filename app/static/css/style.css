@@ -32780,3 +32780,130 @@ font-weight: 600;
 .badge-update {
   animation: pulse 0.4s ease-in-out;
 }
+
+/* Fix chat container */
+#chatbot-container {
+  display: none;
+  position: fixed;
+  bottom: 90px; /* Adjust this as needed */
+  right: 20px;
+  width: 350px;
+  z-index: 9999;
+  border-radius: 10px; /* Optional: rounded corners */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Optional: shadow for better visibility */
+}
+
+/* Chat input and buttons */
+#chat2 .form-control {
+  border-color: transparent;
+}
+
+#chat2 .form-control:focus {
+  border-color: transparent;
+  box-shadow: inset 0px 0px 0px 1px transparent;
+}
+
+/* Divider style */
+.divider:after, .divider:before {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #eee;
+}
+
+/* Optional: Style the card header */
+.card-header {
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #ddd;
+}
+
+.card-body {
+  overflow-y: auto; /* Ensure scrolling */
+  max-height: 400px; /* Control height */
+}
+
+/* Optional: Style for chat bubbles */
+.bg-body-tertiary {
+  background-color: #f1f1f1;
+}
+.bg-primary {
+  background-color: #007bff;
+  color: white;
+}
+
+.text-muted {
+  font-size: 0.8rem;
+}
+
+/* Optional: Fix card footer position */
+.card-footer {
+  background-color: #f8f9fa;
+  border-top: 1px solid #ddd;
+  padding: 15px;
+}
+
+#chatbot-container {
+  display: none;
+  position: fixed;
+  bottom: 90px; 
+  right: 20px;
+  width: 350px; 
+  z-index: 9999;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  animation: bounce 0.5s ease-in-out; /* Áp dụng hiệu ứng nảy */
+}
+
+#chatbot-container.fullscreen {
+  top: 0!important;
+  right: 0!important;
+  bottom: 0!important;
+  left: 0!important;
+  width: 100%!important;
+  height:100vh;
+}
+
+#fullscreen-btn {
+  background-color: transparent;
+  border: none;
+  color: #007bff;
+  cursor: pointer;
+}
+
+#chatbot-container.fullscreen .card-body {
+  height: 100%;
+  max-height:100%;
+}
+
+#chatbot-container.fullscreen .card {
+  height: calc(100vh);
+}
+#chatbot-icon {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 9999;
+  cursor: pointer;
+}
+
+/* Định nghĩa hiệu ứng nảy */
+@keyframes bounce {
+  0%, 100% {
+      transform: translateY(0);
+  }
+  50% {
+      transform: translateY(-10px); /* Di chuyển lên một chút */
+  }
+}
+
+
+@keyframes fadeInUp {
+  from {
+      opacity: 0;
+      transform: translateY(10px);
+  }
+  to {
+      opacity: 1;
+      transform: translateY(0);
+  }
+}
