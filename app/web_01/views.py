@@ -1,22 +1,43 @@
 from core.__Include_Library import *
 from django.views.generic import TemplateView
 from django import forms
-from web_01.models import Notification
+from web_01.models import *
+from django.db.models import Sum
 
 
 from web_01.handle_view.table_view import (TableManagementView, edit_table)
 from web_01.handle_view.order_view import (OrderManagementView, detail_order)
-from web_01.handle_view.product_view import (ProductManagementView, add_product, import_product, detail_product)
+from web_01.handle_view.product_view import (ProductManagementView, add_product, import_product, detail_product, best_seller)
 from web_01.handle_view.service_view import (ServiceManagementView, get_order_by_table, complete_payment, get_product_service,
                                              complete_payment_multi_order, update_item_status, end_session, add_product_to_order)
 from web_01.handle_view.customer_view import (CustomerManagementView)
 from web_01.handle_view.employee_view import (EmployeeManagementView)
 from web_01.handle_view.table_reservation_view import (TableReservationManagementView)
-from web_01.handle_view.inventory_view import (InventoryManagementView,inventory_log_list,import_ingredient)
+from web_01.handle_view.inventory_view import (InventoryManagementView, inventory_log_list, import_ingredient)
+
 
 
 class DashboardView(LoginRequiredMixin, TemplateView):
-    template_name = '/apps/web_01/dashboard.html'
+    template_name = 'apps/web_01/dashboard/dashboard.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        # Tổng số thực đơn
+        context['total_products'] = Product.objects.count()
+
+        # Tổng doanh thu
+        context['total_revenue'] = (
+            OrderDetail.objects.aggregate(total=Sum('total'))['total'] or 0
+        )
+
+        # Tổng số đơn đặt hàng
+        context['total_orders'] = Order.objects.count()
+
+        # Tổng số khách hàng
+        context['total_customers'] = Customer.objects.count()
+
+        return context
 
 
 class CustomLoginForm(forms.Form):

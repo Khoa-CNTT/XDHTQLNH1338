@@ -23,7 +23,7 @@ class ServiceManagementView(LoginRequiredMixin, TemplateView):
                 "name": product.name,
                 "image": getattr(product.image, 'url', None),
                 "category": product.category.name or "Không có danh mục",
-                "price": f"{product.price:,}đ",
+                "price": product.price,
             }
             for product in products
         ]

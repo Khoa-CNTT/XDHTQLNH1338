@@ -35,7 +35,9 @@ urlpatterns = [
             path('list', views.ProductManagementView.as_view(), name='product_list'),
             path('create/', views.add_product, name='add_product'),
             path('import/', views.import_product, name='import_product'),
-            path('<int:id>/', views.detail_product, name='detail_product')
+            path('<int:id>/', views.detail_product, name='detail_product'),
+            path('best-seller/', views.best_seller, name='best_seller'),
+
         ])),
 
         path('customer/', include([
@@ -45,7 +47,7 @@ urlpatterns = [
         path('employee/', include([
             path('list', views.EmployeeManagementView.as_view(), name='employee_list'),
         ])),
-        
+
         path('table-reservation/', include([
             path('list', views.TableReservationManagementView.as_view(), name='table_reservation_list'),
         ])),
@@ -54,7 +56,7 @@ urlpatterns = [
              path('list', views.InventoryManagementView.as_view(), name='inventory_list'),
              path('import', views.import_ingredient, name='import_ingredient'),
              path('log/<int:ingredient_id>/list', views.inventory_log_list, name='inventory_log_list'),
-             
+
              ]))
     ]))
 ]

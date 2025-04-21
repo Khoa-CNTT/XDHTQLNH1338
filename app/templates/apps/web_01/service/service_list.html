@@ -1,5 +1,5 @@
 {% extends '/base/base.html' %}
-
+{% import "/apps/web_01/commom/macros.html" as macros %}
 {% block body %}
 <div class="row">
     <!-- Khu vực quản lý bàn -->
@@ -76,14 +76,14 @@
                           title="Kéo để thêm vào đơn" style="cursor: all-scroll;"></i>
                
                        <!-- THÔNG TIN SẢN PHẨM -->
-                       <div class="d-flex align-items-center justify-content-between w-100">
-                           <img src="{{ product.image }}" alt="{{ product.name }}" class="img-fluid me-2 rounded"
-                               style="width: 50px; height: 50px; object-fit: cover;">
-                           <span>{{ product.name }}</span>
-
-                           <span>{{ product.price }}</span>
-                       </div>
-               
+                       <div class="menu-item d-flex align-items-center justify-content-between w-100 mb-2 p-2 rounded shadow-sm bg-light">
+                        <div class="d-flex align-items-center">
+                            <img src="{{ product.image }}" alt="{{ product.name }}" class="img-fluid me-3 rounded"
+                                 style="width: 50px; height: 50px; object-fit: cover;">
+                            <span class="product-name text-dark">{{ product.name }}</span>
+                        </div>
+                        <strong class="text-secondary">{{ macros.format_currency(product.price) }}</strong>
+                    </div>
                        <!-- GIÁ -->
                        
                    </div>
@@ -186,13 +186,14 @@
             });
         }
 
-        $('#search-product').on('input', function() {
+        $('#search-product').on('input', function () {
             let keyword = $(this).val().trim().toLowerCase();
-            $('#productLayout .menu-item').each(function() {
-                let productName = $(this).find('span:first-of-type').text().trim().toLowerCase();
+        
+            $('#productLayout .menu-item').each(function () {
+                let productName = $(this).find('.product-name').text().trim().toLowerCase();
                 $(this).toggle(productName.includes(keyword));
             });
-        })
+        });
 
     
       
