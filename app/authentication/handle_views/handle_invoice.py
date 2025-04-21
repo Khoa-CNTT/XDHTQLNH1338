@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from authentication.mixins import AuthenticationPermissionMixin
 from authentication.serializers import InvoiceSerializer, InvoiceDetailSerializer
-from web_01.models import Invoice, Cart, CartItem, Order, OrderDetail
+from web_01.models import Invoice, Cart, CartItem, Order, OrderDetail, Notification
 
 
 class InvoiceViewSet(AuthenticationPermissionMixin, ViewSet):

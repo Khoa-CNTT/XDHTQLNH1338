@@ -38,7 +38,6 @@ class ProductManagementView(LoginRequiredMixin, TemplateView):
             # Lấy dữ liệu từ request
             category = request.POST.get("category", "[]")  # Nếu không có, mặc định là []
             price = request.POST.get("price", "-1")
-            print('category', category)
             category_ids = json.loads(category)  # Chuyển từ JSON thành danh sách Python
 
             order_column_index = int(request.POST.get("order[0][column]", 0))
@@ -127,6 +126,13 @@ class ProductForm(forms.ModelForm):
     class Meta:
         model = Product
         fields = ['name', 'category', 'price', 'description', 'image']
+        labels = {
+            'name': 'Tên sản phẩm',
+            'category': 'Loại sản phẩm',
+            'price': 'Giá',
+            'description': 'Mô tả',
+            'image': 'Hình ảnh',
+        }
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control form-control-sm'}),
             'category': forms.Select(attrs={'id': 'category-select', 'class': 'form-control form-control-sm-'}),

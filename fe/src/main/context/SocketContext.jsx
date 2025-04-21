@@ -8,29 +8,27 @@ export const SocketProvider = ({ children }) => {
   useEffect(() => {
     const ws = new WebSocket("ws://0.0.0.0:5001/ws/notifications/order/");
 
-    // ws.onopen = () => {
-    //   console.warn("WebSocket connection established")
-    // }
+    ws.onopen = () => {
+      console.log("✅ WebSocket connected!");
+    };
 
-    // ws.onmessage = (event) => {
-    //   const data = JSON.parse(event.data)
-    //   console.info("Received data: ", data)
-    // }
+    ws.onclose = (event) => {
+      console.log("❌ WebSocket disconnected!", event);
+    };
 
-    // ws.onclose = () => {
-    //   console.warn("WebSocket connection closed")
-    // }
+    ws.onerror = (error) => {
+      console.error("⚠️ WebSocket error:", error);
+    };
 
-    // ws.onerror = (error) => {
-    //   console.error("WebSocket error: ", error)
-    // }
+    ws.onmessage = (event) => {
+      console.log("📩 WebSocket message received:", event.data);
+    };
 
     setSocket(ws);
 
     return () => {
-      if (ws) {
-        // ws.close()
-        // console.warn("WebSocket connection closed on component unmount")
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.close();
       }
     };
   }, []);
@@ -39,3 +37,4 @@ export const SocketProvider = ({ children }) => {
     <SocketContext.Provider value={socket}>{children}</SocketContext.Provider>
   );
 };
+

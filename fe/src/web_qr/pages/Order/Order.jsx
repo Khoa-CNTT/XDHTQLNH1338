@@ -1,7 +1,7 @@
 import classNames from "classnames/bind";
 import styles from "./Order.module.scss";
 import { useTranslation } from "react-i18next";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { PulseLoader } from "react-spinners";
 import { ImBin } from "react-icons/im";
 import { readCart, updateQuantityCart, createInvoice } from "../../services/api";
@@ -10,6 +10,8 @@ import { toast } from 'react-toastify';
 import { useNavigate } from "react-router-dom";
 import config from "../../config";
 import { FaArrowLeft } from "react-icons/fa";
+import { SocketContext } from "../../../main/context/SocketContext";
+import { useAuth } from "../../context/AuthContext";
 
 
 
@@ -17,10 +19,12 @@ const cx = classNames.bind(styles);
 
 const Order = () => {
     const { t } = useTranslation();
+    const { session } = useAuth();
     const [loading, setLoading] = useState(true);
     const { cart, setCart } = useCart();
     const cartItems = cart.items || [];
     const navigate = useNavigate()
+    const socket = useContext(SocketContext);
 
     const fetchCart = async () => {
         setLoading(true);
@@ -104,6 +108,16 @@ const Order = () => {
             const statusCode = response?.status || response?.headers?.status;
 
             if (statusCode === 201) {
+                  // 📤 Gửi message lên WebSocket Server
+                if (socket && socket.readyState === WebSocket.OPEN) {
+                    socket.send(
+                        JSON.stringify({
+                            type: "order_status",
+                            session:session
+                        })
+                    );
+                }
+
                 toast.success("Đặt món thành công!!", {
                     autoClose: 1000,
                     onClose: async () => {

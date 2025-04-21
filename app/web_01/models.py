@@ -96,14 +96,22 @@ class InventoryLog(models.Model):
     type = models.CharField(max_length=15, choices=TYPE_CHOICES)
     note = models.TextField(null=True, blank=True)
     last_updated = models.DateTimeField(auto_now_add=True)
+    stock_before = models.IntegerField(null=True, blank=True)  # 🆕 thêm
+    stock_after = models.IntegerField(null=True, blank=True)   # đã có
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
 
     class Meta:
         db_table = 'inventory_log'
+        ordering = ['-last_updated']
 
     def save(self, *args, **kwargs):
-        """Cập nhật tồn kho khi có thay đổi."""
+        if not self.stock_before:
+            self.stock_before = self.ingredient.quantity_in_stock
         super().save(*args, **kwargs)
         self.ingredient.update_stock()
+        self.stock_after = self.ingredient.quantity_in_stock
+        InventoryLog.objects.filter(pk=self.pk).update(stock_after=self.stock_after)
+
 
 # 🔄 Sản phẩm
 
@@ -306,11 +314,29 @@ class CartItem(models.Model):
 class Notification(BaseModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     message = models.TextField()
-    type = models.CharField(max_length=15, choices=[('order_status', 'Order Status'), ('promotion', 'Promotion'), ('reminder', 'Reminder')])
-    status = models.CharField(max_length=10, choices=[('read', 'Read'), ('unread', 'Unread')], default='unread')
+    type = models.CharField(
+        max_length=15,
+        choices=[
+            ('order_status', 'Order Status'),
+            ('promotion', 'Promotion'),
+            ('reminder', 'Reminder'),
+            ('custom', 'Custom'),
+        ]
+    )
+    status = models.CharField(
+        max_length=10,
+        choices=[('read', 'Read'), ('unread', 'Unread')],
+        default='unread'
+    )
+    data = models.JSONField(blank=True, null=True)  # 👈 Thêm JSON field
 
     class Meta:
         db_table = 'notification'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.type} | {self.message[:30]}"
+
 # ✅ Models hoàn tất!
 
 

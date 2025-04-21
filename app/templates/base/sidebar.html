@@ -25,12 +25,28 @@
 					<span class="nav-text">Đơn hàng</span>
 				</a>
 			</li>
+
 			<li>
-				<a class="ai-icon" href="{{url('web_01:product_list')}}" aria-expanded="false">
-					<i class="fa-solid fa-box-open"></i> <!-- Sản phẩm -->
-					<span class="nav-text">Sản phẩm</span>
+				<a class="has-arrow ai-icon" href="javascript:void(0);" aria-expanded="false">
+					<i class="fa-solid fa-boxes-stacked"></i>
+					<span class="nav-text">Kho hàng</span> <!-- hoặc Hàng hóa, Món & Kho,... -->
 				</a>
+				<ul aria-expanded="false" class="mm-collapse">
+					<li>
+						<a class="ai-icon" href="{{url('web_01:product_list')}}" aria-expanded="false">
+							<i class="fa-solid fa-box-open"></i> <!-- Sản phẩm -->
+							<span class="">Sản phẩm</span>
+						</a>
+					</li>
+					<li>
+						<a class="ai-icon" href="{{url('web_01:inventory_list')}}" aria-expanded="false">
+							<i class="fa-solid fa-basket-shopping"></i> <!-- Nguyên liệu -->
+							<span class="">Nguyên liệu</span>
+						</a>
+					</li>
+				</ul>
 			</li>
+			
 
 			<li>
 				<a class="ai-icon" href="{{url('web_01:customer_list')}}" aria-expanded="false">
@@ -43,6 +59,13 @@
 				<a class="ai-icon" href="{{url('web_01:employee_list')}}" aria-expanded="false">
 					<i class="fa-solid fa-users-gear"></i> <!-- nhân viên -->
 					<span class="nav-text">Nhân viên</span>
+				</a>
+			</li>
+
+			<li>
+				<a class="ai-icon" href="{{url('web_01:table_reservation_list')}}" aria-expanded="false">
+					<i class="fa-solid fa-calendar-check fa-lg"></i> <!-- đặt bàn -->
+					<span class="nav-text">Đặt bàn</span>
 				</a>
 			</li>
 			

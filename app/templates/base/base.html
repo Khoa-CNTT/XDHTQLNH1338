@@ -674,7 +674,35 @@
 
 	<!-- Custom JS-->
 	<script src="/static/js/config/show_message.js"></script>
+	
 	<script src="/static/js/loading-bar.js"></script>
+	<script>
+		function load_notification_list() {
+			$.ajax({
+			  url: "{{ url('web_01:get_notification') }}",
+			  type: "GET",
+			  success: function (response) {
+				let html = response.notification_html; // ✅ sửa ở đây
+				let len_notification = response.notification_len; // ✅ sửa ở đây
+				$("#DZ_W_Notification1").html(html);
+				$("#number-of-notification")
+				.text(len_notification)
+				.addClass("badge-update");
+		
+				setTimeout(() => {
+					$("#number-of-notification").removeClass("badge-update");
+				}, 500); // xóa class sau hiệu ứng
+			  },
+			  error: function (xhr, status, error) {
+				console.error("Lỗi khi tải thông báo:", error);
+				$("#DZ_W_Notification1").html(
+				  '<p class="text-danger">Không thể tải thông báo.</p>'
+				);
+			  },
+			});
+		  }
+	</script>
+	<script src="/static/cjs/socket.js"></script>
 	
 	<!-- Apex Chart -->
 
