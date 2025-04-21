@@ -32886,14 +32886,13 @@ font-weight: 600;
   cursor: pointer;
 }
 
-/* Định nghĩa hiệu ứng nảy */
 @keyframes bounce {
-  0%, 100% {
-      transform: translateY(0);
-  }
-  50% {
-      transform: translateY(-10px); /* Di chuyển lên một chút */
-  }
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+#chatbot-icon > div {
+  animation: bounce 2s infinite;
 }
 
 

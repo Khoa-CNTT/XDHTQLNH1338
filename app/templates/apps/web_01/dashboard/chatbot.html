@@ -1,13 +1,23 @@
 
 <div id="chatbot-icon" style="position: fixed; bottom: 20px; right: 20px; z-index: 9999; cursor: pointer;">
-    <i class="fas fa-robot text-primary" style="font-size: 40px;"></i>
+    <div style="
+        background-color: #0dcaf0;  /* Bootstrap info */
+        padding: 10px;
+        border-radius: 50%;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    ">
+        <i class="fas fa-robot text-white" style="font-size: 30px;"></i>
+    </div>
 
     <!-- Chat bubble gợi chuyện -->
     <div id="chatbot-bubble" style="
         display: none;
         position: absolute;
-        bottom: 50px;
-        right: 50px;
+        bottom: 60px;
+        right: 0;
         background: #fff;
         border: 1px solid #ddd;
         border-radius: 10px;
@@ -20,6 +30,7 @@
         Tôi là chatbot, bạn có gì hỏi không?
     </div>
 </div>
+
 <div id="chatbot-container" style="display: none; position: fixed; bottom: 90px; right: 20px;width:500px;z-index: 9999;">
     <div class="card mb-0" id="chat2">
         <div class="card-header d-flex justify-content-between align-items-center p-3">
@@ -120,17 +131,52 @@
 
 {%block script%}
 <script type="text/javascript">
-    $("#chatbot-icon").click(function() {
+    $("#chatbot-icon").on("click", function() {
         $("#chatbot-container").toggle();
     });
     
     // Toggle fullscreen mode
-    $("#fullscreen-btn").click(function() {
+    $("#fullscreen-btn").on("click", function() {
         $("#chatbot-container").toggleClass("fullscreen");
         
         // Change the icon to collapse if it's fullscreen
         const icon = $("#chatbot-container").hasClass("fullscreen") ? "fa-compress" : "fa-expand";
         $(this).html(`<i class="fas ${icon}"></i>`);
     });
+
+    $(document).ready(function () {
+        const bubble = $("#chatbot-bubble");
+    
+        setTimeout(() => {
+            bubble.show();
+    
+            // Ẩn lại sau 6 giây nếu muốn
+            setTimeout(() => {
+                bubble.hide();
+            }, 6000);
+        }, 2000); // delay 2s sau khi load
+    });
+
+    const messages = [
+    "Tôi là chatbot, bạn có gì hỏi không?",
+    "Bạn cần xem thống kê hôm nay chứ?",
+    "Cần gợi ý món bán chạy không?",
+    "Tôi có thể giúp bạn đặt bàn hoặc kiểm tra tồn kho!",
+    "Hỏi tôi bất kỳ điều gì nhé!"
+  ];
+
+  let currentIndex = 0;
+  const bubble = document.getElementById('chatbot-bubble');
+
+  setInterval(() => {
+    currentIndex = (currentIndex + 1) % messages.length;
+    bubble.style.opacity = 0;
+    setTimeout(() => {
+      bubble.textContent = messages[currentIndex];
+      bubble.style.opacity = 1;
+    }, 300);
+  }, 4000); // đổi câu sau mỗi 4s
+  
+
   </script>
 {%endblock%}
