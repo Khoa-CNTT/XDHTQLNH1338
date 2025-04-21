@@ -131,7 +131,7 @@ const Order = () => {
                     >
                         <FaArrowLeft />
                     </button>
-                    <h2 className={cx("", "fw-bold")}>{t("order_page.title")}</h2>
+                    <h2 className={cx("order-title", "fw-bold")}>{t("order_page.title")}</h2>
                 </div>
             </div>
 
