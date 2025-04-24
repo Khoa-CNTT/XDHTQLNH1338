@@ -6,7 +6,7 @@ import { PulseLoader } from "react-spinners";
 import { ImBin } from "react-icons/im";
 import { IoClose } from "react-icons/io5";
 import { FaStar } from "react-icons/fa";
-import { readCart, readInvoice, deleteCartItem } from "../../services/api";
+import { readCart, readInvoice, deleteCartItem, getAwaitMomoPayment } from "../../services/api";
 import { useCart } from "../../context/CartContext";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -136,6 +136,21 @@ const Status = () => {
         }
     };
 
+    const getAsyncMomoPayment = async () => {
+        try {
+          const response = await getAwaitMomoPayment(); // gọi API Django
+          const payUrl = response?.data?.payUrl;
+          if (payUrl) {
+            // Redirect user tới trang thanh toán Momo
+            window.location.href = payUrl;
+          } 
+        } catch (error) {
+          console.error("Lỗi khi xử lý thanh toán:", error);
+          alert("Đã xảy ra lỗi khi thanh toán.");
+        }
+      };
+
+
     // Xử lý đóng modal đánh giá
     const handleCloseRating = () => {
         setShowRatingModal(false);
@@ -210,6 +225,13 @@ const Status = () => {
                     <div className={styles['modal-content']} onClick={e => e.stopPropagation()}>
                         <h2 className={styles['modal-title']}>{t("status_order.payment_method")}</h2>
                         <div className={styles['payment-options']}>
+                            <button
+                                className={styles['payment-option']}
+                                onClick={getAsyncMomoPayment}
+                            >
+                                <i className="fas fa-money-bill-wave"></i>
+                                {t("status_order.momo_payment")}
+                            </button>
                             <button
                                 className={styles['payment-option']}
                                 onClick={() => setSelectedPaymentMethod('cash')}

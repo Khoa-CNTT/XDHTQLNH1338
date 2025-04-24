@@ -321,6 +321,7 @@ class Notification(BaseModel):
             ('promotion', 'Promotion'),
             ('reminder', 'Reminder'),
             ('custom', 'Custom'),
+            ('payment', 'Payment'),
         ]
     )
     status = models.CharField(
