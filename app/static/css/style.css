@@ -32907,3 +32907,19 @@ font-weight: 600;
       transform: translateY(0);
   }
 }
+
+.prompt-btn {
+  width: 100%;
+  padding: 10px;
+  text-align: left;
+  background-color: #f8f9fa;
+  border-radius: 5px;
+  border: 1px solid #ddd;
+  cursor: pointer;
+  margin-bottom: 5px;
+}
+
+.prompt-btn:hover {
+  background-color: #007bff;
+  color: white;
+}

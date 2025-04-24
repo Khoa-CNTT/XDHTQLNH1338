@@ -43,8 +43,10 @@
                             </button>
         </div>
         <div class="card-body" >
-           
+            <div class="content mt-3"></div>
+            <div class="suggestions mt-3"></div>
         </div>
+        
 
         <div class="card-footer text-muted d-flex justify-content-start align-items-center p-3">
             <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava3-bg.webp" alt="avatar 3" style="width: 40px;">
@@ -59,42 +61,65 @@
 {%block script%}
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script type="text/javascript">
+    const $chatContainer = $('#chatbot-container');
+    const $chatBody = $('#chatbot-container .card-body .content');
+    const $chatInput = $('#exampleFormControlInput1');
+    const $sendBtn = $('#send-btn');
+    const $chatBubble = $("#chatbot-bubble");
+
+    // Toggle chatbot container khi nhấn vào icon
     $("#chatbot-icon").on("click", function() {
-        $("#chatbot-container").toggle();
-    });
-    
-    // Toggle fullscreen mode
-    $("#fullscreen-btn").on("click", function() {
-        $("#chatbot-container").toggleClass("fullscreen");
+        $chatContainer.toggle();
         
-        // Change the icon to collapse if it's fullscreen
-        const icon = $("#chatbot-container").hasClass("fullscreen") ? "fa-compress" : "fa-expand";
+        if ($chatContainer.is(":visible")) {
+            getChatHistory();
+            showSuggestedPrompts();
+            setTimeout(function() {
+                scrollToBottom();  // Scroll after the render cycle
+            }, 100);
+           
+        }
+    });
+
+    // Toggle chế độ fullscreen
+    $("#fullscreen-btn").on("click", function() {
+        $chatContainer.toggleClass("fullscreen");
+        const icon = $chatContainer.hasClass("fullscreen") ? "fa-compress" : "fa-expand";
         $(this).html(`<i class="fas ${icon}"></i>`);
     });
 
-    $(document).ready(function () {
-        const bubble = $("#chatbot-bubble");
-    
-        setTimeout(() => {
-            bubble.show();
-    
-            // Ẩn lại sau 6 giây nếu muốn
-            setTimeout(() => {
-                bubble.hide();
-            }, 6000);
-        }, 2000); // delay 2s sau khi load
+    // Hiển thị gợi ý prompt cho người dùng
+    function showSuggestedPrompts() {
+        const prompts = [
+            "Doanh thu hôm nay thế nào?",
+            "Tồn kho nguyên liệu như thế nào?",
+            "Món ăn nào bán chạy nhất hôm nay?",
+            "Lịch sử đơn hàng hôm nay là gì?",
+            "Cảnh báo tồn kho thấp?"
+        ];
+        
+        const promptHtml = prompts.map(prompt => `
+            <button class="btn btn-outline-secondary btn-sm mb-2 prompt-btn">${prompt}</button>
+        `).join('');
 
+        $('#chatbot-container .suggestions').html(promptHtml);
+
+        // Xử lý sự kiện click vào các nút gợi ý
+        $(".prompt-btn").on("click", function() {
+            sendMessageToBot($(this).text());  // Gửi câu hỏi người dùng đến chatbot
+        });
+    }
+
+    // Lấy lịch sử trò chuyện từ server
+    function getChatHistory() {
         $.get('/get-chat-history/', function(response) {
+            disable_element($chatBody);
+            
             const chatHistory = response.chat_history;
-        
-            let chatContent = '';  // Dùng để lưu trữ chuỗi HTML
-        
-            chatHistory.forEach(function(chat) {
+            const chatContent = chatHistory.map(chat => {
                 const userMessage = chat.user_message;
                 const botReply = chat.bot_reply;
-        
-                // Tạo HTML cho tin nhắn người dùng
-                chatContent += `
+                return `
                     <div class="d-flex flex-row justify-content-end mb-4">
                         <div>
                             <p class="small p-2 me-3 mb-1 text-white rounded-3 bg-primary">${userMessage}</p>
@@ -102,102 +127,113 @@
                         </div>
                         <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava3-bg.webp" alt="avatar 1" style="width: 45px; height: 100%;">
                     </div>
-                `;
-        
-                // Tạo HTML cho câu trả lời của chatbot
-                chatContent += `
                     <div class="d-flex flex-row justify-content-start mb-4">
-                        <i class="fas fa-robot text-primary" style="font-size: 30px;"></i>
+                        <i class="fas fa-robot text-primary me-3" style="font-size: 30px;"></i>
                         <div>
                             ${marked.parse(botReply)}
                             <p class="small mb-3 rounded-3 text-muted">${getCurrentTime()}</p>
                         </div>
                     </div>
                 `;
-            });
-        
-            // Đặt nội dung HTML vào phần tử chat
-            $('#chatbot-container .card-body').html(chatContent);
-        });
+            }).join('');
 
+            $chatBody.html(chatContent);
+            scrollToBottom();
+            enable_element($chatBody);
+        });
+    }
+
+    // Hiển thị hộp chat với thông điệp mặc định
+    const messages = [
+        "Tôi là chatbot, bạn có gì hỏi không?",
+        "Bạn cần xem thống kê hôm nay chứ?",
+        "Cần gợi ý món bán chạy không?",
+        "Tôi có thể giúp bạn đặt bàn hoặc kiểm tra tồn kho!",
+        "Hỏi tôi bất kỳ điều gì nhé!"
+    ];
+    let currentIndex = 0;
+    setInterval(() => {
+        currentIndex = (currentIndex + 1) % messages.length;
+        $chatBubble.fadeOut(300, function() {
+            $chatBubble.text(messages[currentIndex]).fadeIn(300);
+        });
+    }, 4000);
+
+    // Xử lý sự kiện khi nhấn Enter để gửi tin nhắn
+    $chatInput.keypress(function(e) {
+        if (e.which === 13) { // Mã phím Enter
+            $sendBtn.click();
+        }
     });
 
-    const messages = [
-    "Tôi là chatbot, bạn có gì hỏi không?",
-    "Bạn cần xem thống kê hôm nay chứ?",
-    "Cần gợi ý món bán chạy không?",
-    "Tôi có thể giúp bạn đặt bàn hoặc kiểm tra tồn kho!",
-    "Hỏi tôi bất kỳ điều gì nhé!"
-  ];
-
-  let currentIndex = 0;
-  const bubble = document.getElementById('chatbot-bubble');
-
-  setInterval(() => {
-    currentIndex = (currentIndex + 1) % messages.length;
-    bubble.style.opacity = 0;
-    setTimeout(() => {
-      bubble.textContent = messages[currentIndex];
-      bubble.style.opacity = 1;
-    }, 300);
-  }, 4000); // đổi câu sau mỗi 4s
-  
-
-
-  $('#exampleFormControlInput1').keypress(function(e) {
-    if (e.which === 13) { // 13 là mã phím Enter
-        $('#send-btn').click(); // Tự động trigger sự kiện click trên nút gửi
-    }
-});
-
-  $('#send-btn').click(function () {
-    const userMessage = $('#exampleFormControlInput1').val().trim();
-    if (userMessage === "") return;
-
-    // 1. Hiển thị message người dùng
-    const userHtml = `
-        <div class="d-flex flex-row justify-content-end mb-4">
-            <div>
-                <p class="small p-2 me-3 mb-1 text-white rounded-3 bg-primary">${userMessage}</p>
-                <p class="small me-3 mb-3 rounded-3 text-muted d-flex justify-content-end">${getCurrentTime()}</p>
-            </div>
-            <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava3-bg.webp" alt="avatar 1" style="width: 45px; height: 100%;">
-        </div>
-    `;
-    $('#chatbot-container .card-body').append(userHtml);
-    $('#exampleFormControlInput1').val("");
-
-    // 2. Gửi tới backend Django
-    $.post('/chatbot/', {
-        message: userMessage,
-        csrfmiddlewaretoken: '{{ csrf_token }}'
-    }, function (response) {
-        // 3. Hiển thị câu trả lời từ chatbot
-        const botReply = marked.parse(response.reply);
-        const botHtml = `
-            <div class="d-flex flex-row justify-content-start mb-4">
-                <i class="fas fa-robot text-primary" style="font-size: 30px;"></i>
+    // Hàm gửi tin nhắn đến chatbot
+    function sendMessageToBot(userMessage) {
+        // Hiển thị message người dùng
+        const userHtml = `
+            <div class="d-flex flex-row justify-content-end mb-4">
                 <div>
-                    ${botReply}
-                    <p class="small mb-3 rounded-3 text-muted">${getCurrentTime()}</p>
+                    <p class="small p-2 me-3 mb-1 text-white rounded-3 bg-primary">${userMessage}</p>
+                    <p class="small me-3 mb-3 rounded-3 text-muted d-flex justify-content-end">${getCurrentTime()}</p>
+                </div>
+                <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava3-bg.webp" alt="avatar 1" style="width: 45px; height: 100%;">
+            </div>
+        `;
+        $chatBody.append(userHtml);
+        $chatInput.val(""); // Xóa nội dung input
+
+        // Thêm biểu tượng "Đang xử lý..."
+        const loadingHtml = `
+            <div class="d-flex flex-row justify-content-start mb-4" id="loading-message">
+                <i class="fas fa-robot text-primary me-3" style="font-size: 30px;"></i>
+                <div>
+                    <p class="small mb-3 rounded-3 text-muted">Đang xử lý...</p>
                 </div>
             </div>
         `;
-        $('#chatbot-container .card-body').append(botHtml);
-        scrollToBottom();
+        $chatBody.append(loadingHtml);
+        scrollToBottom();  // Cuộn xuống dưới cùng khi tin nhắn được gửi
+
+        // Gửi tới backend Django
+        $.post('/chatbot/', { message: userMessage, csrfmiddlewaretoken: '{{ csrf_token }}' }, function(response) {
+            // Loại bỏ biểu tượng "Đang xử lý..."
+            $('#loading-message').remove();
+
+            const botReply = marked.parse(response.reply);
+            const botHtml = `
+                <div class="d-flex flex-row justify-content-start mb-4">
+                    <i class="fas fa-robot text-primary" style="font-size: 30px;"></i>
+                    <div>
+                        ${botReply}
+                        <p class="small mb-3 rounded-3 text-muted">${getCurrentTime()}</p>
+                    </div>
+                </div>
+            `;
+            $chatBody.append(botHtml);
+            showSuggestedPrompts();
+            scrollToBottom();  // Đảm bảo cuộn xuống cuối sau khi nhận câu trả lời
+        });
+    }
+
+    // Xử lý nút gửi tin nhắn
+    $sendBtn.click(function () {
+        const userMessage = $chatInput.val().trim();
+        if (userMessage === "") return;
+        sendMessageToBot(userMessage);
     });
-});
 
-
+    // Lấy thời gian hiện tại
     function getCurrentTime() {
         const now = new Date();
         return now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
     }
 
+    // Cuộn xuống dưới cùng cửa sổ chat
     function scrollToBottom() {
-        const chatBody = $('.card-body');
-        chatBody.scrollTop(chatBody[0].scrollHeight);
+        requestAnimationFrame(function() {
+            $chatBody.scrollTop($chatBody[0].scrollHeight);
+        });
     }
+</script>
 
-  </script>
+
 {%endblock%}
