@@ -31,6 +31,12 @@ socket.onmessage = function (event) {
   const data = JSON.parse(event.data);
   const message = data.message;
   const level = data.level;
+
+  const currentPath = window.location.pathname;
+
+  if (currentPath.includes("/management/service/list")) {
+          
+  }
   displayNotification(message, level);
   load_notification_list();
 };
