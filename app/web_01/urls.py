@@ -9,8 +9,9 @@ urlpatterns = [
     path('', views.DashboardView.as_view(), name='dashboard'),
     path('accounts/login/', views.CustomLoginView.as_view(), name='login'),
     path('accounts/logout/', views.logout_view, name='logout'),
-
-path('get-notifications', views.get_notification, name='get_notification'),
+    path("chatbot/", views.chatbot_api, name="chatbot_api"),
+    path("get-chat-history/", views.get_chat_history, name="get_chat_history"),
+    path('get-notifications', views.get_notification, name='get_notification'),
 
     path('management/', include([
         path('table/', include([
@@ -35,7 +36,9 @@ path('get-notifications', views.get_notification, name='get_notification'),
             path('list', views.ProductManagementView.as_view(), name='product_list'),
             path('create/', views.add_product, name='add_product'),
             path('import/', views.import_product, name='import_product'),
-            path('<int:id>/', views.detail_product, name='detail_product')
+            path('<int:id>/', views.detail_product, name='detail_product'),
+            path('best-seller/', views.best_seller, name='best_seller'),
+
         ])),
 
         path('customer/', include([
@@ -44,6 +47,17 @@ path('get-notifications', views.get_notification, name='get_notification'),
 
         path('employee/', include([
             path('list', views.EmployeeManagementView.as_view(), name='employee_list'),
-        ]))
+        ])),
+
+        path('table-reservation/', include([
+            path('list', views.TableReservationManagementView.as_view(), name='table_reservation_list'),
+        ])),
+
+        path('inventory/', include([
+             path('list', views.InventoryManagementView.as_view(), name='inventory_list'),
+             path('import', views.import_ingredient, name='import_ingredient'),
+             path('log/<int:ingredient_id>/list', views.inventory_log_list, name='inventory_log_list'),
+
+             ]))
     ]))
 ]

@@ -23,7 +23,7 @@ class ServiceManagementView(LoginRequiredMixin, TemplateView):
                 "name": product.name,
                 "image": getattr(product.image, 'url', None),
                 "category": product.category.name or "Không có danh mục",
-                "price": f"{product.price:,}đ",
+                "price": product.price,
             }
             for product in products
         ]
@@ -227,10 +227,12 @@ def end_session(request):
 
         try:
             session = Session.objects.get(id=session_id)
+            invoice = Invoice.objects.get(session=session)
             session.table.status = 'available'
             session.ended_at = timezone.now()
+            
             session.status = 'closed'
-            session.save()
+            invoice.order_set.all().update(status='completed')
             session.save()
             session.table.save()
             return JsonResponse({'success': True})

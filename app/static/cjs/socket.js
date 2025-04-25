@@ -1,12 +1,26 @@
-function displayNotification(message) {
+function displayNotification(message, level = "info") {
   toastr.options = {
-    closeButton: true,
-    progressBar: true,
-    timeOut: 5000,
-    extendedTimeOut: 1000,
-    positionClass: "toast-top-right",
+    closeButton: true, // Cho phép người dùng tắt thông báo
+    progressBar: true, // Thanh tiến trình thời gian
+    newestOnTop: true, // Hiển thị thông báo mới lên đầu
+    timeOut: 4000, // Thời gian hiển thị mặc định (ms)
+    extendedTimeOut: 1000, // Khi người dùng hover
+    positionClass: "toast-top-right", // Vị trí góc phải trên cùng
+    preventDuplicates: true, // Tránh trùng lặp cùng message
+    showEasing: "swing",
+    hideEasing: "linear",
+    showMethod: "fadeIn",
+    hideMethod: "fadeOut",
   };
-  toastr.info(message, "Thông báo");
+  const toastrMap = {
+    success: () => toastr.success(message, "✅ Thành công"),
+    error: () => toastr.error(message, "❌ Lỗi"),
+    warning: () => toastr.warning(message, "⚠️ Cảnh báo"),
+    info: () => toastr.info(message, "🔔 Thông báo"),
+  };
+
+  const notify = toastrMap[level] || toastrMap["info"];
+  notify();
 }
 
 // WebSocket setup
@@ -14,10 +28,15 @@ const socket = new WebSocket("ws://0.0.0.0:5001/ws/notifications/order/");
 
 // Khi nhận được thông báo từ server
 socket.onmessage = function (event) {
-  console.log("event", event);
   const data = JSON.parse(event.data);
   const message = data.message;
-  console.log("message", message);
-  displayNotification(message);
+  const level = data.level;
+
+  const currentPath = window.location.pathname;
+
+  if (currentPath.includes("/management/service/list")) {
+          
+  }
+  displayNotification(message, level);
   load_notification_list();
 };

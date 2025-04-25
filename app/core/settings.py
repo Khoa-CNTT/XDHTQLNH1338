@@ -30,8 +30,8 @@ load_dotenv(os.path.join(BASE_DIR, '..env.dev'))
 SECRET_KEY = os.environ.get("SECRET_KEY")
 
 
-FRONT_END_URL = 'http://localhost:5173/'
-CURRENT_URL = 'http://localhost:8000/'
+FRONT_END_URL = 'http://localhost:5173'
+CURRENT_URL = 'http://localhost:8000'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -39,14 +39,14 @@ DEBUG = True
 ALLOWED_HOSTS = ['*']
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",  # React app URL
+    FRONT_END_URL,  # React app URL
 ]
 
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
 
 CSRF_TRUSTED_ORIGINS = [
-    "http://localhost:5173",  # React app
+    FRONT_END_URL,  # React app
 ]
 
 # Application definition

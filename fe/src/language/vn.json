@@ -34,6 +34,7 @@
         "payment": "Thanh toán",
         "payment_method": "Chọn phương thức thanh toán",
         "cash_payment": "Thanh toán tiền mặt",
+        "momo_payment": "Thanh toán Momo",
         "bank_transfer": "Chuyển khoản ngân hàng",
         "cash_confirm_title": "Xác nhận thanh toán tiền mặt",
         "cash_confirm_message": "Vui lòng chuẩn bị số tiền: {{amount}} để thanh toán khi nhân viên đến",

@@ -95,7 +95,7 @@ def detail_order(request, id):
     )
 
     # Lấy danh sách món ăn trong đơn, tối ưu bằng prefetch_related
-    order_details = OrderDetail.objects.filter(order=order).select_related("product")
+    order_details = OrderDetail.objects.filter(order=order).exclude(status='cancelled').select_related("product")
 
     context = {
         "order": order,

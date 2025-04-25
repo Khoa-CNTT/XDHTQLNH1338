@@ -96,14 +96,22 @@ class InventoryLog(models.Model):
     type = models.CharField(max_length=15, choices=TYPE_CHOICES)
     note = models.TextField(null=True, blank=True)
     last_updated = models.DateTimeField(auto_now_add=True)
+    stock_before = models.IntegerField(null=True, blank=True)  # 🆕 thêm
+    stock_after = models.IntegerField(null=True, blank=True)   # đã có
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
 
     class Meta:
         db_table = 'inventory_log'
+        ordering = ['-last_updated']
 
     def save(self, *args, **kwargs):
-        """Cập nhật tồn kho khi có thay đổi."""
+        if not self.stock_before:
+            self.stock_before = self.ingredient.quantity_in_stock
         super().save(*args, **kwargs)
         self.ingredient.update_stock()
+        self.stock_after = self.ingredient.quantity_in_stock
+        InventoryLog.objects.filter(pk=self.pk).update(stock_after=self.stock_after)
+
 
 # 🔄 Sản phẩm
 
@@ -313,6 +321,7 @@ class Notification(BaseModel):
             ('promotion', 'Promotion'),
             ('reminder', 'Reminder'),
             ('custom', 'Custom'),
+            ('payment', 'Payment'),
         ]
     )
     status = models.CharField(
@@ -397,3 +406,13 @@ class TableReservation(models.Model):
 
     class Meta:
         db_table = 'table_reservation'
+
+class ChatHistory(models.Model):
+    user_message = models.TextField()  # Tin nhắn người dùng
+    bot_reply = models.TextField()  # Phản hồi của chatbot
+    created_at = models.DateTimeField(auto_now_add=True)  # Thời gian gửi tin nhắn
+
+    def __str__(self):
+        return f"User: {self.user_message[:20]}... | Bot: {self.bot_reply[:20]}..."
+    class Meta:
+        db_table = 'chat_history'

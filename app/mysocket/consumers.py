@@ -61,7 +61,34 @@ class NotifyConsumer(AsyncWebsocketConsumer):
 
         notification_type = data['type']
         table_number = session.table.table_number
-        message = f'Đơn hàng mới từ bàn {table_number} - {session.customer.user.first_name}.'
+        message_config = {
+            'order_status': {
+                'message': f'📦 Trạng thái đơn hàng từ bàn {table_number} - {session.customer.first_name}.',
+                'level': 'info',
+            },
+            'promotion': {
+                'message': '🎉 Ưu đãi mới vừa được cập nhật!',
+                'level': 'success',
+            },
+            'reminder': {
+                'message': f'⏰ Nhắc nhở cho bàn {table_number}.',
+                'level': 'warning',
+            },
+            'custom': {
+                'message': data.get('message', '🔔 Thông báo tuỳ chỉnh.'),
+                'level': 'info',
+            },
+            'payment': {
+                'message': f'💵 Thanh toán hoàn tất từ bàn {table_number} - {session.customer.first_name}.',
+                'level': 'success',
+            },
+        }
+
+        notification_type = data.get('type', 'custom')
+        config = message_config.get(notification_type, message_config['custom'])
+
+        # Lấy thông điệp phù hợp
+        message = message_config.get(notification_type, '🔔 Bạn có một thông báo mới.')
 
         # Tạo notification trong DB (synchronous)
         Notification.objects.create(
@@ -74,8 +101,8 @@ class NotifyConsumer(AsyncWebsocketConsumer):
         )
 
         return {
-            "user": session.customer.user.id,
-            "type": notification_type,
-            "message": message,
+            'type': notification_type,
+            'message': config['message'],
+            'level': config['level'],
             "data": data
         }

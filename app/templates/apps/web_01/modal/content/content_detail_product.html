@@ -16,14 +16,17 @@
                     <p class="price float-start d-block">{{ macros.format_currency(product.price) }}</p>
                 </div>
                 <p><strong>Mô tả:</strong> {{ product.description }}</p>
-                <p><strong>Tình trạng:</strong> 
+              
+               <!--
+                  <p><strong>Tình trạng:</strong> 
                     <span class="item"> 
                         {% if product.in_stock > 0 %} Còn hàng {% else %} Hết hàng {% endif %}
                         <i class="fa fa-shopping-basket"></i>
                     </span>
                 </p>
                 <p><strong>Số lượng tồn:</strong> {{ product.in_stock }}</p>
-                <p><strong>Loại sản phẩm:</strong> {{ product.category.name }}</p>
+            -->
+            <p><strong>Loại sản phẩm:</strong> {{ product.category.name }}</p>
 
                 <div class="card border">
                     <div class="card-header p-3">

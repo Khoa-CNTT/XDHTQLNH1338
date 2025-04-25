@@ -4,9 +4,7 @@
     var is_reloading = false;
     $(document).ready(function() {
         $('#{{modal_id}}').on('shown.bs.modal', function (e) {
-            var table_id = $(e.relatedTarget).data('table-id');
-            var url =  "{{ url('web_01:edit_table', args=('0')) }}".replace('/0', `/${table_id}`);
-            disable_element($('#{{modal_id}} #modalBody'));
+            var url =  "{{ url('web_01:import_ingredient')}}";
             $.ajax({
                 type: "GET",
                 url: url,
@@ -14,8 +12,6 @@
                 success: function (response) {
                     $('#{{modal_id}} #modalBody').html(response);
                     is_reloading = false;
-                    enable_element($('#{{modal_id}} #modalBody'));
-                    show_msg_success('#message', response.message);
                 },
                 error: function (xhr, status, e) {
                    
