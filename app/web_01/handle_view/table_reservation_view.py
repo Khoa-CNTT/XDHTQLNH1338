@@ -20,6 +20,10 @@ class TableReservationManagementView(LoginRequiredMixin, TemplateView):
             search_value = request.POST.get("search[value]", "").strip()
             order_column_index = int(request.POST.get("order[0][column]", 0))
             order_dir = request.POST.get("order[0][dir]", "asc")
+            name = request.POST.get("name", "").strip()
+            phone_number = request.POST.get("phone_number", "").strip()
+            table_number = request.POST.get("table_number", "").strip()
+            
 
             column_mapping = {
                 0: "name",
@@ -44,6 +48,13 @@ class TableReservationManagementView(LoginRequiredMixin, TemplateView):
                     Q(phone_number__icontains=search_value) |
                     Q(table__table_number__icontains=search_value)
                 )
+            
+            if name:
+                reservations = reservations.filter(name__icontains=name)
+            if phone_number:
+                reservations = reservations.filter(phone_number__icontains=phone_number)
+            if table_number:
+                reservations = reservations.filter(table__table_number__icontains=table_number)
 
             total_count = reservations.count()
             reservations = reservations.order_by(order_column)[start:start + length]
