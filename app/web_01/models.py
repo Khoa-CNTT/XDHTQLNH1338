@@ -213,7 +213,7 @@ class Table(models.Model):
 
     def save(self, *args, **kwargs):
         # Tạo URL dựa trên table_number
-        url = f"{settings.FRONT_END_URL}login-menu/?table_number={self.table_number}"
+        url = f"{settings.FRONT_END_URL}/login-menu/?table_number={self.table_number}"
         # Tạo mã QR
         qr = qrcode.make(url)
         qr_bytes = BytesIO()
