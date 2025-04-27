@@ -8,7 +8,7 @@ from authentication.serializers import UserLoginSerializer
 from django.contrib.auth.hashers import make_password
 import jwt
 from drf_yasg.utils import swagger_auto_schema
-from web_01.models import Customer, Session, Table
+from web_01.models import Customer, Session, Table,Invoice
 
 
 class LoginView(APIView):
@@ -140,3 +140,28 @@ class SessionView(AuthenticationPermissionMixin, APIView):
         }
         response.status_code = status.HTTP_200_OK
         return response
+
+
+
+class EndSessionView(AuthenticationPermissionMixin, APIView):
+    parser_classes = (JSONParser, MultiPartParser)
+
+    def get(self, request):
+        customer = request.user.customer
+        response = Response()
+        session = Session.objects.filter(customer=customer).order_by('-started_at').first()
+        invoice = Invoice.objects.get(session=session)
+        session.table.status = 'available'
+        session.ended_at = timezone.now()
+
+        session.status = 'closed'
+        invoice.order_set.all().update(status='completed')
+        session.save()
+        session.table.save()
+        response.status_code = status.HTTP_200_OK
+
+        response.delete_cookie('rms_access_token')
+        return response
+    
+
+

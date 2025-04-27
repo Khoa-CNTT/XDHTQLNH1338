@@ -213,7 +213,11 @@
             <i class="fas fa-money-bill-wave"></i> Thanh toán
         </button>
         {%endif%}
-        <span class='h-100 d-inline-block' data-bs-toggle="tooltip" data-placement="top" title="Cần thanh toán trước khi đóng phiên bàn.">
+        <span class='h-100 d-inline-block' 
+        {% if not all_paid %}
+        data-bs-toggle="tooltip" data-placement="top" title="Cần thanh toán trước khi đóng phiên bàn."
+        {%endif%}
+        >
             <button type="button"
                     class="btn btn-secondary"
                     onclick='end_session({{session.id}})'
