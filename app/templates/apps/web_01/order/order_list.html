@@ -87,7 +87,7 @@
                 { data: "index", title: "#"},
                 { data: "id", title: "Mã đơn hàng",
                     render: function(data, type, row) {
-                    return `DH_${data}`;
+                    return `DH_00${data}`;
                     }
                 },
                 { data: "id", title: "Khách hàng",
@@ -134,13 +134,6 @@
                     title: "",
                     render: function(data, type, row) {
                         return `
-                        <button type='button' class="btn light btn-primary shadow btn-xs sharp me-1" 
-                        data-id="${row.id}" 
-                        data-bs-toggle="modal" data-bs-target="#modalEditOrder"
-                        >
-                            <i class="fa fa-pencil"></i>
-                        </button>
-
                         <button type='button' class="btn light btn-primary shadow btn-xs sharp me-1" 
                         data-id="${row.id}" 
                         data-bs-toggle="modal" data-bs-target="#modalDetailOrder"

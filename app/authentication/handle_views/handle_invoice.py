@@ -101,7 +101,7 @@ class InvoiceViewSet(AuthenticationPermissionMixin, ViewSet):
         redirectUrl = f"{settings.FRONT_END_URL}/momo/payment/success"
         ipnUrl = f"{settings.CURRENT_URL}/api/invoice/momo-ipn/"
         amount = f"{invoice.total_amount}"
-        orderId = str(uuid.uuid4())
+        orderId = f'INVOICE_00{invoice.id}'
         requestId = str(uuid.uuid4())
         extraData = ""
 
