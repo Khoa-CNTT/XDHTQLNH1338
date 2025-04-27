@@ -168,7 +168,7 @@ class Customer(BaseModel):
 class Employee(BaseModel):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     salary = models.IntegerField()
-
+    avartar_url = CloudinaryField('avartar_url', null=True, blank=True)
     class Meta:
         db_table = 'employee'
 

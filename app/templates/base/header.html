@@ -24,9 +24,9 @@
 					</li>
 					<li class="nav-item dropdown header-profile">
 						<a class="nav-link" href="javascript:void(0)" role="button" data-bs-toggle="dropdown">
-							<img src="/static/images/profile/17.jpg" width="20" alt="/">
+							<img src="{{request.user.employee.avartar_url if request.user.employee else 'https://taimienphi.vn/tmp/cf/aut/anh-avatar-viet-nam-cute-ngau-tuyet-dep-1.jpg'}}" width="20" alt="/">
 							<div class="header-info">
-								<span class="text-black"><strong>{{request.user.first_name or 'Admin'}}</strong></span>
+								<span class="text-black"><strong>{{request.user.first_name}}</strong></span>
 							</div>
 						</a>
 						<div class="dropdown-menu dropdown-menu-end">
