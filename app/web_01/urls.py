@@ -29,7 +29,8 @@ urlpatterns = [
             path('add-product-to-order/', views.add_product_to_order, name='add_product_to_order'),])),
         path('order/', include([
              path('list', views.OrderManagementView.as_view(), name='order_list'),
-             path('<int:id>/', views.detail_order, name='detail_order')
+            #  path('<int:id>/', views.detail_order, name='detail_order'),
+             path('<int:id>/', views.detail_invoice, name='detail_invoice')
 
              ])),
         path('product/', include([

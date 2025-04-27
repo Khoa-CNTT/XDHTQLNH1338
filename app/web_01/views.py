@@ -6,7 +6,7 @@ from django.db.models import Sum
 import requests
 
 from web_01.handle_view.table_view import (TableManagementView, edit_table)
-from web_01.handle_view.order_view import (OrderManagementView, detail_order)
+from web_01.handle_view.order_view import (OrderManagementView, detail_order,detail_invoice)
 from web_01.handle_view.product_view import (ProductManagementView, add_product, import_product, detail_product, best_seller)
 from web_01.handle_view.service_view import (ServiceManagementView, get_order_by_table, complete_payment, get_product_service,
                                              complete_payment_multi_order, update_item_status, end_session, add_product_to_order)
@@ -31,7 +31,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         )
 
         # Tổng số đơn đặt hàng
-        context['total_orders'] = Order.objects.count()
+        context['total_invoice'] = Invoice.objects.count()
 
         # Tổng số khách hàng
         context['total_customers'] = Customer.objects.count()

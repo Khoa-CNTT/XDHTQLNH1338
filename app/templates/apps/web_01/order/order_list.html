@@ -8,7 +8,7 @@
     <div id='data-table-list'>
         <div class="card">
             <div class="card-header">
-                <h4 class="card-title">Quản lí đơn hàng</h4>
+                <h4 class="card-title">Quản lí hóa đơn</h4>
             </div>
             <div class="card-body">
                 <div class="table-responsive">
@@ -18,11 +18,10 @@
                                 <th>#</th>
                                 <th>Mã đơn</th>
                                 <th>Khách hàng</th>
-                                <th>Mã bàn</th>
+                                <th>Phương thức thanh toán</th>
                                 <th>Tổng tiền</th>
                                 <th>Ngày tạo</th>
-                                <th>Trạng thái</th>
-                                <th>Thao tác</th>
+                                <th></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -40,9 +39,9 @@
 
 
 {% with 
-    modal_id = 'modalDetailOrder',
-    modal_title='Chi tiết đơn hàng',
-    modal_class_size='modal-lg',
+    modal_id = 'modalDetailInvoice',
+    modal_title='Chi tiết hóa đơn',
+    modal_class_size='modal-xl',
     modal_body_tmp = '/apps/web_01/modal/modal_detail_order.html'
   %}
     {% include '/popup/popup_create.html' %}
@@ -85,50 +84,38 @@
             },
             columns: [
                 { data: "index", title: "#"},
-                { data: "id", title: "Mã đơn hàng",
+                { data: "id", title: "Mã hóa đơn",
                     render: function(data, type, row) {
-                    return `DH_00${data}`;
+                    return `#00${data}`;
+                 }
+                },
+                { data: "customer_name", title: "Khách hàng"},
+                { 
+                    data: "payment_method_display", 
+                    title: "Phương thức thanh toán",
+                    render: function(data, type, row) {
+                        let methodClass = '';
+                        
+                        // Xác định lớp CSS dựa trên phương thức thanh toán
+                        switch (data) {
+                            case 'Tiền mặt':
+                                methodClass = 'secondary';
+                                break;
+                            case 'Chuyển khoản':
+                                methodClass = 'success';
+                                break;
+                            case 'Thẻ':
+                                methodClass = 'info';
+                                break;
+                            default:
+                                methodClass = 'primary';
+                        }
+                        // Trả về phương thức thanh toán với lớp CSS tương ứng
+                        return `<span class="badge light badge-${methodClass}">${data}</span>`;
                     }
                 },
-                { data: "id", title: "Khách hàng",
-                render: function(data, type, row) {
-                    return `${row.username }
-                    <span class='text-muted'>
-                        (${row.first_name })
-                    </span>
-                    `
-                    let badgeClass = "";
-                    switch (row.status) {
-                        case "pending":
-                            return `<span class="badge light badge-warning">⏳ Chờ</span>`;
-                        case "in_progress":
-                            return `<span class="badge light badge-info">🔄 Đang làm</span>`;
-                        case "completed":
-                            return ` <span class="badge light badge-success">✅ Xong</span>`;
-                        default:
-                            return `<span class="badge light badge-danger">❌ Hủy</span>`;
-                    }
-                }
-            },
-                { data: "table", title: "Bàn"},
-                { data: "total", title: "Tổng tiền" },
-                { data: "formatted_created_at", title: "Ngày tạo" },
-                { 
-                    data: "status_display", title: "Trạng thái",
-                    render: function(data, type, row) {
-                        let badgeClass = "";
-                        switch (row.status) {
-                            case "pending":
-                                return `<span class="badge light badge-warning">⏳ Chờ</span>`;
-                            case "in_progress":
-                                return `<span class="badge light badge-info">🔄 Đang làm</span>`;
-                            case "completed":
-                                return ` <span class="badge light badge-success">✅ Xong</span>`;
-                            default:
-                                return `<span class="badge light badge-danger">❌ Hủy</span>`;
-                        }
-                    }
-                },  // Thêm cột trạng thái
+                { data: "total_amount", title: "Tổng tiền"},
+                { data: "created_at", title: "Ngày tạo"},
                 {
                     data: "id",
                     title: "",
@@ -136,7 +123,7 @@
                         return `
                         <button type='button' class="btn light btn-primary shadow btn-xs sharp me-1" 
                         data-id="${row.id}" 
-                        data-bs-toggle="modal" data-bs-target="#modalDetailOrder"
+                        data-bs-toggle="modal" data-bs-target="#modalDetailInvoice"
                         >
                             <i class="fa fa-eye"></i> <!-- Xem chi tiết -->
                         </button>

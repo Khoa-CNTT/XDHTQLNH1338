@@ -93,16 +93,14 @@ class NotifyConsumer(AsyncWebsocketConsumer):
         notification_type = data.get('type', 'custom')
         config = message_config.get(notification_type, message_config['custom'])
 
-        # Lấy thông điệp phù hợp
-        message = message_config.get(notification_type, '🔔 Bạn có một thông báo mới.')
-
         # Tạo notification trong DB (synchronous)
         Notification.objects.create(
             user=session.customer.user,
             type=notification_type,
-            message=message,
+            message=config['message'],
             data={
-                "session": session.id
+                "session": session.id,
+                "extra_data": config
             }
         )
 

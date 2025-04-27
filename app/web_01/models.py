@@ -256,7 +256,9 @@ class Invoice(BaseModel):
     class Meta:
         db_table = 'invoice'
 # 🔄 Model Order
-
+    @cached_property
+    def formatted_total_amount(self) -> str:
+        return f'{self.total_amount:,}đ'.replace(',', '.')
 
 class Order(BaseModel):
     invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE)
