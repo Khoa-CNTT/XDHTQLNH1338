@@ -4,9 +4,11 @@ from django import forms
 from web_01.models import *
 from django.db.models import Sum
 import requests
+from django.conf import settings
+from web_01.analyzer import analyze_message, handle_intent
 
 from web_01.handle_view.table_view import (TableManagementView, edit_table)
-from web_01.handle_view.order_view import (OrderManagementView, detail_order,detail_invoice)
+from web_01.handle_view.order_view import (OrderManagementView, detail_order, detail_invoice)
 from web_01.handle_view.product_view import (ProductManagementView, add_product, import_product, detail_product, best_seller)
 from web_01.handle_view.service_view import (ServiceManagementView, get_order_by_table, complete_payment, get_product_service,
                                              complete_payment_multi_order, update_item_status, end_session, add_product_to_order)
@@ -14,6 +16,7 @@ from web_01.handle_view.customer_view import (CustomerManagementView)
 from web_01.handle_view.employee_view import (EmployeeManagementView)
 from web_01.handle_view.table_reservation_view import (TableReservationManagementView)
 from web_01.handle_view.inventory_view import (InventoryManagementView, inventory_log_list, import_ingredient)
+GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
 
 
 class DashboardView(LoginRequiredMixin, TemplateView):
@@ -98,7 +101,38 @@ def get_notification(request):
     })
 
 
-API_KEY = 'AIzaSyB9-HJ7Gg7P6Dm2PSadDPpa-u7i_lkb8A8'
+def call_gemini(prompt):
+    try:
+        headers = {
+            "Content-Type": "application/json"
+        }
+        params = {
+            "key": settings.GEMINI_API_KEY
+        }
+        data = {
+            "contents": [
+                {
+                    "parts": [
+                        {"text": prompt}
+                    ]
+                }
+            ]
+        }
+        response = requests.post(GEMINI_API_URL, headers=headers, params=params, json=data)
+
+        if response.status_code == 200:
+            result = response.json()
+            # Trích xuất phần trả lời
+            reply = result['candidates'][0]['content']['parts'][0]['text']
+            return reply.strip()
+        else:
+            print("Gemini API lỗi:", response.text)
+            return "Tôi đang bận, vui lòng thử lại sau."
+
+    except Exception as e:
+        print("Lỗi call_gemini:", str(e))
+        return "Lỗi nội bộ khi gọi Gemini."
+
 
 @csrf_exempt
 def chatbot_api(request):
@@ -107,48 +141,27 @@ def chatbot_api(request):
         prompt = f"Bạn là trợ lý quản lý nhà hàng. {message}"
 
         try:
-            # Gửi yêu cầu đến API Gemini
-            response = requests.post(
-                "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent",  # Đảm bảo URL đúng
-                headers={"Content-Type": "application/json"},
-                params={"key": API_KEY},
-                json={"contents": [{"parts": [{"text": prompt}]}]}
+            # 1. Phân tích intent
+            intent_data = analyze_message(message)
+            print('intent_data', intent_data)
+            if intent_data:
+                reply = handle_intent(intent_data)
+            else:
+                # Nếu không nhận ra, fallback Gemini
+                reply = call_gemini(prompt)
+
+            # Lưu lịch sử
+            ChatHistory.objects.create(
+                user_message=message,
+                bot_reply=reply
             )
 
-            # Kiểm tra mã trạng thái HTTP
-            if response.status_code != 200:
-                print(f"Error response: {response.status_code}")
-                print(f"Response content: {response.text}")
-                return JsonResponse({"reply": "⚠️ Lỗi khi kết nối đến chatbot. Vui lòng thử lại."})
-
-            # Chuyển đổi phản hồi thành JSON
-            try:
-                result = response.json()
-                print("Gemini response:", result)
-
-                # Xử lý phản hồi từ Gemini API
-                reply = (
-                    result.get("candidates", [{}])[0]
-                          .get("content", {})
-                          .get("parts", [{}])[0]
-                          .get("text", "Không có phản hồi từ chatbot.")
-                )
-
-                # Lưu lịch sử trò chuyện vào cơ sở dữ liệu
-                ChatHistory.objects.create(
-                    user_message=message,
-                    bot_reply=reply
-                )
-
-            except ValueError:
-                print("Lỗi parse JSON:", response.text)
-                reply = "⚠️ Lỗi khi nhận dữ liệu từ chatbot."
-
         except Exception as e:
-            print("Lỗi gọi API Gemini:", str(e))
-            reply = "⚠️ Lỗi khi kết nối đến chatbot. Vui lòng thử lại."
+            print("Lỗi chatbot_api:", str(e))
+            reply = "Lỗi nội bộ khi xử lý yêu cầu."
 
         return JsonResponse({"reply": reply})
+
 
 @csrf_exempt
 def get_chat_history(request):
