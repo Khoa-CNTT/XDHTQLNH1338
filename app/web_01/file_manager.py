@@ -24,4 +24,7 @@ class FileManager:
     def write_json(self, data):
         """ Ghi dữ liệu vào file JSON """
         with open(self.file_path, 'w', encoding='utf-8') as file:
-            json.dump(data, file, indent=4, ensure_ascii=False)
+            json.dump(data, file, indent=4, ensure_ascii=False) 
+        
+    def get_pwd(self):
+        return self.file_path
