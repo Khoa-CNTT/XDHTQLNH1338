@@ -168,7 +168,7 @@ class Customer(BaseModel):
 class Employee(BaseModel):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     salary = models.IntegerField()
-
+    avartar_url = CloudinaryField('avartar_url', null=True, blank=True)
     class Meta:
         db_table = 'employee'
 
@@ -213,7 +213,7 @@ class Table(models.Model):
 
     def save(self, *args, **kwargs):
         # Tạo URL dựa trên table_number
-        url = f"{settings.FRONT_END_URL}login-menu/?table_number={self.table_number}"
+        url = f"{settings.FRONT_END_URL}/login-menu/?table_number={self.table_number}"
         # Tạo mã QR
         qr = qrcode.make(url)
         qr_bytes = BytesIO()
@@ -256,7 +256,9 @@ class Invoice(BaseModel):
     class Meta:
         db_table = 'invoice'
 # 🔄 Model Order
-
+    @cached_property
+    def formatted_total_amount(self) -> str:
+        return f'{self.total_amount:,}đ'.replace(',', '.')
 
 class Order(BaseModel):
     invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE)

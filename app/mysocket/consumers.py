@@ -59,19 +59,21 @@ class NotifyConsumer(AsyncWebsocketConsumer):
 
         session = Session.objects.get(id=data['session']['session_id'])
 
+        print('session', session)
         notification_type = data['type']
+
         table_number = session.table.table_number
         message_config = {
             'order_status': {
-                'message': f'📦 Trạng thái đơn hàng từ bàn {table_number} - {session.customer.first_name}.',
+                'message': f'Trạng thái đơn hàng từ bàn {table_number} - {session.customer.user.first_name}.',
                 'level': 'info',
             },
             'promotion': {
-                'message': '🎉 Ưu đãi mới vừa được cập nhật!',
+                'message': 'Ưu đãi mới vừa được cập nhật!',
                 'level': 'success',
             },
             'reminder': {
-                'message': f'⏰ Nhắc nhở cho bàn {table_number}.',
+                'message': f'Nhắc nhở cho bàn {table_number}.',
                 'level': 'warning',
             },
             'custom': {
@@ -79,7 +81,11 @@ class NotifyConsumer(AsyncWebsocketConsumer):
                 'level': 'info',
             },
             'payment': {
-                'message': f'💵 Thanh toán hoàn tất từ bàn {table_number} - {session.customer.first_name}.',
+                'message': f'Thanh toán hoàn tất từ bàn {table_number} - {session.customer.user.first_name}.',
+                'level': 'success',
+            },
+            'session': {
+                'message': f'Kết thúc phiên bàn {table_number} - {session.customer.user.first_name}.',
                 'level': 'success',
             },
         }
@@ -87,16 +93,14 @@ class NotifyConsumer(AsyncWebsocketConsumer):
         notification_type = data.get('type', 'custom')
         config = message_config.get(notification_type, message_config['custom'])
 
-        # Lấy thông điệp phù hợp
-        message = message_config.get(notification_type, '🔔 Bạn có một thông báo mới.')
-
         # Tạo notification trong DB (synchronous)
         Notification.objects.create(
             user=session.customer.user,
             type=notification_type,
-            message=message,
+            message=config['message'],
             data={
-                "session": session.id
+                "session": session.id,
+                "extra_data": config
             }
         )
 

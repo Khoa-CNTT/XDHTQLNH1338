@@ -166,7 +166,7 @@
         </div>
     </div>
 {% endfor %}
-
+{% if not all_paid %}
 <div class="row g-3">
     <div class="col-md-6">
         <label class="form-label">Phương thức thanh toán:</label>
@@ -198,17 +198,26 @@
         </div>
     </div>
 </div>
+{% endif %}
 <hr/>
 
 <div class="row mb-3 align-items-center">
     <div class='col-md-4 text-start'>
+        {% if not all_paid %}
         Tổng tiền đã chọn: <strong id="finalSelectedTotal">0đ</strong>
+        {%endif%}
     </div>
     <div class='col-md-8 text-end'>
+        {% if not all_paid %}
         <button class="btn btn-primary me-2" data-bs-toggle="tooltip" data-placement="top" title="Thanh toán các hóa đơn đã được chọn." onclick="confirm_payment()">
             <i class="fas fa-money-bill-wave"></i> Thanh toán
         </button>
-        <span class='h-100 d-inline-block' data-bs-toggle="tooltip" data-placement="top" title="Cần thanh toán trước khi đóng phiên bàn.">
+        {%endif%}
+        <span class='h-100 d-inline-block' 
+        {% if not all_paid %}
+        data-bs-toggle="tooltip" data-placement="top" title="Cần thanh toán trước khi đóng phiên bàn."
+        {%endif%}
+        >
             <button type="button"
                     class="btn btn-secondary"
                     onclick='end_session({{session.id}})'
