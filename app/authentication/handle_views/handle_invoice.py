@@ -96,12 +96,12 @@ class InvoiceViewSet(AuthenticationPermissionMixin, ViewSet):
         endpoint = "https://test-payment.momo.vn/v2/gateway/api/create"
         accessKey = "F8BBA842ECF85"
         secretKey = "K951B6PE1waDMi640xX08PD3vg6EkVlz"
-        orderInfo = "pay with MoMo"
+        orderInfo = "PAY WITH MOMO"
         partnerCode = "MOMO"
         redirectUrl = f"{settings.FRONT_END_URL}/momo/payment/success"
         ipnUrl = f"{settings.CURRENT_URL}/api/invoice/momo-ipn/"
         amount = f"{invoice.total_amount}"
-        orderId = str(uuid.uuid4())
+        orderId = f'INVOICE_00{invoice.id}'
         requestId = str(uuid.uuid4())
         extraData = ""
 

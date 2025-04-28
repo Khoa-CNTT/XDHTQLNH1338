@@ -28,7 +28,7 @@ load_dotenv(os.path.join(BASE_DIR, '..env.dev'))
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get("SECRET_KEY")
-
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", 'AIzaSyB9-HJ7Gg7P6Dm2PSadDPpa-u7i_lkb8A8')
 
 FRONT_END_URL = 'http://localhost:5173'
 CURRENT_URL = 'http://localhost:8000'
@@ -254,6 +254,10 @@ LOGGING = {
         },
     },
 }
+
+VOLUME_ROOT = '/data'
+VOLUME_JSON = '{0}/json'.format(VOLUME_ROOT)
+
 
 CLOUDINARY_STORAGE = {
     'CLOUD_NAME': 'dkkh1gtoj',

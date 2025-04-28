@@ -26,10 +26,15 @@ const getAwaitMomoPayment = () => {
 const fetchAwaitPaymentStatus = (data) => {
   return axios.post("/api/invoices/momo-ipn/",data);
 };
+const endSession = () => {
+  return axios.get("/api/end-session/");
+};
+
 
 export {
   loginAccount, readSession,
   updateCart, updateQuantityCart, readCart, deleteCartItem, readCategories, readProduct, createInvoice, readInvoice,
   getAwaitMomoPayment,
-  fetchAwaitPaymentStatus
+  fetchAwaitPaymentStatus,
+  endSession
 }

@@ -16,6 +16,6 @@ router.register(r'categories', views.CategoryViewSet, basename='category')
 urlpatterns = [
     path("auth/login/",  views.LoginView.as_view(), name='login'),
     path("auth/session/",  views.SessionView.as_view(), name='current_session'),
-    path("auth/session/",  views.SessionView.as_view(), name='current_session'),
+    path("end-session/",  views.EndSessionView.as_view(), name='end_session'),
     path("", include(router.urls)),
 ]

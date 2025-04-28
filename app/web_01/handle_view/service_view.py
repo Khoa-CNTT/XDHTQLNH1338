@@ -209,9 +209,12 @@ def update_item_status(request):
 
             # Nếu chuyển từ trạng thái khác sang 'cancelled' => cập nhật tổng tiền
             if new_status == 'cancelled':
-                order = item.order  # Quan hệ FK đến Order
+                order = item.order
+                invoice = order.invoice  # Quan hệ FK đến Order
                 order.total -= item.price * item.quantity  # hoặc item.total_price nếu có
                 order.save()
+                invoice.total_amount -= order.total
+                invoice.save()
 
             return process_data_order(request, table_id)
         except OrderDetail.DoesNotExist:
@@ -223,6 +226,8 @@ def update_item_status(request):
 def end_session(request):
     if request.method == 'POST':
         data = json.loads(request.body)
+
+        print('data', data)
         session_id = data.get('session_id')
 
         try:
@@ -230,7 +235,7 @@ def end_session(request):
             invoice = Invoice.objects.get(session=session)
             session.table.status = 'available'
             session.ended_at = timezone.now()
-            
+
             session.status = 'closed'
             invoice.order_set.all().update(status='completed')
             session.save()
