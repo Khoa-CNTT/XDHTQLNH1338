@@ -16,7 +16,8 @@ urlpatterns = [
     path('management/', include([
         path('table/', include([
             path('list', views.TableManagementView.as_view(), name='table_list'),
-            path('<int:id>/', views.edit_table, name='edit_table')
+            path('<int:id>/', views.edit_table, name='edit_table'),
+            path('add', views.add_table, name='add_table')
         ])),
         path('service/', include([
             path('list', views.ServiceManagementView.as_view(), name='service_list'),
