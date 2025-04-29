@@ -6,7 +6,9 @@ export const SocketProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);
 
   useEffect(() => {
-    const ws = new WebSocket("ws://0.0.0.0:5001/ws/notifications/order/");
+    const ws = new WebSocket(
+      "http://app.manage.rms:5001/ws/notifications/order/"
+    );
 
     ws.onopen = () => {
       console.log("✅ WebSocket connected!");
@@ -37,4 +39,3 @@ export const SocketProvider = ({ children }) => {
     <SocketContext.Provider value={socket}>{children}</SocketContext.Provider>
   );
 };
-

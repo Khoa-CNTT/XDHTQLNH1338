@@ -24,7 +24,9 @@ function displayNotification(message, level = "info") {
 }
 
 // WebSocket setup
-const socket = new WebSocket("ws://0.0.0.0:5001/ws/notifications/order/");
+const socket = new WebSocket(
+  "http://app.manage.rms:5001/ws/notifications/order/"
+);
 
 // Khi nhận được thông báo từ server
 socket.onmessage = function (event) {
@@ -35,7 +37,6 @@ socket.onmessage = function (event) {
   const currentPath = window.location.pathname;
 
   if (currentPath.includes("/management/service/list")) {
-          
   }
   displayNotification(message, level);
   load_notification_list();
