@@ -61,3 +61,9 @@ def edit_table(request, id):
     # Nếu không phải POST request, render form như bình thường
     form = TableForm(instance=table)
     return render(request, 'apps/web_01/modal/content/content_edit_table.html', {'form': form, 'table_id': id})
+
+
+def add_table(request):
+    last_table_obj = Table.objects.last()
+    Table.objects.create(table_number=last_table_obj.table_number + 1)
+    return JsonResponse({"success": True, "message": "Thêm mới bàn thành công!"})

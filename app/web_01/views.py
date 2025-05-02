@@ -7,7 +7,7 @@ import requests
 from django.conf import settings
 from web_01.analyzer import analyze_message, handle_intent
 
-from web_01.handle_view.table_view import (TableManagementView, edit_table)
+from web_01.handle_view.table_view import (TableManagementView, edit_table,add_table)
 from web_01.handle_view.order_view import (OrderManagementView, detail_order, detail_invoice)
 from web_01.handle_view.product_view import (ProductManagementView, add_product, import_product, detail_product, best_seller)
 from web_01.handle_view.service_view import (ServiceManagementView, get_order_by_table, complete_payment, get_product_service,
@@ -134,6 +134,11 @@ def call_gemini(prompt):
         return "Lỗi nội bộ khi gọi Gemini."
 
 
+def get_recent_messages(limit=5):
+    history = ChatHistory.objects.order_by('-created_at')[:limit]
+    return [f"User: {h.user_message}\nBot: {h.bot_reply}" for h in history]
+
+
 @csrf_exempt
 def chatbot_api(request):
     if request.method == "POST":
@@ -148,6 +153,8 @@ def chatbot_api(request):
                 reply = handle_intent(intent_data)
             else:
                 # Nếu không nhận ra, fallback Gemini
+                history = get_recent_messages()
+                prompt = "\n".join(history) + f"\nUser: {message}\nBot:"
                 reply = call_gemini(prompt)
 
             # Lưu lịch sử
@@ -157,7 +164,6 @@ def chatbot_api(request):
             )
 
         except Exception as e:
-            print("Lỗi chatbot_api:", str(e))
             reply = "Lỗi nội bộ khi xử lý yêu cầu."
 
         return JsonResponse({"reply": reply})

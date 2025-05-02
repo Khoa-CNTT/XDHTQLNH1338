@@ -1,6 +1,11 @@
 <div class="card">
     <div class="card-header ">
         <h5 class="card-title">Quản lý bàn</h5>
+        <div>
+            <button type="button" class="btn btn-primary btn-sm" onclick="add_table()">
+                + Thêm bàn mới
+            </button>
+        </div>
     </div>
     <div class="card-body">
         <div class="row">
@@ -57,5 +62,20 @@
     $(document).ready(function() {
         $('#table_data').DataTable(DATATABLE_CONFIG);
     });
+
+    function add_table() {
+        $.ajax({
+            url: "{{ url('web_01:add_table') }}",
+            type: "POST",
+            headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+            contentType: "application/json",
+            success: function (res) {
+                location.reload();
+            },
+            error: function (err) {
+                console.error(err);
+            }
+        });
+    }
 </script>
 {% endblock %}
