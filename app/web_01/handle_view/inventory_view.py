@@ -101,7 +101,6 @@ def import_ingredient(request):
         if len(ingredient_ids) != len(set(ingredient_ids)):
             return JsonResponse({'error': 'Không được nhập trùng nguyên liệu!'}, status=400)
 
-        logs = []
         try:
             for i in range(len(ingredient_ids)):
                 ing_id = int(ingredient_ids[i])

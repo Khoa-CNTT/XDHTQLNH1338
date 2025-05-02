@@ -63,6 +63,16 @@ class Ingredient(models.Model):
         ('gói', 'Gói'),
         ('hộp', 'Hộp'),
         ('lon', 'Lon'),
+        ('cai', 'Cái'),
+        ('lang', 'Lạng'),
+        ('trai', 'Trái'),
+        ('hop', 'Hộp'),
+        ('o', 'Ổ'),
+        ('cu', 'Củ'),
+        ('lit', 'Lít'),
+        ('ml', 'Ml'),
+        ('chai', 'Chai'),
+        ('quả', 'Quả'),
     ]
 
     name = models.CharField(max_length=100, unique=True)

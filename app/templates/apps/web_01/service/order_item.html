@@ -137,6 +137,7 @@
                                             <a class="dropdown-item update-status-option" href="#!"
                                                 data-order-id="{{ order.order_id }}"
                                                 data-item-id="{{ item.item_id }}" 
+                                                data-product-name="{{ item.product_name }}" 
                                             
                                                 data-status="in_progress">
                                                 <i class="fas fa-redo me-1"></i> Chế biến
@@ -144,11 +145,13 @@
                                             {%endif%}
                                             <a class="dropdown-item update-status-option" href="#!"
                                                 data-order-id="{{ order.order_id }}"
+                                                data-product-name="{{ item.product_name }}" 
                                                 data-item-id="{{ item.item_id }}" data-status="completed">
                                                 <i class="fas fa-check me-1"></i> Hoàn thành   
                                             </a>
                                             <a class="dropdown-item update-status-option" href="#!"
                                                 data-order-id="{{ order.order_id }}"
+                                                data-product-name="{{ item.product_name }}" 
                                                 data-item-id="{{ item.item_id }}" data-status="cancelled">
                                                 <i class="fas fa-trash-alt me-1"></i> Hủy
                                             </a>
@@ -309,7 +312,14 @@
             contentType: "application/json",
             data: JSON.stringify({ session_id: session_id }),
             success: function (res) {
-                location.reload()
+                location.reload();
+                if (socket.readyState === WebSocket.OPEN) {
+                    // Socket đã mở, có thể gửi ngay
+                    socket.send(JSON.stringify({
+                        type: "end_session",
+                        session_id: session_id
+                    }));
+                }
             },
             error: function (err) {
                 console.error(err);
@@ -402,7 +412,7 @@
             const orderId = $(this).data('order-id');
             const itemId = $(this).data('item-id');
             const status = $(this).data('status');
-    
+            const product_name = $(this).data('product-name');
             $.ajax({
                 url: "{{ url('web_01:update_item_status') }}",
                 method: "POST",
@@ -416,6 +426,15 @@
                 }),
                 success: function (res) {
                     $('#orderContents').html(res)
+                    if (socket.readyState === WebSocket.OPEN) {
+                        // Socket đã mở, có thể gửi ngay
+                        socket.send(JSON.stringify({
+                            type: "product_status",
+                            product_name: product_name,
+                            table_id: "{{ table_id }}",
+                            product_status: status,
+                        }));
+                    }
                 },
                 error: function (err) {
                     console.error(err);

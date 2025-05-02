@@ -24,7 +24,19 @@ function displayNotification(message, level = "info") {
 }
 
 // WebSocket setup
-const socket = new WebSocket("ws://0.0.0.0:5001/ws/notifications/order/");
+const socket = new WebSocket("ws://localhost:5001/ws/notifications/order/");
+
+socket.onmessage = function (event) {
+  console.log("Received:", event.data);
+};
+
+socket.onerror = function (err) {
+  console.error("WebSocket error", err);
+};
+
+socket.onclose = function () {
+  console.log("WebSocket closed");
+};
 
 // Khi nhận được thông báo từ server
 socket.onmessage = function (event) {
@@ -35,7 +47,6 @@ socket.onmessage = function (event) {
   const currentPath = window.location.pathname;
 
   if (currentPath.includes("/management/service/list")) {
-          
   }
   displayNotification(message, level);
   load_notification_list();
