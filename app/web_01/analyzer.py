@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from django.db.models import Sum,Count
-from web_01.models import Order,OrderDetail
+from web_01.models import Order,OrderDetail,Invoice
 import re
 from calendar import monthrange
 # Helper function to parse dates
@@ -93,7 +93,7 @@ def handle_intent(intent_data):
     if intent_data["intent"] == "get_revenue":
         target_date = parse_date(intent_data["date"])
         if target_date:
-            revenue = Order.objects.filter(created_at__date=target_date).aggregate(total=Sum('total_amount'))['total'] or 0
+            revenue = Invoice.objects.filter(created_at__date=target_date).aggregate(total=Sum('total_amount'))['total'] or 0
             return f"Doanh thu ngày {target_date.strftime('%d/%m/%Y')} là {revenue:,} VNĐ."
 
     if intent_data["intent"] == "count_orders":
@@ -113,7 +113,6 @@ def handle_intent(intent_data):
     if intent_data["intent"] == "get_top_selling_products":
         month = int(intent_data["date"])  # Tháng từ 1-12
         top_products = get_top_selling_products(month)  # Lấy sản phẩm bán chạy theo tháng
-        print('top_products',top_products)
         top_product_list = "\n".join([f"Sản phẩm: {product['product']}, Số lượng bán: {product['sales_count']}" for product in top_products])
         return f"Sản phẩm bán chạy nhất trong tháng {month}:\n{top_product_list}"
     

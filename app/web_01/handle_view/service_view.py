@@ -82,7 +82,7 @@ def process_data_order(request, table_id, is_payment=0):
             order_details_list.append(order_data)
 
     # Lấy thông tin khách hàng (nếu có)
-    customer_name = session.customer.user.username if session.customer else "Khách vãng lai"
+    customer_name = f'{session.customer.user.username}({session.customer.user.first_name})' if session.customer else "Khách vãng lai"
     if is_payment:
         html_template = 'apps/web_01/service/modal/content_payment_order.html'
     else:
@@ -205,6 +205,7 @@ def update_item_status(request):
             item = OrderDetail.objects.get(id=item_id, order_id=order_id)
             old_status = item.status  # Trạng thái cũ trước khi cập nhật
             item.status = new_status
+            item.updated_by = request.user
             item.save()
 
             # Nếu chuyển từ trạng thái khác sang 'cancelled' => cập nhật tổng tiền

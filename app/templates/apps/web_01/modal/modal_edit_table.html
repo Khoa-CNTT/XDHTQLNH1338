@@ -15,7 +15,6 @@
                     $('#{{modal_id}} #modalBody').html(response);
                     is_reloading = false;
                     enable_element($('#{{modal_id}} #modalBody'));
-                    show_msg_success('#message', response.message);
                 },
                 error: function (xhr, status, e) {
                    

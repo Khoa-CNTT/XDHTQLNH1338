@@ -3,6 +3,7 @@ from django.urls import path, include, re_path
 from web_01 import views
 
 app_name = "web_01"
+
 # namespace
 urlpatterns = [
     # WEB
@@ -16,7 +17,8 @@ urlpatterns = [
     path('management/', include([
         path('table/', include([
             path('list', views.TableManagementView.as_view(), name='table_list'),
-            path('<int:id>/', views.edit_table, name='edit_table')
+            path('<int:id>/', views.edit_table, name='edit_table'),
+            path('add', views.add_table, name='add_table')
         ])),
         path('service/', include([
             path('list', views.ServiceManagementView.as_view(), name='service_list'),

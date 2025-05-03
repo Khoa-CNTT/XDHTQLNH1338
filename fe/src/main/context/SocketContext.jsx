@@ -1,12 +1,12 @@
 import { createContext, useEffect, useState } from "react";
-
+import Cookies from "js-cookie";
 export const SocketContext = createContext(null);
 
 export const SocketProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);
 
   useEffect(() => {
-    const ws = new WebSocket("ws://0.0.0.0:5001/ws/notifications/order/");
+    const ws = new WebSocket("ws://localhost:5001/ws/notifications/order/");
 
     ws.onopen = () => {
       console.log("✅ WebSocket connected!");
@@ -22,6 +22,12 @@ export const SocketProvider = ({ children }) => {
 
     ws.onmessage = (event) => {
       console.log("📩 WebSocket message received:", event.data);
+      var data = JSON.parse(event.data);
+      if (data?.type === "end_session") {
+        Cookies.remove("token");
+        // hoặc redirect
+        window.location.href = "/";
+      }
     };
 
     setSocket(ws);
@@ -37,4 +43,3 @@ export const SocketProvider = ({ children }) => {
     <SocketContext.Provider value={socket}>{children}</SocketContext.Provider>
   );
 };
-

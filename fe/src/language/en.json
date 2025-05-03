@@ -24,6 +24,8 @@
         "button": "Order",
         "total": "Total",
         "empty_cart": "Cart is empty",
+        "empty_cart_message": "Looks like you haven't added any items to your cart yet",
+        "continue_shopping": "Continue order",
         "quantity": "Quantity"
     },
     "status_order": {
