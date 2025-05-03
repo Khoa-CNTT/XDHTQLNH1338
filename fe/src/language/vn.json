@@ -24,6 +24,8 @@
         "button": "Đặt món",
         "total": "Tổng tiền",
         "empty_cart": "Giỏ hàng trống",
+        "empty_cart_message": "Có vẻ như bạn chưa thêm món nào vào giỏ hàng",
+        "continue_shopping": "Gọi món",
         "quantity": "Số lượng"
     },
     "status_order": {

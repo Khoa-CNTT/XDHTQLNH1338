@@ -42,10 +42,10 @@ const Status = () => {
     socket.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-        console.log('data',data)
-        if(data?.type === "product_status") {
-            fetchInvoice();
-            toast.info(`${data?.data?.product_name} ${getStatusProductOrderENToVN(data?.data?.product_status)}`);
+        console.log('data', data)
+        if (data?.type === "product_status") {
+          fetchInvoice();
+          toast.info(`${data?.data?.product_name} ${getStatusProductOrderENToVN(data?.data?.product_status)}`);
         }
       } catch (err) {
         console.error("Error parsing message:", err);
@@ -86,7 +86,7 @@ const Status = () => {
       );
       setOrderDetails(allOrderDetails);
     } catch (error) {
-      toast.error("Lỗi khi lấy hóa đơn:", error);
+      // toast.error("Lỗi khi lấy hóa đơn:", error);
     } finally {
       setLoading(false);
     }
@@ -215,7 +215,7 @@ const Status = () => {
         <div className={cx("empty-status")}>
           <div className={cx("empty-status-content")}>
             <h3>{t("status_order.empty_title")}</h3>
-            <p>{t("status_order.empty_message")}</p>
+            <p className="text-center">{t("status_order.empty_message")}</p>
             <Link to="/menu-order" className={cx("cs-btn-order")}>
               {t("order_page.button")}
             </Link>
