@@ -62,6 +62,7 @@ class TableReservationManagementView(LoginRequiredMixin, TemplateView):
             data = []
             for index, r in enumerate(reservations, start=start):
                 data.append({
+                    "id": r.id,
                     "index": index + 1,
                     "name": r.name,
                     "phone_number": r.phone_number,
@@ -82,3 +83,33 @@ class TableReservationManagementView(LoginRequiredMixin, TemplateView):
 
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=400)
+        
+class TableReservationForm(forms.ModelForm):
+    class Meta:
+        model = TableReservation
+        fields = ['table', 'date', 'status']  
+        widgets = {
+            'date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'table': forms.Select(attrs={'class': 'form-control'}),
+            'status': forms.Select(attrs={'class': 'form-control'}),
+        }
+
+        
+@login_required
+def edit_table_reservation(request, id):
+    """Xử lý chỉnh sửa đặt bàn (bàn, ngày, trạng thái) bằng AJAX"""
+    reservation = get_object_or_404(TableReservation, id=id)
+
+    if request.method == "POST":
+        form = TableReservationForm(request.POST, instance=reservation)
+        if form.is_valid():
+            form.save()
+            return JsonResponse({"success": True, "message": "Cập nhật đặt bàn thành công!"}, status=200)
+        else:
+            return JsonResponse({"success": False, "errors": form.errors}, status=400)
+
+    form = TableReservationForm(instance=reservation)
+    return render(request, '/apps/web_01/modal/content/content_update_table_reservation.html', {
+        'form': form,
+        'reservation_id': id
+    })

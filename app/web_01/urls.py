@@ -54,6 +54,7 @@ urlpatterns = [
 
         path('table-reservation/', include([
             path('list', views.TableReservationManagementView.as_view(), name='table_reservation_list'),
+            path('<int:id>/', views.edit_table_reservation, name='edit_table_reservation')
         ])),
 
         path('inventory/', include([

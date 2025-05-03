@@ -64,6 +64,16 @@
 
 </div>
 
+{% with 
+    modal_id = 'modalEditReservation',
+    modal_title = 'Cập nhật đặt bàn',
+    modal_class_size = 'modal-lg',
+    modal_body_tmp = '/apps/web_01/modal/modal_update_table_reservation.html'
+%}
+    {% include '/popup/popup_create.html' %}
+{% endwith %}
+
+
 {% endblock %}
 
 {% block script %}
