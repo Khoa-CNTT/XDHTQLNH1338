@@ -93,7 +93,7 @@ const BookTable = () => {
                     <input type="text" className={cx('form-control', 'cs-form-item')} id="floatingInputNumber" placeholder='' />
                     <label htmlFor="floatingInputNumber">How many persons?</label>
                   </div>
-                  <div className="form-floating">
+                  {/* <div className="form-floating">
                     <input
                       type="text"
                       className={cx('form-control', 'cs-form-item')}
@@ -103,7 +103,7 @@ const BookTable = () => {
                       readOnly
                     />
                     <label htmlFor="floatingInputTable">Which table do you choose?</label>
-                  </div>
+                  </div> */}
                   <div className="form-floating">
                     <input type="time" className={cx('form-control', 'cs-form-item')} id="floatingInputTime" placeholder='' defaultValue='00:00' />
                     <label htmlFor="floatingInputTime">What time do you book a table?</label>
