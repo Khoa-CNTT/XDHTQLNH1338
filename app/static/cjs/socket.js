@@ -17,6 +17,17 @@ function displayNotification(message, level = "info") {
     error: () => toastr.error(message, "❌ Lỗi"),
     warning: () => toastr.warning(message, "⚠️ Cảnh báo"),
     info: () => toastr.info(message, "🔔 Thông báo"),
+    payment: () => {
+      toastr.info(
+        `<i class="fas fa-money-bill-wave"></i> ${message}`,
+        "💰 Thanh toán",
+        {
+          timeOut: 5000,
+          closeButton: true,
+          allowHtml: true, // ⬅️ Quan trọng để HTML được render
+        }
+      );
+    },
   };
 
   const notify = toastrMap[level] || toastrMap["info"];
@@ -42,12 +53,13 @@ socket.onclose = function () {
 socket.onmessage = function (event) {
   const data = JSON.parse(event.data);
   const message = data.message;
+  const type = data.type;
   const level = data.level;
 
-  const currentPath = window.location.pathname;
-
-  if (currentPath.includes("/management/service/list")) {
+  if (type == "required_payment_cash") {
+    console.log("type", type);
   }
+
   displayNotification(message, level);
   load_notification_list();
 };

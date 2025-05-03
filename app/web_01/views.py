@@ -3,11 +3,12 @@ from django.views.generic import TemplateView
 from django import forms
 from web_01.models import *
 from django.db.models import Sum
+from django.utils.decorators import method_decorator
 import requests
 from django.conf import settings
 from web_01.analyzer import analyze_message, handle_intent
 
-from web_01.handle_view.table_view import (TableManagementView, edit_table,add_table)
+from web_01.handle_view.table_view import (TableManagementView, edit_table, add_table)
 from web_01.handle_view.order_view import (OrderManagementView, detail_order, detail_invoice)
 from web_01.handle_view.product_view import (ProductManagementView, add_product, import_product, detail_product, best_seller)
 from web_01.handle_view.service_view import (ServiceManagementView, get_order_by_table, complete_payment, get_product_service,
@@ -16,9 +17,11 @@ from web_01.handle_view.customer_view import (CustomerManagementView)
 from web_01.handle_view.employee_view import (EmployeeManagementView)
 from web_01.handle_view.table_reservation_view import (TableReservationManagementView)
 from web_01.handle_view.inventory_view import (InventoryManagementView, inventory_log_list, import_ingredient)
+from web_01.decorator import superuser_required
+
 GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
 
-
+@method_decorator(superuser_required, name='dispatch')
 class DashboardView(LoginRequiredMixin, TemplateView):
     template_name = 'apps/web_01/dashboard/dashboard.html'
 
@@ -78,6 +81,7 @@ class CustomLoginView(FormView):
         if user is not None:
             login(self.request, user)
             return redirect(self.get_success_url())
+            
         else:
             form.add_error('password', 'Mật khẩu không đúng!')
             return self.form_invalid(form)

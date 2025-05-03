@@ -60,7 +60,7 @@ class NotifyConsumer(AsyncWebsocketConsumer):
     def create_notification(self, data):
         from web_01.models import Notification, Session
         notification_type = data['type']
-        if (notification_type in 'product_status','end_session'):
+        if (notification_type in ['product_status', 'end_session']):
             config = {
                 'message': '',
                 'level': '',
@@ -78,7 +78,7 @@ class NotifyConsumer(AsyncWebsocketConsumer):
             table_number = session.table.table_number
             message_config = {
                 'order_status': {
-                    'message': f'Trạng thái đơn hàng từ bàn {table_number} - {session.customer.user.first_name}.',
+                    'message': f'Đơn hàng từ bàn {table_number} - {session.customer.user.first_name}.',
                     'level': 'info',
                 },
                 'promotion': {
@@ -101,11 +101,16 @@ class NotifyConsumer(AsyncWebsocketConsumer):
                     'message': f'Kết thúc phiên bàn {table_number} - {session.customer.user.first_name}.',
                     'level': 'success',
                 },
+                'required_payment_cash': {
+                    'message': f'Yêu cầu thanh toán bàn {table_number} - {session.customer.user.first_name}.',
+                    'level': 'payment',
+                },
             }
 
             notification_type = data.get('type', 'custom')
             config = message_config.get(notification_type, message_config['custom'])
 
+            print('config', config)
             # Tạo notification trong DB (synchronous)
             Notification.objects.create(
                 user=session.customer.user,

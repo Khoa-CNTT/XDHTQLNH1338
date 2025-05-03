@@ -98,6 +98,7 @@ class InventoryLog(models.Model):
     TYPE_CHOICES = [
         ('import', 'Nhập kho'),
         ('export', 'Xuất kho'),
+        ('sell', 'Bán hàng'),
         ('adjustment', 'Điều chỉnh'),
     ]
 
@@ -179,6 +180,7 @@ class Employee(BaseModel):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     salary = models.IntegerField()
     avartar_url = CloudinaryField('avartar_url', null=True, blank=True)
+
     class Meta:
         db_table = 'employee'
 
@@ -266,9 +268,11 @@ class Invoice(BaseModel):
     class Meta:
         db_table = 'invoice'
 # 🔄 Model Order
+
     @cached_property
     def formatted_total_amount(self) -> str:
         return f'{self.total_amount:,}đ'.replace(',', '.')
+
 
 class Order(BaseModel):
     invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE)
@@ -304,6 +308,41 @@ class OrderDetail(BaseModel):
     class Meta:
         db_table = 'order_detail'
 
+    def save(self, *args, **kwargs):
+        is_new = self.pk is None
+        prev_status = None
+        if not is_new:
+            prev = OrderDetail.objects.get(pk=self.pk)
+            prev_status = prev.status
+
+        super().save(*args, **kwargs)
+
+        # Nếu chuyển sang "completed" mà trước đó không phải completed
+        if self.status == 'completed' and prev_status != 'completed':
+            self.export_ingredients()
+
+    def export_ingredients(self):
+        product_ingredients = IngredientProduct.objects.filter(product=self.product)
+        for pi in product_ingredients:
+            total_quantity_used = pi.quantity_required * self.quantity
+            ingredient = pi.ingredient
+
+            # Cập nhật tồn kho (trừ số lượng)
+            old_stock = ingredient.quantity_in_stock
+            ingredient.quantity_in_stock -= total_quantity_used
+            ingredient.save()
+
+            # Tạo log
+            InventoryLog.objects.create(
+                ingredient=ingredient,
+                change=-total_quantity_used,
+                type='export',
+                note=f"Xuất cho món đơn hàng (#00{self.order.id})'{self.product.name}' x {self.quantity}",
+                stock_before=old_stock,
+                stock_after=ingredient.quantity_in_stock,
+                user=self.updated_by if hasattr(self, 'updated_by') else None
+            )
+
 
 class Cart(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
@@ -327,14 +366,7 @@ class Notification(BaseModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     message = models.TextField()
     type = models.CharField(
-        max_length=15,
-        choices=[
-            ('order_status', 'Order Status'),
-            ('promotion', 'Promotion'),
-            ('reminder', 'Reminder'),
-            ('custom', 'Custom'),
-            ('payment', 'Payment'),
-        ]
+        max_length=50
     )
     status = models.CharField(
         max_length=10,
@@ -419,6 +451,7 @@ class TableReservation(models.Model):
     class Meta:
         db_table = 'table_reservation'
 
+
 class ChatHistory(models.Model):
     user_message = models.TextField()  # Tin nhắn người dùng
     bot_reply = models.TextField()  # Phản hồi của chatbot
@@ -426,5 +459,6 @@ class ChatHistory(models.Model):
 
     def __str__(self):
         return f"User: {self.user_message[:20]}... | Bot: {self.bot_reply[:20]}..."
+
     class Meta:
         db_table = 'chat_history'

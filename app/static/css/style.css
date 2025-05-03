@@ -32754,7 +32754,7 @@ font-weight: 600;
 
 /* Dòng cảnh báo + icon 🚫 */
 .dropzone.blocked::after {
-  content: "Không thể thêm vào đơn đã hoàn tất"; /* Bỏ icon nếu không cần */
+  content: "Không thể thêm vào đơn đã thanh toán!"; /* Bỏ icon nếu không cần */
   position: absolute;
   top: 50%;
   left: 50%;

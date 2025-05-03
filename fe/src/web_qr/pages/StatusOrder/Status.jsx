@@ -16,6 +16,7 @@ import { useCart } from "../../context/CartContext";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { SocketContext } from "../../../main/context/SocketContext";
+import { useAuth } from "../../context/AuthContext";
 const cx = classNames.bind(styles);
 
 const Status = () => {
@@ -33,6 +34,7 @@ const Status = () => {
   const [hover, setHover] = useState(0);
   const [feedback, setFeedback] = useState("");
   const socket = useContext(SocketContext);
+  const { session } = useAuth();
   // Tính tổng tiền
   const totalAmount = orderDetails.reduce((total, item) => {
     return total + item.product_price * item.quantity;
@@ -45,7 +47,7 @@ const Status = () => {
         console.log('data', data)
         if (data?.type === "product_status") {
           fetchInvoice();
-          toast.info(`${data?.data?.product_name} ${getStatusProductOrderENToVN(data?.data?.product_status)}`);
+          // toast.info(`${data?.data?.product_name} ${getStatusProductOrderENToVN(data?.data?.product_status)}`);
         }
       } catch (err) {
         console.error("Error parsing message:", err);
@@ -116,8 +118,18 @@ const Status = () => {
   // Xử lý xác nhận thanh toán
   const handleConfirmPayment = () => {
     // Xử lý logic thanh toán ở đây
-    toast.success("Thanh toán thành công");
+    toast.success("Yêu cầu thanh toán đã được gửi đến hệ thống!");
     handleCloseModal();
+
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      socket.send(
+          JSON.stringify({
+              type: "required_payment_cash",
+              session: session
+          })
+      );
+  }
+
 
     // Hiển thị modal đánh giá sau 3 giây
     setTimeout(() => {
@@ -177,6 +189,7 @@ const Status = () => {
 
 
   const getAsyncMomoPayment = async () => {
+    
     try {
       const response = await getAwaitMomoPayment(); // gọi API Django
       const payUrl = response?.data?.payUrl;
@@ -186,7 +199,7 @@ const Status = () => {
       }
     } catch (error) {
       console.error("Lỗi khi xử lý thanh toán:", error);
-      alert("Đã xảy ra lỗi khi thanh toán.");
+      
     }
   };
 
@@ -250,9 +263,9 @@ const Status = () => {
                   </div>
                 </div>
 
-                <span className={cx("cs-deleted")}>
+                {/* <span className={cx("cs-deleted")}>
                   <ImBin />
-                </span>
+                </span> */}
               </div>
             </div>
           ))}

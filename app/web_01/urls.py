@@ -3,6 +3,7 @@ from django.urls import path, include, re_path
 from web_01 import views
 
 app_name = "web_01"
+
 # namespace
 urlpatterns = [
     # WEB

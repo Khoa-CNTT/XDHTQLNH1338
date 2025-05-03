@@ -101,7 +101,7 @@ class InvoiceViewSet(AuthenticationPermissionMixin, ViewSet):
         redirectUrl = f"{settings.FRONT_END_URL}/momo/payment/success"
         ipnUrl = f"{settings.CURRENT_URL}/api/invoice/momo-ipn/"
         amount = f"{invoice.total_amount}"
-        orderId = f'INVOICE_00{invoice.id}'
+        orderId = f'INVOICE_{str(random.randint(0, 10000))}_00{invoice.id}'
         requestId = str(uuid.uuid4())
         extraData = ""
 
@@ -153,6 +153,6 @@ class InvoiceViewSet(AuthenticationPermissionMixin, ViewSet):
         active_session.customer.loyalty_points = math.ceil(invoice.total_amount / 10000) + active_session.customer.loyalty_points
         active_session.customer.save()
 
-        return JsonResponse({'status': 'success','session':{
-            'session_id':active_session.id,
+        return JsonResponse({'status': 'success', 'session': {
+            'session_id': active_session.id,
         }})
