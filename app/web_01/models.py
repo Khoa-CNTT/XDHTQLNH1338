@@ -177,10 +177,16 @@ class Customer(BaseModel):
 
 
 class Employee(BaseModel):
+    ROLE_CHOICES = [
+        ('admin', 'Admin'),
+        ('manager', 'Manager'),
+        ('staff', 'Staff'),
+        ('chef', 'Chef'),
+    ]
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     salary = models.IntegerField()
     avartar_url = CloudinaryField('avartar_url', null=True, blank=True)
-
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES,default='staff')
     class Meta:
         db_table = 'employee'
 

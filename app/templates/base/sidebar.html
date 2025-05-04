@@ -57,12 +57,14 @@
 				</a>
 			</li>
 
+			{% if user.is_superuser %}
 			<li>
 				<a class="ai-icon" href="{{url('web_01:employee_list')}}" aria-expanded="false">
 					<i class="fa-solid fa-users-gear"></i> <!-- nhân viên -->
 					<span class="nav-text">Nhân viên</span>
 				</a>
 			</li>
+			{%endif%}
 
 			<li>
 				<a class="ai-icon" href="{{url('web_01:table_reservation_list')}}" aria-expanded="false">

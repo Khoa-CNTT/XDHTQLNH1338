@@ -2,6 +2,7 @@
 from django.urls import path, include, re_path
 from web_01 import views
 from web_01.chatbot import chatbot_view
+from web_01.chef import chef
 app_name = "web_01"
 
 # namespace
@@ -10,6 +11,7 @@ urlpatterns = [
     path('', views.dashboard, name='dashboard'),
     path('accounts/login/', views.CustomLoginView.as_view(), name='login'),
     path('accounts/logout/', views.logout_view, name='logout'),
+    path('chef/', chef.chef_dashboard, name='chef_dashboard'),
     path("chatbot/", chatbot_view.chatbot_api, name="chatbot_api"),
     path("get-chat-history/", views.get_chat_history, name="get_chat_history"),
     path('get-notifications', views.get_notification, name='get_notification'),

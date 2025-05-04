@@ -17,3 +17,22 @@ class LoginRequiredMiddleware:
 
         # Continue processing the request if authenticated or the path is allowed
         return self.get_response(request)
+
+
+class RedirectMiddleware:
+    """Redirect người dùng role 'chef' từ /dashboard sang /chef/"""
+
+    EXCLUDED_PATHS = ['/accounts', '/admin', '/static', '/media']
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        # Nếu đã đăng nhập và có employee
+        if request.user.is_authenticated and hasattr(request.user, 'employee'):
+            path = request.path
+            # Bỏ qua các path đặc biệt
+            if not any(path.startswith(p) for p in self.EXCLUDED_PATHS):
+                if request.user.employee.role == 'chef' and not path.startswith('/chef'):
+                    return redirect(reverse('web_01:chef_dashboard'))
+        return self.get_response(request)

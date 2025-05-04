@@ -185,6 +185,11 @@ class CustomLoginView(FormView):
         user = authenticate(self.request, username=username, password=password)
         if user is not None:
             login(self.request, user)
+            if hasattr(user, 'employee'):
+                if user.employee.role == 'chef':
+                    return redirect(reverse('web_01:chef_dashboard'))  # Redirect tới trang đầu bếp
+                if user.employee.role == 'staff':
+                    return redirect(reverse('web_01:service_list'))
             return redirect(self.get_success_url())
             
         else:
