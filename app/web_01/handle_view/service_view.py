@@ -182,6 +182,8 @@ def complete_payment_multi_order(request):
                 related_orders = invoice.order_set.all()
                 if all(o.status == 'completed' for o in related_orders):
                     invoice.status = 'completed'
+                    invoice.payment_method = payment_method
+                    invoice.discount = discount_percent
                     invoice.save()
 
             # TODO: Ghi lại lịch sử thanh toán nếu muốn

@@ -2,7 +2,7 @@ from core.__Include_Library import *
 from django.views.generic import TemplateView
 from django import forms
 from web_01.models import *
-from django.db.models import Sum
+from django.db.models import Sum, Count, F,Prefetch
 from django.utils.decorators import method_decorator
 import requests
 from django.conf import settings
@@ -43,6 +43,111 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         context['total_customers'] = Customer.objects.count()
 
         return context
+
+
+def dashboard(request):
+    """Dashboard chính hiển thị thông tin tổng quan"""
+    today = timezone.now().date()
+    start_of_month = today.replace(day=1)
+    
+    # Thống kê đơn hàng hôm nay
+    total_orders_today = Order.objects.filter(
+        created_at__date=today, 
+        is_deleted=False
+    ).count()
+    
+    # Doanh thu hôm nay
+    revenue_today = Invoice.objects.filter(
+        created_at__date=today,
+        is_deleted=False
+    ).aggregate(total=Sum('total_amount'))['total'] or 0
+    
+    # Doanh thu tháng này
+    revenue_month = Invoice.objects.filter(
+        created_at__date__gte=start_of_month,
+        is_deleted=False
+    ).aggregate(total=Sum('total_amount'))['total'] or 0
+    
+    # Sản phẩm bán chạy
+    best_selling = OrderDetail.objects.filter(
+        is_deleted=False
+    ).values('product__name').annotate(
+        total_sold=Sum('quantity')
+    ).order_by('-total_sold')[:5]
+    
+    # Tình trạng bàn
+    tables_status = {
+        'available': Table.objects.filter(status='available').count(),
+        'occupied': Table.objects.filter(status='occupied').count(),
+        'reserved': Table.objects.filter(status='reserved').count(),
+    }
+
+    # Danh sách bàn có thông tin session hiện tại (nếu có)
+    active_sessions = Session.objects.filter(status='active')
+    tables = Table.objects.prefetch_related(
+        Prefetch('session_set', queryset=active_sessions, to_attr='active_sessions')
+    )
+
+    for table in tables:
+        current_session = table.active_sessions[0] if table.active_sessions else None
+        table.current_session = current_session
+        table.total_amount = current_session.total_amount if current_session else 0
+    # Cảnh báo tồn kho
+    low_stock_items = Ingredient.objects.filter(quantity_in_stock__lte=50).order_by('quantity_in_stock')[:5]
+    
+    # Dữ liệu cho biểu đồ doanh thu theo ngày (7 ngày gần nhất)
+    revenue_by_day = []
+    day_labels = []
+    for i in range(6, -1, -1):
+        day = today - timedelta(days=i)
+        day_revenue = Invoice.objects.filter(
+            created_at__date=day,
+            is_deleted=False
+        ).aggregate(total=Sum('total_amount'))['total'] or 0
+        revenue_by_day.append(day_revenue)
+        day_labels.append(day.strftime('%d/%m'))
+    
+    # Dữ liệu cho biểu đồ doanh thu theo danh mục
+    revenue_by_category = OrderDetail.objects.filter(
+        is_deleted=False,
+        created_at__date__gte=start_of_month
+    ).values('product__category__name').annotate(
+        total=Sum(F('price') * F('quantity'))
+    ).order_by('-total')[:5]
+    
+    # Dữ liệu cho biểu đồ tỷ lệ đơn hàng theo trạng thái
+    order_status_counts = Order.objects.filter(
+        is_deleted=False
+    ).values('status').annotate(
+        count=Count('id')
+    )
+    
+    # Dữ liệu cho biểu đồ tồn kho nguyên liệu (10 nguyên liệu có tỷ lệ sử dụng cao nhất)
+    top_ingredients = Ingredient.objects.annotate(
+        usage_count=Count('ingredientproduct')
+    ).order_by('-usage_count')[:10]
+    
+    ingredient_labels = [ing.name for ing in top_ingredients]
+    ingredient_stocks = [ing.quantity_in_stock for ing in top_ingredients]
+
+    # Thêm dữ liệu vào context
+    context = {
+        'total_orders_today': total_orders_today,
+        'revenue_today': revenue_today,
+        'revenue_month': revenue_month,
+        'best_selling': best_selling,
+        'tables_status': tables_status,
+        'low_stock_items': low_stock_items,
+        'tables': tables,
+        'revenue_by_day': revenue_by_day,
+        'day_labels': day_labels,
+        'revenue_by_category': revenue_by_category,
+        'order_status_counts': order_status_counts,
+        'ingredient_labels': ingredient_labels,
+        'ingredient_stocks': ingredient_stocks,
+    }
+    
+    return render(request, 'apps/web_01/dashboard/dashboard_2.html', context)
 
 
 class CustomLoginForm(forms.Form):

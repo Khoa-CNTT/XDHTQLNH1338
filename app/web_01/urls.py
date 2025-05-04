@@ -7,7 +7,7 @@ app_name = "web_01"
 # namespace
 urlpatterns = [
     # WEB
-    path('', views.DashboardView.as_view(), name='dashboard'),
+    path('', views.dashboard, name='dashboard'),
     path('accounts/login/', views.CustomLoginView.as_view(), name='login'),
     path('accounts/logout/', views.logout_view, name='logout'),
     path("chatbot/", views.chatbot_api, name="chatbot_api"),

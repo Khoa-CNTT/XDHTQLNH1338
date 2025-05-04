@@ -261,7 +261,7 @@ class Session(models.Model):
 
 class Invoice(BaseModel):
     session = models.ForeignKey(Session, on_delete=models.CASCADE)
-    payment_method = models.CharField(max_length=15, choices=[('cash', 'Tiền mặt'), ('bank_transfer', 'Chuyển khoản'), ('card', 'Thẻ')], null=True, blank=True)
+    payment_method = models.CharField(max_length=15, choices=[('cash', 'Tiền mặt'), ('bank_transfer', 'Chuyển khoản'), ('momo', 'Momo')], null=True, blank=True)
     total_amount = models.IntegerField(default=0)
     discount = models.IntegerField(default=0)
 
@@ -322,26 +322,22 @@ class OrderDetail(BaseModel):
             self.export_ingredients()
 
     def export_ingredients(self):
-        product_ingredients = IngredientProduct.objects.filter(product=self.product)
-        for pi in product_ingredients:
-            total_quantity_used = pi.quantity_required * self.quantity
-            ingredient = pi.ingredient
-
-            # Cập nhật tồn kho (trừ số lượng)
-            old_stock = ingredient.quantity_in_stock
-            ingredient.quantity_in_stock -= total_quantity_used
-            ingredient.save()
-
+        product_ingredient = IngredientProduct.objects.filter(product=self.product).first()
+        total_quantity_used = product_ingredient.quantity_required * self.quantity
+        ingredient = product_ingredient.ingredient 
+        old_stock = ingredient.quantity_in_stock
+        ingredient.quantity_in_stock -= total_quantity_used
+        ingredient.save()
             # Tạo log
-            InventoryLog.objects.create(
-                ingredient=ingredient,
-                change=-total_quantity_used,
-                type='export',
-                note=f"Xuất cho món đơn hàng (#00{self.order.id})'{self.product.name}' x {self.quantity}",
-                stock_before=old_stock,
-                stock_after=ingredient.quantity_in_stock,
-                user=self.updated_by if hasattr(self, 'updated_by') else None
-            )
+        InventoryLog.objects.create(
+            ingredient=ingredient,
+            change=-total_quantity_used,
+            type='export',
+            note=f"Đơn hàng (#00{self.order.id}) - ({self.product.name} x {total_quantity_used})",
+            stock_before=old_stock,
+            stock_after=ingredient.quantity_in_stock,
+            user=self.updated_by if hasattr(self, 'updated_by') else None
+        )
 
 
 class Cart(models.Model):
