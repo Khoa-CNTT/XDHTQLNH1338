@@ -1,5 +1,5 @@
 {% extends 'base/base.html' %}
-
+{% import "/apps/web_01/commom/macros.html" as macros %}
 {% block body %}
 <div class="row">
     <div class="col-xl-3 col-xxl-3 col-lg-6 col-md-6 col-sm-6">
@@ -9,7 +9,7 @@
                     <span class="mr-3 bgl-primary text-primary">
                         <i class="fa fa-shopping-cart"></i>
                     </span>
-                    <div class="media-body">
+                    <div class="media-body mx-2">
                         <h3 class="mb-0 text-black"><span class="counter ml-0">{{ total_orders_today }}</span></h3>
                         <p class="mb-0">Đơn hàng hôm nay</p>
                         <small>Tổng số đơn hàng trong ngày</small>
@@ -25,8 +25,8 @@
                     <span class="mr-3 bgl-warning text-warning">
                         <i class="fa fa-money-bill-alt"></i>
                     </span>
-                    <div class="media-body">
-                        <h3 class="mb-0 text-black">{{ revenue_today }}đ</h3>
+                    <div class="media-body mx-2">
+                        <h3 class="mb-0 text-black">{{ macros.format_currency(revenue_today) }}</h3>
                         <p class="mb-0">Doanh thu hôm nay</p>
                         <small>Tổng doanh thu trong ngày</small>
                     </div>
@@ -41,8 +41,8 @@
                     <span class="mr-3 bgl-success text-success">
                         <i class="fa fa-chart-line"></i>
                     </span>
-                    <div class="media-body">
-                        <h3 class="mb-0 text-black">{{ revenue_month }}đ</h3>
+                    <div class="media-body mx-2">
+                        <h3 class="mb-0 text-black">{{ macros.format_currency(revenue_month) }}</h3>
                         <p class="mb-0">Doanh thu tháng</p>
                         <small>Tổng doanh thu trong tháng</small>
                     </div>
@@ -57,7 +57,7 @@
                     <span class="mr-3 bgl-danger text-danger">
                         <i class="fa fa-table"></i>
                     </span>
-                    <div class="media-body">
+                    <div class="media-body mx-2">
                         <h3 class="mb-0 text-black">
                             <span class="counter ml-0">{{ tables_status.occupied }}</span>/{{ tables_status.available + tables_status.occupied + tables_status.reserved }}
                         </h3>
