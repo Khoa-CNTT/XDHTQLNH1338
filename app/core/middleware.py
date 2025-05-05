@@ -19,13 +19,16 @@ class LoginRequiredMiddleware:
         if not request.user.is_authenticated:
             return redirect(reverse('web_01:login'))
 
+        
+        # if path.startswith('accounts/login/'):
+             # bạn có thể đổi sang route phù hợp
         # Nếu là nhân viên và có role là 'chef' nhưng không ở trong trang chef => redirect
-        if hasattr(request.user, 'employee'):
-            role = request.user.employee.role
-            if role == 'chef' and not path.startswith('/chef'):
-                # Tránh redirect loop nếu đã ở trang chef dashboard
-                if path != reverse('web_01:chef_dashboard'):
-                    return redirect(reverse('web_01:chef_dashboard'))
+        # if hasattr(request.user, 'employee'):
+        #     role = request.user.employee.role
+        #     if role == 'chef' and not path.startswith('/chef'):
+        #         # Tránh redirect loop nếu đã ở trang chef dashboard
+        #         if path != reverse('web_01:chef_dashboard'):
+        #             return redirect(reverse('web_01:chef_dashboard'))
 
         # Cho phép tiếp tục nếu hợp lệ
         return self.get_response(request)

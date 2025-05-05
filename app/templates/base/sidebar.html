@@ -3,12 +3,22 @@
 		<ul class="metismenu" id="menu">
 			{% if is_manager %}
 				<li>
-					<a class="ai-icon" href="/">
+					<a class="ai-icon" href="{{url('web_01:dashboard')}}">
 						<i class="fa-solid fa-chart-line"></i>
 						<span class="nav-text">Dashboard</span>
 					</a>
 				</li>
 			{% endif %}
+
+			{% if is_manager %}
+				<li>
+					<a class="ai-icon" href="{{url('web_01:chef_dashboard')}}">
+						<i class="fa-solid fa-utensils"></i>  {# hoặc fa-kitchen-set / fa-pan-food nếu được hỗ trợ #}
+						<span class="nav-text">Phòng Bếp</span>
+					</a>
+				</li>
+			{% endif %}
+
 			<li>
 				<a class="ai-icon" href="{{url('web_01:service_list')}}" aria-expanded="false">
     				<i class="fa-solid fa-clipboard-list"></i>
@@ -18,7 +28,7 @@
 			{% if is_manager %}
 			<li>
 				<a class="ai-icon" href="{{url('web_01:table_list')}}" aria-expanded="false">
-					<i class="fa-solid fa-utensils"></i> <!-- Bàn -->
+					<i class="fa-solid fa-table-cells"></i> 
 					<span class="nav-text">Bàn</span>
 				</a>
 			</li>

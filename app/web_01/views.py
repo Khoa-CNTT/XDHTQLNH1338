@@ -46,6 +46,21 @@ GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini
 #         return context
 
 
+@login_required
+def index(request):
+    user = request.user
+
+    # Nếu là superuser (admin Django)
+    if user.is_superuser:
+        return redirect('web_01:dashboard')
+
+    # Nếu là nhân viên có role là 'chef'
+    if hasattr(user, 'employee') and user.employee.role == 'chef':
+        return redirect('web_01:chef_dashboard')
+
+    # Mặc định chuyển đến danh sách dịch vụ cho khách hàng hoặc nhân viên khác
+    return redirect('web_01:service_list')  # Đảm bảo bạn có URL name này
+
 @admin_required
 def dashboard(request):
     """Dashboard chính hiển thị thông tin tổng quan"""
@@ -171,6 +186,11 @@ class CustomLoginView(FormView):
     template_name = 'base/login.html'
     form_class = CustomLoginForm
     success_url = '/'  # Trang sau khi đăng nhập thành công
+
+    def dispatch(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            return redirect(reverse('web_01:index'))  # Người đã đăng nhập không vào lại login
+        return super().dispatch(request, *args, **kwargs)
 
     def form_valid(self, form):
         username = form.cleaned_data.get('username')

@@ -6,7 +6,8 @@ export const SocketProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);
 
   useEffect(() => {
-    const ws = new WebSocket("ws://localhost:5001/ws/notifications/order/");
+    const ws = new WebSocket(`${import.meta.env.VITE_SOCKET_API_URL}/ws/notifications/order/`);
+
 
     ws.onopen = () => {
       console.log("✅ WebSocket connected!");

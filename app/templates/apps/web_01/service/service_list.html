@@ -17,8 +17,7 @@
                                     {% if request.GET.get('table','')|string == table.id|string %} active{% endif %}"
                              draggable="true"
                              data-table-id="{{ table.id }}">
-                              <!-- Icon biểu thị trạng thái bàn -->
-                              <i class="fas fa-chair fa-2x text-secondary"></i> <!-- Bàn có khách -->
+                              <i class="fas fa-chair fa-2x text-secondary"></i>
                             <p class=" mb-0 fw-bold">{{ table.id }}</p>
                  
                             {% if table.status == 'available' %}
@@ -70,12 +69,10 @@
                     data-product-image="{{ product.image }}">
                     
                    <div class="d-flex justify-content-between align-items-center">
-                       <!-- ICON KÉO -->
                        <i class="fas fa-grip-vertical text-muted draggable-product me-3"
                           draggable="true"
                           title="Kéo để thêm vào đơn" style="cursor: all-scroll;"></i>
                
-                       <!-- THÔNG TIN SẢN PHẨM -->
                        <div class="menu-item d-flex align-items-center justify-content-between w-100 mb-2 p-2 rounded shadow-sm bg-light">
                         <div class="d-flex align-items-center">
                             <img src="{{ product.image }}" alt="{{ product.name }}" class="img-fluid me-3 rounded"
@@ -84,8 +81,6 @@
                         </div>
                         <strong class="text-secondary">{{ macros.format_currency(product.price) }}</strong>
                     </div>
-                       <!-- GIÁ -->
-                       
                    </div>
                </div>
                         {% endfor %}
