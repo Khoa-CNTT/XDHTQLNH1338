@@ -252,7 +252,10 @@
                         $('#exportCount').text(data.total_export_this_month);
                     }
                 });
-            }
+            },
+            columnDefs: [
+                { orderable: false, targets: [1,5] },
+            ]
         });
         
         // Xử lý sự kiện khi thay đổi bộ lọc

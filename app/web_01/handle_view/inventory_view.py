@@ -12,6 +12,7 @@ from datetime import timedelta
 import json
 from web_01.models import Notification
 
+
 class InventoryManagementView(LoginRequiredMixin, TemplateView):
     template_name = 'apps/web_01/inventory/inventory_list.html'
 
@@ -31,7 +32,7 @@ class InventoryManagementView(LoginRequiredMixin, TemplateView):
 
             # Lọc theo danh mục nếu có
             category_id = request.POST.get("category_id")
-            stock_status = request.POST.get("stock_status",None)
+            stock_status = request.POST.get("stock_status", '')
 
             # Queryset chính
             qs = Ingredient.objects.all()
@@ -40,8 +41,6 @@ class InventoryManagementView(LoginRequiredMixin, TemplateView):
             if category_id:
                 qs = qs.filter(id=category_id)
 
-            if stock_status:
-                qs = qs.filter(quantity_in_stock__lte=stock_status)
             # Tìm kiếm (nếu có)
             if search_value:
                 qs = qs.filter(
@@ -50,14 +49,13 @@ class InventoryManagementView(LoginRequiredMixin, TemplateView):
                 )
 
             # Thêm trường tính toán cho trạng thái tồn kho
-            qs = qs.annotate(
-                stock_status=Case(
-                    When(quantity_in_stock__lte=10, then=Value('low')),
-                    When(quantity_in_stock__lte=30, then=Value('medium')),
-                    default=Value('good'),
-                    output_field=CharField()
-                )
-            )
+
+            if stock_status == 'low':
+                qs = qs.filter(quantity_in_stock__lte=10)
+            elif stock_status == 'medium':
+                qs = qs.filter(quantity_in_stock__lte=30)
+            elif stock_status == 'good':
+                qs = qs.filter(quantity_in_stock__gt=30)
 
             # Sắp xếp
             order_column = request.POST.get('order[0][column]', '0')
@@ -89,7 +87,6 @@ class InventoryManagementView(LoginRequiredMixin, TemplateView):
                     'name': ing.name,
                     'unit': ing.get_unit_display(),
                     'quantity': ing.quantity_in_stock,
-                    'stock_status': ing.stock_status,
                     'latest_update': latest_log.last_updated.strftime('%d/%m/%Y %H:%M') if latest_log else '-',
                     'latest_user': get_username(latest_log.user) if latest_log and latest_log.user else '-',
                 })
@@ -102,6 +99,7 @@ class InventoryManagementView(LoginRequiredMixin, TemplateView):
             }, safe=False)
 
         except Exception as e:
+            print('erro', str(e))
             return JsonResponse({"error": str(e)}, status=400)
 
 
@@ -161,7 +159,7 @@ def import_ingredient(request):
                     return JsonResponse({'error': 'Không được nhập trùng nguyên liệu!'}, status=400)
 
                 # Xử lý từng mục nhập kho
-                print('items',items)
+                print('items', items)
                 for item in items:
                     ing_id = int(item['ingredient_id'])
                     change = int(item['quantity'])
@@ -191,7 +189,7 @@ def import_ingredient(request):
                 changes = request.POST.getlist('change[]')
                 notes = request.POST.getlist('note[]')
 
-                print('ingredient_ids',ingredient_ids)
+                print('ingredient_ids', ingredient_ids)
                 # Kiểm tra trùng nguyên liệu
                 if len(ingredient_ids) != len(set(ingredient_ids)):
                     return JsonResponse({'error': 'Không được nhập trùng nguyên liệu!'}, status=400)
@@ -499,7 +497,6 @@ def ingredient_request(request):
             note = request.POST.get('note', '').strip()
 
             # Tạo thông báo cho quản lý
-            
 
             Notification.objects.create(
                 user_id=1,  # ID của admin hoặc manager
