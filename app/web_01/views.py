@@ -8,7 +8,7 @@ import requests
 from django.conf import settings
 from web_01.analyzer import analyze_message, handle_intent
 
-from web_01.handle_view.table_view import (TableManagementView, edit_table, add_table, table_qr,table_create)
+from web_01.handle_view.table_view import (TableManagementView, edit_table, add_table, table_qr, table_create)
 from web_01.handle_view.order_view import (OrderManagementView, detail_order, detail_invoice)
 from web_01.handle_view.product_view import (ProductManagementView, add_product, import_product, detail_product, best_seller)
 from web_01.handle_view.service_view import (service_dashboard, get_order_by_table, complete_payment, get_product_service,
@@ -16,7 +16,11 @@ from web_01.handle_view.service_view import (service_dashboard, get_order_by_tab
 from web_01.handle_view.customer_view import (CustomerManagementView)
 from web_01.handle_view.employee_view import (EmployeeManagementView)
 from web_01.handle_view.table_reservation_view import (TableReservationManagementView)
-from web_01.handle_view.inventory_view import (InventoryManagementView, inventory_log_list, import_ingredient)
+from web_01.handle_view.inventory_view import (InventoryManagementView, inventory_log_list, import_ingredient, export_ingredient,
+                                               add_ingredient,
+                                               ingredient_request,
+                                               inventory_dashboard,
+                                               inventory_report,inventory_dashboard_stats)
 from web_01.decorator import admin_required
 
 GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
@@ -60,6 +64,7 @@ def index(request):
 
     # Mặc định chuyển đến danh sách dịch vụ cho khách hàng hoặc nhân viên khác
     return redirect('web_01:service_list')  # Đảm bảo bạn có URL name này
+
 
 @admin_required
 def dashboard(request):

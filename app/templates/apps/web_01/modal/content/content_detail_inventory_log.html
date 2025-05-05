@@ -1,40 +1,112 @@
-
 <div class="row">
     <div class="col-12">
-        <h5 class="mb-3">Nhật ký tồn kho: <strong>{{ ingredient.name }}</strong></h5>
-        <h5 class="mb-3">Đơn vị tính: <strong>{{ ingredient.unit }}</strong></h5>
-        <h5 class="mb-3">Tồn kho hiện tại: <strong>{{ current_stock }}</strong></h5>
-        <h5 class="mb-3">Người thay đổi gần nhất: <strong>{{ latest_user }}</strong></h5>
-        <table class="table table-bordered table-sm">
-            <thead class="thead-light">
-                <tr>
-                    <th>#</th>
-                    <th>Thay đổi</th>
-                    <th>Tồn kho trước</th>
-                    <th>Tồn kho sau</th>
-                    <th>Ghi chú</th>
-                    <th>Thời gian</th>
-                    <th>Người thao tác</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for log in logs %}
-                <tr>
-                    <td >
-                        {{loop.index}}
-                    </td>
-                    <td class="{% if log.change > 0 %}text-success{% else %}text-danger{% endif %}">
-                        {% if log.change > 0 %}+{% endif %}{{ log.change }}
-                    </td>
-                    <td>{{ log.stock_before or '-' }}</td>  <!-- 🆕 -->
-                    <td>{{ log.stock_after or '-' }}</td>   <!-- ✅ -->
-                    <td>{{ log.note }}</td>
-                    <td>{{ log.last_updated.strftime('%Y/%m/%d %H:%M') }}</td>
-                    <td>{{ log.user.first_name or log.user.last_name or log.user.username or '-' if log.user else '-' }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-            
-        </table>
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <h5 class="mb-2">Thông tin nguyên liệu</h5>
+                        <p class="mb-1"><strong>Tên:</strong> {{ ingredient.name }}</p>
+                        <p class="mb-1"><strong>Đơn vị:</strong> {{ ingredient.get_unit_display() }}</p>
+                    </div>
+                    <div class="col-md-3">
+                        <h5 class="mb-2">Tồn kho</h5>
+                        <div class="d-flex align-items-center">
+                            <h3 class="mb-0 me-2">{{ current_stock }}</h3>
+                            <span class="badge {% if current_stock <= 10 %}badge-danger{% elif current_stock <= 30 %}badge-warning{% else %}badge-success{% endif %}">
+                                {% if current_stock <= 10 %}Sắp hết{% elif current_stock <= 30 %}Trung bình{% else %}Đầy đủ{% endif %}
+                            </span>
+                        </div>
+                        <p class="mb-1 mt-2"><strong>Cập nhật gần nhất:</strong> {{ latest_user }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h5 class="mb-2">Thống kê</h5>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="card bg-success text-white">
+                                    <div class="card-body p-2 text-center">
+                                        <h3 class="mb-0">{{ logs.filter(type='import').count() }}</h3>
+                                        <small>Lần nhập kho</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card bg-danger text-white">
+                                    <div class="card-body p-2 text-center">
+                                        <h3 class="mb-0">{{ logs.filter(type='export').count() }}</h3>
+                                        <small>Lần xuất kho</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card bg-info text-white">
+                                    <div class="card-body p-2 text-center">
+                                        <h3 class="mb-0">{{ logs.count() }}</h3>
+                                        <small>Tổng giao dịch</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class='row'>
+                    <div class="table-responsive">
+                    <table class="table table-bordered table-sm" id="logTable">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>#</th>
+                                <th>Thay đổi</th>
+                                <th>Tồn kho trước</th>
+                                <th>Tồn kho sau</th>
+                                <th>Loại</th>
+                                <th>Ghi chú</th>
+                                <th>Thời gian</th>
+                                <th>Người thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for log in logs %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td class="{% if log.change > 0 %}text-success{% else %}text-danger{% endif %}">
+                                    {% if log.change > 0 %}+{% endif %}{{ log.change }}
+                                </td>
+                                <td>{{ log.stock_before or '-' }}</td>
+                                <td>{{ log.stock_after or '-' }}</td>
+                                <td>
+                                    {% if log.type == 'import' %}
+                                    <span class="badge badge-success">Nhập kho</span>
+                                    {% elif log.type == 'export' %}
+                                    <span class="badge badge-danger">Xuất kho</span>
+                                    {% elif log.type == 'sell' %}
+                                    <span class="badge badge-info">Bán hàng</span>
+                                    {% else %}
+                                    <span class="badge badge-secondary">Điều chỉnh</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ log.note }}</td>
+                                <td>{{ log.last_updated.strftime('%d/%m/%Y %H:%M') }}</td>
+                                <td>{{ log.user.first_name or log.user.last_name or log.user.username or '-' if log.user else '-' }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        
+        
     </div>
 </div>
+
+<script>
+    $(document).ready(function() {
+        $('#logTable').DataTable({
+            ...DATATABLE_CONFIG,
+            pageLength: 10,
+            order: [[6, 'desc']] // Sắp xếp theo thời gian giảm dần
+        });
+    });
+</script>

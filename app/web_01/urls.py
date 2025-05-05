@@ -16,7 +16,7 @@ urlpatterns = [
     path("chatbot/", chatbot_view.chatbot_api, name="chatbot_api"),
     path("get-chat-history/", views.get_chat_history, name="get_chat_history"),
     path('get-notifications', views.get_notification, name='get_notification'),
-    
+
 
     path('management/', include([
         path('table/', include([
@@ -37,7 +37,7 @@ urlpatterns = [
             path('add-product-to-order/', views.add_product_to_order, name='add_product_to_order'),])),
         path('order/', include([
              path('list', views.OrderManagementView.as_view(), name='order_list'),
-            #  path('<int:id>/', views.detail_order, name='detail_order'),
+             #  path('<int:id>/', views.detail_order, name='detail_order'),
              path('<int:id>/', views.detail_invoice, name='detail_invoice')
 
              ])),
@@ -62,11 +62,17 @@ urlpatterns = [
             path('list', views.TableReservationManagementView.as_view(), name='table_reservation_list'),
         ])),
 
-        path('inventory/', include([
-             path('list', views.InventoryManagementView.as_view(), name='inventory_list'),
-             path('import', views.import_ingredient, name='import_ingredient'),
-             path('log/<int:ingredient_id>/list', views.inventory_log_list, name='inventory_log_list'),
 
-             ]))
+
+        path('inventory/', views.InventoryManagementView.as_view(), name='inventory_list'),
+        path('inventory/log/<int:ingredient_id>/', views.inventory_log_list, name='inventory_log_list'),
+        path('inventory/import/', views.import_ingredient, name='import_ingredient'),
+        path('inventory/export/', views.export_ingredient, name='export_ingredient'),
+        path('inventory/add/', views.add_ingredient, name='add_ingredient'),
+        path('inventory/request/', views.ingredient_request, name='ingredient_request'),
+        path('inventory/dashboard/', views.inventory_dashboard, name='inventory_dashboard'),
+        path('inventory/dashboard-stats/', views.inventory_dashboard_stats, name='inventory_dashboard_stats'),
+        path('inventory/report/', views.inventory_report, name='inventory_report'),
+
     ]))
 ]
