@@ -69,7 +69,7 @@ def table_qr(request, table_id):
     if request.method == 'POST':
         table.save(force_update_qr=True)
         messages.success(request, f"Đã cập nhật mã QR cho bàn số {table.table_number}")
-        return redirect('manager_table_qr', table_id=table_id)
+        return JsonResponse({"success": True, "message": "Cập nhật má QR thành công!"}, status=200)
 
     # Kiểm tra nếu là AJAX request để hiển thị popup
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':

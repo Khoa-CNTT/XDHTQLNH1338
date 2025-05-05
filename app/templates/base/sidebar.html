@@ -59,7 +59,7 @@
 				</a>
 			</li>
 
-			{% if user.is_superuser %}
+			{% if is_manager %}
 			<li>
 				<a class="ai-icon" href="{{url('web_01:employee_list')}}" aria-expanded="false">
 					<i class="fa-solid fa-users-gear"></i> <!-- nhân viên -->

@@ -9,26 +9,20 @@ from django import forms
 from django.contrib.auth.decorators import login_required
 
 
-class ServiceManagementView(LoginRequiredMixin, TemplateView):
-    template_name = 'apps/web_01/service/service_list.html'
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        tables = Table.objects.all()
-        context['table_list'] = tables
-        products = Product.objects.select_related('category').all()
-        product_list = [
-            {
-                "id": product.id,
-                "name": product.name,
-                "image": getattr(product.image, 'url', None),
-                "category": product.category.name or "Không có danh mục",
-                "price": product.price,
-            }
-            for product in products
-        ]
-        context['product_list'] = product_list
-        return context
+def service_dashboard(request):
+    """Hiển thị dashboard quản lý dịch vụ"""
+    # Lấy danh sách bàn
+    tables = Table.objects.all().order_by('table_number')
+    
+    # Lấy danh sách sản phẩm
+    products = Product.objects.filter(is_deleted=False).order_by('category__name', 'name')
+    
+    context = {
+        'table_list': tables,
+        'product_list': products,
+    }
+    
+    return render(request, '/apps/web_01/service/service_list.html', context)
 
 
 def process_data_order(request, table_id, is_payment=0):

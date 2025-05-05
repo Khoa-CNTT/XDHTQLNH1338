@@ -232,20 +232,23 @@ class Table(models.Model):
     def __str__(self):
         return f"Bàn {self.table_number}"
     def save(self, *args, **kwargs):
+        force_update_qr = kwargs.pop('force_update_qr', False)
+
         # Tạo URL dựa trên table_number
         url = f"{settings.FRONT_END_URL}/login-menu/?table_number={self.table_number}"
+        
         # Tạo mã QR
         qr = qrcode.make(url)
         qr_bytes = BytesIO()
         qr.save(qr_bytes, format='PNG')
         qr_bytes.seek(0)
 
-        # Upload ảnh lên Cloudinary nếu chưa có hoặc cần cập nhật
-        if not self.qr_image or kwargs.get('force_update_qr', False):
-            result = upload(qr_bytes, public_id=f"table_{self.table_number}_qr")
+        # Upload ảnh QR nếu chưa có hoặc được yêu cầu cập nhật
+        if not self.qr_image or force_update_qr:
+            result = upload(qr_bytes, public_id=f"table_{self.table_number}_qr", overwrite=True)
             self.qr_image = result['url']
 
-        # Gọi phương thức save() gốc để lưu vào DB
+        # Lưu lại model bình thường
         super().save(*args, **kwargs)
         
 

@@ -26,7 +26,7 @@ urlpatterns = [
             path('create', views.table_create, name='manager_table_create'),
         ])),
         path('service/', include([
-            path('list', views.ServiceManagementView.as_view(), name='service_list'),
+            path('list', views.service_dashboard, name='service_list'),
             path('get-orders/', views.get_order_by_table, name='get_order_by_table'),
             path('get-product-service/', views.get_product_service, name='get_product_service'),
             path('complete-payment/', views.complete_payment, name='complete_payment'),

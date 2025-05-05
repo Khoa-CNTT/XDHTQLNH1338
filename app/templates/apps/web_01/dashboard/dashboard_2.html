@@ -179,37 +179,51 @@
     </div>
 </div>
 
+<!-- Trạng thái bàn - Phiên bản cải tiến -->
 <div class="row">
     <div class="col-12">
         <div class="card">
-            <div class="card-header border-0 pb-0">
-                <h4 class="card-title">Trạng thái bàn</h4>
+            <div class="card-header border-0 pb-0 d-flex justify-content-between align-items-center">
+                <h4 class="card-title">Bàn</h4>
+                <div class="d-flex align-items-center">
+                    <span class="badge badge-success me-2">Trống</span>
+                    <span class="badge badge-danger me-2">Đang sử dụng</span>
+                    <span class="badge badge-warning">Đã đặt</span>
+                </div>
             </div>
             <div class="card-body">
                 <div class="row">
                     {% for table in tables %}
                     <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6 mb-3">
-                        <div class="card text-center">
+                        <div class="card text-center h-100 {% if table.status == 'available' %}border-success{% elif table.status == 'occupied' %}border-danger{% else %}border-warning{% endif %}">
                             <div class="card-body p-2">
-                                <h5 class="card-title mb-1">Bàn {{ table.table_number }}</h5>
-                                
-                                {% if table.status == 'available' %}
-                                <div class="badge badge-success mb-2">Trống</div>
-                                {% elif table.status == 'occupied' %}
-                                <div class="badge badge-danger mb-2">Đang sử dụng</div>
-                                {% else %}
-                                <div class="badge badge-warning mb-2">Đã đặt</div>
-                                {% endif %}
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h5 class="card-title mb-0">Bàn {{ table.table_number }}</h5>
+                                    <span class="badge {% if table.status == 'available' %}badge-success{% elif table.status == 'occupied' %}badge-danger{% else %}badge-warning{% endif %}">
+                                        {% if table.status == 'available' %}
+                                            <i class="fa fa-check-circle"></i> Trống
+                                        {% elif table.status == 'occupied' %}
+                                            <i class="fa fa-users"></i> Đang sử dụng
+                                        {% else %}
+                                            <i class="fa fa-clock"></i> Đã đặt
+                                        {% endif %}
+                                    </span>
+                                </div>
                                 
                                 {% if table.status == 'occupied' and table.current_session %}
-                                <p class="mb-0 small text-dark">
-                                    <strong>{{ table.total_amount }}đ</strong>
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <small class="text-muted">
+                                        <i class="fa fa-clock"></i> {{ table.current_session.started_at }}
+                                    </small>
+                                    <small class="text-muted">
+                                        <i class="fa fa-user"></i> {{ table.current_session.many_person }}
+                                    </small>
+                                </div>
+                                <p class="mb-0 text-dark font-weight-bold">
+                                    {{ macros.format_currency(table.total_amount)  }}đ
                                 </p>
                                 {% endif %}
-                                
-                                <div class="mt-2">
-                                    <a href="" class="btn btn-sm btn-primary">Chi tiết</a>
-                                </div>
+                               
                             </div>
                         </div>
                     </div>
