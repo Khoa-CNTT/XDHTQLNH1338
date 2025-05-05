@@ -72,29 +72,18 @@
             <div class="card-header">
                 <h4 class="card-title">Quản lý nguyên liệu</h4>
                 <div class="d-flex">
-                    <div class="dropdown me-2">
-                        <button class="btn btn-primary btn-sm dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fas fa-plus me-1"></i> Thêm mới
-                        </button>
-                        <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                            <li>
-                                <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#addIngredientModal">
-                                    <i class="fas fa-plus-circle me-1"></i> Thêm nguyên liệu
-                                </a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#requestIngredientModal">
-                                    <i class="fas fa-paper-plane me-1"></i> Yêu cầu nguyên liệu
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
+                    
+                    {% if is_manager%}
+                    <button class="btn btn-primary btn-sm dropdown-toggle me-2" type="button" data-bs-toggle="modal" data-bs-target="#addIngredientModal">
+                            <i class="fas fa-plus-circle me-1"></i> Thêm
+                    </button>
+
                     <button type="button" class="btn btn-success btn-sm me-2" data-bs-toggle="modal" data-bs-target="#importIngredientModal">
-                        <i class="fas fa-file-import me-1"></i> Nhập kho
+                        <i class="fas fa-file-import me-1"></i> Nhập
                     </button>
-                    <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#exportIngredientModal">
-                        <i class="fas fa-file-export me-1"></i> Xuất kho
-                    </button>
+                    {%endif%}
+                    
+                   
                 </div>
             </div>
             
@@ -158,6 +147,15 @@
     modal_title='Lịch sử nguyên liệu',
     modal_class_size='modal-xl',
     modal_body_tmp = '/apps/web_01/modal/modal_detail_inventory_log.html'
+  %}
+    {% include '/popup/popup_create.html' %}
+{% endwith %}
+
+{% with 
+    modal_id = 'importIngredientModal',
+    modal_title='Nhập kho nguyên liệu',
+    modal_class_size='modal-lg',
+    modal_body_tmp = '/apps/web_01/modal/modal_import_ingredient.html'
   %}
     {% include '/popup/popup_create.html' %}
 {% endwith %}
@@ -236,19 +234,7 @@
                                     data-bs-target="#modalLogInventory">
                                     <i class="fa fa-history"></i> Log
                                 </button>
-                                <div class="dropdown">
-                                    <button class="btn btn-sm btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                        <i class="fa fa-cog"></i>
-                                    </button>
-                                    <div class="dropdown-menu">
-                                        <a class="dropdown-item btn-import-single" href="#" data-id="${row.id}" data-name="${row.name}">
-                                            <i class="fa fa-plus-circle text-success"></i> Nhập kho
-                                        </a>
-                                        <a class="dropdown-item btn-export-single" href="#" data-id="${row.id}" data-name="${row.name}">
-                                            <i class="fa fa-minus-circle text-danger"></i> Xuất kho
-                                        </a>
-                                    </div>
-                                </div>
+
                             </div>
                         `;
                     }

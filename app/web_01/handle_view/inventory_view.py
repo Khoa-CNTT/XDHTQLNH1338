@@ -10,7 +10,7 @@ from django import forms
 from django.utils import timezone
 from datetime import timedelta
 import json
-
+from web_01.models import Notification
 
 class InventoryManagementView(LoginRequiredMixin, TemplateView):
     template_name = 'apps/web_01/inventory/inventory_list.html'
@@ -150,7 +150,7 @@ class IngredientImportForm(forms.ModelForm):
 def import_ingredient(request):
     if request.method == 'POST':
         try:
-            data = json.loads(request.body) if request.body else request.POST
+            data = request.POST
 
             if isinstance(data, dict) and 'items' in data:
                 items = data['items']
@@ -161,6 +161,7 @@ def import_ingredient(request):
                     return JsonResponse({'error': 'Không được nhập trùng nguyên liệu!'}, status=400)
 
                 # Xử lý từng mục nhập kho
+                print('items',items)
                 for item in items:
                     ing_id = int(item['ingredient_id'])
                     change = int(item['quantity'])
@@ -190,6 +191,7 @@ def import_ingredient(request):
                 changes = request.POST.getlist('change[]')
                 notes = request.POST.getlist('note[]')
 
+                print('ingredient_ids',ingredient_ids)
                 # Kiểm tra trùng nguyên liệu
                 if len(ingredient_ids) != len(set(ingredient_ids)):
                     return JsonResponse({'error': 'Không được nhập trùng nguyên liệu!'}, status=400)
@@ -497,7 +499,7 @@ def ingredient_request(request):
             note = request.POST.get('note', '').strip()
 
             # Tạo thông báo cho quản lý
-            from web_01.models import Notification
+            
 
             Notification.objects.create(
                 user_id=1,  # ID của admin hoặc manager
