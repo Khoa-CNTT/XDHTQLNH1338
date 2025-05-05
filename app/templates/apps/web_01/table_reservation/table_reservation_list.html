@@ -1,0 +1,144 @@
+{% extends '/base/base.html' %}
+{% import "/apps/web_01/commom/macros.html" as macros %}
+{% block body %}
+<div class="col-lg-12">
+
+    <!-- Card table list-->
+    <div id='data-table-list'>
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title">Quản lý đặt bàn</h4>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-responsive-md" id='table_reservation_data'>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Tên khách hàng</th>
+                                <th>Số điện thoại</th>
+                                <th>Số người</th>
+                                <th>Bàn</th>
+                                <th>Ngày</th>
+                                <th>Giờ</th>
+                                <th>Trạng thái</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}
+
+{% block script %}
+<script type="text/javascript">
+    $(document).ready(function () {
+        var table = $('#table_reservation_data').DataTable({
+            ...DATATABLE_CONFIG,
+            processing: true,
+            serverSide: true,
+            autoWidth: false,
+            responsive: true,
+            ajax: {
+                url: "{{ url('web_01:table_reservation_list') }}",
+                type: "POST",
+                headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+                beforeSend: function () {
+                    disable_element($('#table_reservation_data'));
+                },
+                complete: function () {
+                    enable_element($('#table_reservation_data'));
+                },
+                error: function(xhr, status, error) {
+                    console.error("Lỗi tải dữ liệu đặt bàn:", error);
+                }
+            },
+            columns: [
+                { data: "index", title: "#" },
+
+                { 
+                    data: "name", title: "Khách hàng",
+                    render: function(data) {
+                        return `<i class="fa-solid fa-user"></i> ${data}`;
+                    }
+                },
+
+                { 
+                    data: "phone_number", title: "Điện thoại",
+                    render: function(data) {
+                        return `<i class="fa-solid fa-phone"></i> ${data}`;
+                    }
+                },
+
+                { 
+                    data: "many_person", title: "Số người",
+                    render: function(data) {
+                        return `<span class="badge badge-info">${data} người</span>`;
+                    }
+                },
+
+                { 
+                    data: "table_number", title: "Bàn",
+                    render: function(data) {
+                        return `<i class="fa-solid fa-chair"></i> Bàn ${data}`;
+                    }
+                },
+
+                { 
+                    data: "date", title: "Ngày",
+                    render: function(data) {
+                        return `<i class="fa-solid fa-calendar-days"></i> ${data}`;
+                    }
+                },
+
+                { 
+                    data: "hour", title: "Giờ",
+                    render: function(data) {
+                        return `<i class="fa-regular fa-clock"></i> ${data}`;
+                    }
+                },
+
+                { 
+                    data: "status", title: "Trạng thái",
+                    render: function(data) {
+                        let color = 'secondary';
+                        if (data.includes("chờ xác nhận")) color = 'warning';
+                        else if (data.includes("xác nhận")) color = 'info';
+                        else if (data.includes("hoàn thành")) color = 'success';
+                        else if (data.includes("hủy")) color = 'danger';
+                        return `<span class="badge badge-${color}">${data}</span>`;
+                    }
+                },
+
+                {
+                    data: null,
+                    title: "Thao tác",
+                    className: "text-center",
+                    render: function(data, type, row) {
+                        return `
+                            <button class="btn btn-sm confirm-reservation me-1" title="Xác nhận" data-id="${row.id}">
+                                ✅
+                            </button>
+                            <button class="btn btn-sm cancel-reservation me-1" title="Hủy" data-id="${row.id}">
+                                ❌
+                            </button>
+                            <button class="btn btn-sm edit-reservation" title="Chỉnh sửa" data-id="${row.id}" data-bs-toggle="modal" data-bs-target="#modalEditReservation">
+                                ✏️
+                            </button>
+                        `;
+                    }
+                }
+                
+            ]
+        });
+    });
+</script>
+{% endblock %}
+

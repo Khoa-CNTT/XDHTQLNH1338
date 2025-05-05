@@ -47,11 +47,11 @@ services:
       args:
         - SERVICE=socket
     volumes:
-      - "./mysocket:/app/mysocket:rw"
+        - ".:/app:rw"  # 👈 Mount toàn bộ source code
     restart: always
     ports:
       - 5001:5000
-    command: daphne -b 0.0.0.0 -p 5000 core.asgi:application
+    command: uvicorn core.asgi:application --host 0.0.0.0 --port 5000 --reload
     networks:
       - emc_network
     env_file: .env.dev

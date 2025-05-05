@@ -1,19 +1,26 @@
 
 from django.urls import path, include, re_path
 from web_01 import views
-
+from web_01.chatbot import chatbot_view
+from web_01.chef import chef
 app_name = "web_01"
+
 # namespace
 urlpatterns = [
     # WEB
-    path('', views.DashboardView.as_view(), name='dashboard'),
+    path('', views.dashboard, name='dashboard'),
     path('accounts/login/', views.CustomLoginView.as_view(), name='login'),
     path('accounts/logout/', views.logout_view, name='logout'),
+    path('chef/', chef.chef_dashboard, name='chef_dashboard'),
+    path("chatbot/", chatbot_view.chatbot_api, name="chatbot_api"),
+    path("get-chat-history/", views.get_chat_history, name="get_chat_history"),
+    path('get-notifications', views.get_notification, name='get_notification'),
 
     path('management/', include([
         path('table/', include([
             path('list', views.TableManagementView.as_view(), name='table_list'),
-            path('<int:id>/', views.edit_table, name='edit_table')
+            path('<int:id>/', views.edit_table, name='edit_table'),
+            path('add', views.add_table, name='add_table')
         ])),
         path('service/', include([
             path('list', views.ServiceManagementView.as_view(), name='service_list'),
@@ -23,34 +30,39 @@ urlpatterns = [
             path('complete-payment-multi-order/', views.complete_payment_multi_order, name='complete_payment_multi_order'),
             path('update-item-status/', views.update_item_status, name='update_item_status'),
             path('end-session/', views.end_session, name='end_session'),
-            path('add-product-to-order/', views.add_product_to_order, name='add_product_to_order'),
-            
-
-        ])),
+            path('add-product-to-order/', views.add_product_to_order, name='add_product_to_order'),])),
         path('order/', include([
              path('list', views.OrderManagementView.as_view(), name='order_list'),
-             path('<int:id>/', views.detail_order, name='detail_order')
+            #  path('<int:id>/', views.detail_order, name='detail_order'),
+             path('<int:id>/', views.detail_invoice, name='detail_invoice')
 
              ])),
         path('product/', include([
             path('list', views.ProductManagementView.as_view(), name='product_list'),
             path('create/', views.add_product, name='add_product'),
             path('import/', views.import_product, name='import_product'),
-            path('<int:id>/', views.detail_product, name='detail_product')
+            path('<int:id>/', views.detail_product, name='detail_product'),
+            path('best-seller/', views.best_seller, name='best_seller'),
+
         ])),
 
         path('customer/', include([
             path('list', views.CustomerManagementView.as_view(), name='customer_list'),
-            # path('create/', views.add_product, name='add_product'),
-            # path('import/', views.import_product, name='import_product'),
-            # path('<int:id>/', views.detail_product, name='detail_product')
         ])),
 
         path('employee/', include([
             path('list', views.EmployeeManagementView.as_view(), name='employee_list'),
-            # path('create/', views.add_product, name='add_product'),
-            # path('import/', views.import_product, name='import_product'),
-            # path('<int:id>/', views.detail_product, name='detail_product')
-        ]))
+        ])),
+
+        path('table-reservation/', include([
+            path('list', views.TableReservationManagementView.as_view(), name='table_reservation_list'),
+        ])),
+
+        path('inventory/', include([
+             path('list', views.InventoryManagementView.as_view(), name='inventory_list'),
+             path('import', views.import_ingredient, name='import_ingredient'),
+             path('log/<int:ingredient_id>/list', views.inventory_log_list, name='inventory_log_list'),
+
+             ]))
     ]))
 ]

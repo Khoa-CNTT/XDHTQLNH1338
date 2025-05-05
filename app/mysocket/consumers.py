@@ -25,24 +25,19 @@ class NotifyConsumer(AsyncWebsocketConsumer):
         """
         Handle incoming WebSocket data and process based on notification type.
         """
+        print('text_data', text_data)
         data = json.loads(text_data)
-        notification_type = data.get("type")
-        title = data.get("title", "No Title")
-        message = data.get("message")
-        user_id = data.get("user_id", None)
-        recipient_group = self.group_name
 
-        if notification_type == "order_update":
-            # Process order update notification
-            user = await self.get_user(user_id)
-            await self.create_notification(user, title, message, notification_type)
+        print('data', data)
 
-        # Broadcast the notification
+        notification_data = await self.create_notification(data)
+
+        # Sau khi tạo xong notification → broadcast
         await self.channel_layer.group_send(
-            recipient_group,
+            self.group_name,
             {
                 "type": "send_notification",
-                "data": data,
+                "data": notification_data,
             },
         )
 
@@ -62,14 +57,74 @@ class NotifyConsumer(AsyncWebsocketConsumer):
         return User.objects.get(id=user_id)
 
     @database_sync_to_async
-    def create_notification(self, user, title, message, notification_type):
-        """
-        Create a notification record in the database.
-        """
-        from f1_web.models import Notification
-        return Notification.objects.create(
-            user=user,
-            title=title,
-            message=message,
-            type=notification_type,
-        )
+    def create_notification(self, data):
+        from web_01.models import Notification, Session
+        notification_type = data['type']
+        if (notification_type in ['product_status', 'end_session']):
+            config = {
+                'message': '',
+                'level': '',
+            }
+            if (notification_type == 'end_session'):
+                config['message'] = 'Kết thúc phiên bàn!'
+                config['level'] = 'end_session'
+            else:
+                config['message'] = 'Cập nhật trạng thái đơn hàng!'
+                config['level'] = 'product_status'
+        else:
+
+            session = Session.objects.get(id=data['session']['session_id'])
+
+            table_number = session.table.table_number
+            message_config = {
+                'order_status': {
+                    'message': f'Đơn hàng từ bàn {table_number} - {session.customer.user.first_name}.',
+                    'level': 'info',
+                },
+                'promotion': {
+                    'message': 'Ưu đãi mới vừa được cập nhật!',
+                    'level': 'success',
+                },
+                'reminder': {
+                    'message': f'Nhắc nhở cho bàn {table_number}.',
+                    'level': 'warning',
+                },
+                'custom': {
+                    'message': data.get('message', '🔔 Thông báo tuỳ chỉnh.'),
+                    'level': 'info',
+                },
+                'payment': {
+                    'message': f'Thanh toán hoàn tất từ bàn {table_number} - {session.customer.user.first_name}.',
+                    'level': 'success',
+                },
+                'session': {
+                    'message': f'Kết thúc phiên bàn {table_number} - {session.customer.user.first_name}.',
+                    'level': 'success',
+                },
+                'required_payment_cash': {
+                    'message': f'Yêu cầu thanh toán bàn {table_number} - {session.customer.user.first_name}.',
+                    'level': 'payment',
+                },
+            }
+
+            notification_type = data.get('type', 'custom')
+            config = message_config.get(notification_type, message_config['custom'])
+
+            print('config', config)
+            # Tạo notification trong DB (synchronous)
+            Notification.objects.create(
+                user=session.customer.user,
+                type=notification_type,
+                message=config['message'],
+                data={
+                    "session": session.id,
+                    "extra_data": config
+                }
+            )
+
+        return {
+            'type': notification_type,
+            'message': config.get('message'),
+            'level': config.get('level'),
+            "data": data
+        }

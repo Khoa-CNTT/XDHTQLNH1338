@@ -15,7 +15,7 @@
         "Combo đặc biệt": "Combo đặt biệt"
     },
     "order_summary": {
-        "title": "Đơn hàng",
+        "title": "Giỏ hàng",
         "items": "{{count}} món",
         "total_price": "{{price}} đ"
     },
@@ -23,6 +23,38 @@
         "title": "Đơn hàng",
         "button": "Đặt món",
         "total": "Tổng tiền",
-        "empty_cart": "Giỏ hàng trống"
+        "empty_cart": "Giỏ hàng trống",
+        "empty_cart_message": "Có vẻ như bạn chưa thêm món nào vào giỏ hàng",
+        "continue_shopping": "Gọi món",
+        "quantity": "Số lượng"
+    },
+    "status_order": {
+        "title": "Đơn hàng đã đặt",
+        "empty_title": "Quên chưa đặt món rồi nè bạn ơi?",
+        "empty_message": "Hãy đặt món để theo dõi trạng thái đơn hàng của bạn",
+        "add_more": "Gọi thêm món",
+        "payment": "Thanh toán",
+        "payment_method": "Chọn phương thức thanh toán",
+        "cash_payment": "Yêu cầu thanh toán tiền mặt",
+        "momo_payment": "Thanh toán Momo",
+        "bank_transfer": "Chuyển khoản ngân hàng",
+        "cash_confirm_title": "Xác nhận yêu cầu thanh toán tiền mặt",
+        "cash_confirm_message": "Vui lòng chuẩn bị số tiền: {{amount}} để thanh toán khi nhân viên đến",
+        "confirm": "Gửi yêu cầu",
+        "cancel": "Hủy",
+        "close": "Đóng",
+        "rating_title": "Đánh giá đơn hàng",
+        "feedback_placeholder": "Hãy chia sẻ cảm nhận của bạn về đơn hàng...",
+        "submit_rating": "Gửi đánh giá",
+        "rating_warning": "Vui lòng chọn số sao đánh giá",
+        "rating_success": "Cảm ơn bạn đã đánh giá!",
+        "qr_title": "Quét mã QR để thanh toán",
+        "qr_instruction": "Vui lòng quét mã QR bằng ứng dụng ngân hàng để thanh toán",
+        "status": {
+            "pending": "Chờ",
+            "confirmed": "Đang làm",
+            "canceled": "Hủy",
+            "completed": "Hoàn thành"
+        }
     }
 }

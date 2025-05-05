@@ -49,11 +49,7 @@ const LoginPage = () => {
             setLoading(false);
             return;
         }
-        if (!formData.lastName.trim()) {
-            toast.error("Họ không được để trống!");
-            setLoading(false);
-            return;
-        }
+    
         if (!formData.firstName.trim()) {
             toast.error("Tên không được để trống!");
             setLoading(false);
@@ -66,7 +62,7 @@ const LoginPage = () => {
                     table_number: tableNumber,
                     phone_number: formData.phoneNumber,
                     username: formData.phoneNumber,
-                    last_name: formData.lastName,
+                    last_name: formData.firstName,
                     first_name: formData.firstName,
                 };
                 let res = await login(data);
@@ -97,9 +93,6 @@ const LoginPage = () => {
 
                                 <input hidden type="text" name="username" placeholder="Tên đăng nhập"
                                     value={formData.phoneNumber} onChange={handleChange} />
-
-                                <input type="text" name="lastName" placeholder="Họ"
-                                    value={formData.lastName} onChange={handleChange} />
 
                                 <input type="text" name="firstName" placeholder="Tên"
                                     value={formData.firstName} onChange={handleChange} />

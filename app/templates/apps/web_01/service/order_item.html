@@ -137,6 +137,7 @@
                                             <a class="dropdown-item update-status-option" href="#!"
                                                 data-order-id="{{ order.order_id }}"
                                                 data-item-id="{{ item.item_id }}" 
+                                                data-product-name="{{ item.product_name }}" 
                                             
                                                 data-status="in_progress">
                                                 <i class="fas fa-redo me-1"></i> Chế biến
@@ -144,11 +145,13 @@
                                             {%endif%}
                                             <a class="dropdown-item update-status-option" href="#!"
                                                 data-order-id="{{ order.order_id }}"
+                                                data-product-name="{{ item.product_name }}" 
                                                 data-item-id="{{ item.item_id }}" data-status="completed">
                                                 <i class="fas fa-check me-1"></i> Hoàn thành   
                                             </a>
                                             <a class="dropdown-item update-status-option" href="#!"
                                                 data-order-id="{{ order.order_id }}"
+                                                data-product-name="{{ item.product_name }}" 
                                                 data-item-id="{{ item.item_id }}" data-status="cancelled">
                                                 <i class="fas fa-trash-alt me-1"></i> Hủy
                                             </a>
@@ -166,7 +169,7 @@
         </div>
     </div>
 {% endfor %}
-
+{% if not all_paid %}
 <div class="row g-3">
     <div class="col-md-6">
         <label class="form-label">Phương thức thanh toán:</label>
@@ -174,8 +177,8 @@
             <button class="btn btn-outline-info active btn-sm" data-value='cash' id="btn-cash">
                 <i class="fas fa-money-bill-wave"></i> Tiền mặt
             </button>
-            <button class="btn btn-outline-info btn-sm" id="btn-card" data-value='card'>
-                <i class="fas fa-credit-card"></i> Thẻ
+            <button class="btn btn-outline-info btn-sm" id="btn-card" data-value='momo'>
+                <i class="fas fa-credit-card"></i> Momo
             </button>
             <button class="btn btn-outline-info btn-sm" id="btn-bank" data-value="bank_transfer">
                 <i class="fas fa-university"></i> Chuyển khoản
@@ -198,17 +201,26 @@
         </div>
     </div>
 </div>
+{% endif %}
 <hr/>
 
 <div class="row mb-3 align-items-center">
     <div class='col-md-4 text-start'>
+        {% if not all_paid %}
         Tổng tiền đã chọn: <strong id="finalSelectedTotal">0đ</strong>
+        {%endif%}
     </div>
     <div class='col-md-8 text-end'>
+        {% if not all_paid %}
         <button class="btn btn-primary me-2" data-bs-toggle="tooltip" data-placement="top" title="Thanh toán các hóa đơn đã được chọn." onclick="confirm_payment()">
             <i class="fas fa-money-bill-wave"></i> Thanh toán
         </button>
-        <span class='h-100 d-inline-block' data-bs-toggle="tooltip" data-placement="top" title="Cần thanh toán trước khi đóng phiên bàn.">
+        {%endif%}
+        <span class='h-100 d-inline-block' 
+        {% if not all_paid %}
+        data-bs-toggle="tooltip" data-placement="top" title="Cần thanh toán trước khi đóng phiên bàn."
+        {%endif%}
+        >
             <button type="button"
                     class="btn btn-secondary"
                     onclick='end_session({{session.id}})'
@@ -300,7 +312,14 @@
             contentType: "application/json",
             data: JSON.stringify({ session_id: session_id }),
             success: function (res) {
-                location.reload()
+                location.reload();
+                if (socket.readyState === WebSocket.OPEN) {
+                    // Socket đã mở, có thể gửi ngay
+                    socket.send(JSON.stringify({
+                        type: "end_session",
+                        session_id: session_id
+                    }));
+                }
             },
             error: function (err) {
                 console.error(err);
@@ -393,7 +412,7 @@
             const orderId = $(this).data('order-id');
             const itemId = $(this).data('item-id');
             const status = $(this).data('status');
-    
+            const product_name = $(this).data('product-name');
             $.ajax({
                 url: "{{ url('web_01:update_item_status') }}",
                 method: "POST",
@@ -407,6 +426,15 @@
                 }),
                 success: function (res) {
                     $('#orderContents').html(res)
+                    if (socket.readyState === WebSocket.OPEN) {
+                        // Socket đã mở, có thể gửi ngay
+                        socket.send(JSON.stringify({
+                            type: "product_status",
+                            product_name: product_name,
+                            table_id: "{{ table_id }}",
+                            product_status: status,
+                        }));
+                    }
                 },
                 error: function (err) {
                     console.error(err);

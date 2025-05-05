@@ -23,7 +23,7 @@ class ServiceManagementView(LoginRequiredMixin, TemplateView):
                 "name": product.name,
                 "image": getattr(product.image, 'url', None),
                 "category": product.category.name or "Không có danh mục",
-                "price": f"{product.price:,}đ",
+                "price": product.price,
             }
             for product in products
         ]
@@ -82,7 +82,7 @@ def process_data_order(request, table_id, is_payment=0):
             order_details_list.append(order_data)
 
     # Lấy thông tin khách hàng (nếu có)
-    customer_name = session.customer.user.username if session.customer else "Khách vãng lai"
+    customer_name = f'{session.customer.user.username}({session.customer.user.first_name})' if session.customer else "Khách vãng lai"
     if is_payment:
         html_template = 'apps/web_01/service/modal/content_payment_order.html'
     else:
@@ -182,6 +182,8 @@ def complete_payment_multi_order(request):
                 related_orders = invoice.order_set.all()
                 if all(o.status == 'completed' for o in related_orders):
                     invoice.status = 'completed'
+                    invoice.payment_method = payment_method
+                    invoice.discount = discount_percent
                     invoice.save()
 
             # TODO: Ghi lại lịch sử thanh toán nếu muốn
@@ -205,13 +207,17 @@ def update_item_status(request):
             item = OrderDetail.objects.get(id=item_id, order_id=order_id)
             old_status = item.status  # Trạng thái cũ trước khi cập nhật
             item.status = new_status
+            item.updated_by = request.user
             item.save()
 
             # Nếu chuyển từ trạng thái khác sang 'cancelled' => cập nhật tổng tiền
             if new_status == 'cancelled':
-                order = item.order  # Quan hệ FK đến Order
+                order = item.order
+                invoice = order.invoice  # Quan hệ FK đến Order
                 order.total -= item.price * item.quantity  # hoặc item.total_price nếu có
                 order.save()
+                invoice.total_amount -= order.total
+                invoice.save()
 
             return process_data_order(request, table_id)
         except OrderDetail.DoesNotExist:
@@ -223,14 +229,18 @@ def update_item_status(request):
 def end_session(request):
     if request.method == 'POST':
         data = json.loads(request.body)
+
+        print('data', data)
         session_id = data.get('session_id')
 
         try:
             session = Session.objects.get(id=session_id)
+            invoice = Invoice.objects.get(session=session)
             session.table.status = 'available'
             session.ended_at = timezone.now()
+
             session.status = 'closed'
-            session.save()
+            invoice.order_set.all().update(status='completed')
             session.save()
             session.table.save()
             return JsonResponse({'success': True})

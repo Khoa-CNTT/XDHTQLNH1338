@@ -1,6 +1,11 @@
 <div class="card">
     <div class="card-header ">
         <h5 class="card-title">Quản lý bàn</h5>
+        <div>
+            <button type="button" class="btn btn-primary btn-sm" onclick="add_table()">
+                + Thêm bàn mới
+            </button>
+        </div>
     </div>
     <div class="card-body">
         <div class="row">
@@ -29,10 +34,6 @@
                         <button class="btn-action btn-action-1 btn light btn-primary btn-xs" data-bs-toggle="modal" data-table-id='{{table.id}}' data-bs-target="#modalEditTable">
                             <i class="fa fa-pencil"></i>
                         </button>
-
-                        <button class="btn-action btn-action-2 btn light btn-primary btn-xs" data-bs-toggle="modal" data-table-id='{{table.id}}' data-bs-target="#modalDetailTable">
-                            <i class="fa fa-eye"></i>
-                        </button> 
                     </div>
                    
                 </div>
@@ -61,5 +62,20 @@
     $(document).ready(function() {
         $('#table_data').DataTable(DATATABLE_CONFIG);
     });
+
+    function add_table() {
+        $.ajax({
+            url: "{{ url('web_01:add_table') }}",
+            type: "POST",
+            headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+            contentType: "application/json",
+            success: function (res) {
+                location.reload();
+            },
+            error: function (err) {
+                console.error(err);
+            }
+        });
+    }
 </script>
 {% endblock %}

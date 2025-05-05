@@ -1,6 +1,13 @@
 {% extends '/base/base.html'%}
 {%block body%}
 <div class="col-lg-12">
+    {% if messages %}
+  {% for message in messages %}
+    <div class="alert alert-success">
+      {{ message }}
+    </div>
+  {% endfor %}
+{% endif %}
 
     <!-- Card table list-->
     <div id='data-table-list'>

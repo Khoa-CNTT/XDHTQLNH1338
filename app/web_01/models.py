@@ -63,6 +63,16 @@ class Ingredient(models.Model):
         ('gói', 'Gói'),
         ('hộp', 'Hộp'),
         ('lon', 'Lon'),
+        ('cai', 'Cái'),
+        ('lang', 'Lạng'),
+        ('trai', 'Trái'),
+        ('hop', 'Hộp'),
+        ('o', 'Ổ'),
+        ('cu', 'Củ'),
+        ('lit', 'Lít'),
+        ('ml', 'Ml'),
+        ('chai', 'Chai'),
+        ('quả', 'Quả'),
     ]
 
     name = models.CharField(max_length=100, unique=True)
@@ -88,6 +98,7 @@ class InventoryLog(models.Model):
     TYPE_CHOICES = [
         ('import', 'Nhập kho'),
         ('export', 'Xuất kho'),
+        ('sell', 'Bán hàng'),
         ('adjustment', 'Điều chỉnh'),
     ]
 
@@ -96,14 +107,22 @@ class InventoryLog(models.Model):
     type = models.CharField(max_length=15, choices=TYPE_CHOICES)
     note = models.TextField(null=True, blank=True)
     last_updated = models.DateTimeField(auto_now_add=True)
+    stock_before = models.IntegerField(null=True, blank=True)  # 🆕 thêm
+    stock_after = models.IntegerField(null=True, blank=True)   # đã có
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
 
     class Meta:
         db_table = 'inventory_log'
+        ordering = ['-last_updated']
 
     def save(self, *args, **kwargs):
-        """Cập nhật tồn kho khi có thay đổi."""
+        if not self.stock_before:
+            self.stock_before = self.ingredient.quantity_in_stock
         super().save(*args, **kwargs)
         self.ingredient.update_stock()
+        self.stock_after = self.ingredient.quantity_in_stock
+        InventoryLog.objects.filter(pk=self.pk).update(stock_after=self.stock_after)
+
 
 # 🔄 Sản phẩm
 
@@ -158,9 +177,16 @@ class Customer(BaseModel):
 
 
 class Employee(BaseModel):
+    ROLE_CHOICES = [
+        ('admin', 'Admin'),
+        ('manager', 'Manager'),
+        ('staff', 'Staff'),
+        ('chef', 'Chef'),
+    ]
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     salary = models.IntegerField()
-
+    avartar_url = CloudinaryField('avartar_url', null=True, blank=True)
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES,default='staff')
     class Meta:
         db_table = 'employee'
 
@@ -205,7 +231,7 @@ class Table(models.Model):
 
     def save(self, *args, **kwargs):
         # Tạo URL dựa trên table_number
-        url = f"{settings.FRONT_END_URL}login-menu/?table_number={self.table_number}"
+        url = f"{settings.FRONT_END_URL}/login-menu/?table_number={self.table_number}"
         # Tạo mã QR
         qr = qrcode.make(url)
         qr_bytes = BytesIO()
@@ -241,13 +267,17 @@ class Session(models.Model):
 
 class Invoice(BaseModel):
     session = models.ForeignKey(Session, on_delete=models.CASCADE)
-    payment_method = models.CharField(max_length=15, choices=[('cash', 'Tiền mặt'), ('bank_transfer', 'Chuyển khoản'), ('card', 'Thẻ')], null=True, blank=True)
+    payment_method = models.CharField(max_length=15, choices=[('cash', 'Tiền mặt'), ('bank_transfer', 'Chuyển khoản'), ('momo', 'Momo')], null=True, blank=True)
     total_amount = models.IntegerField(default=0)
     discount = models.IntegerField(default=0)
 
     class Meta:
         db_table = 'invoice'
 # 🔄 Model Order
+
+    @cached_property
+    def formatted_total_amount(self) -> str:
+        return f'{self.total_amount:,}đ'.replace(',', '.')
 
 
 class Order(BaseModel):
@@ -284,6 +314,37 @@ class OrderDetail(BaseModel):
     class Meta:
         db_table = 'order_detail'
 
+    def save(self, *args, **kwargs):
+        is_new = self.pk is None
+        prev_status = None
+        if not is_new:
+            prev = OrderDetail.objects.get(pk=self.pk)
+            prev_status = prev.status
+
+        super().save(*args, **kwargs)
+
+        # Nếu chuyển sang "completed" mà trước đó không phải completed
+        if self.status == 'completed' and prev_status != 'completed':
+            self.export_ingredients()
+
+    def export_ingredients(self):
+        product_ingredient = IngredientProduct.objects.filter(product=self.product).first()
+        total_quantity_used = product_ingredient.quantity_required * self.quantity
+        ingredient = product_ingredient.ingredient 
+        old_stock = ingredient.quantity_in_stock
+        ingredient.quantity_in_stock -= total_quantity_used
+        ingredient.save()
+            # Tạo log
+        InventoryLog.objects.create(
+            ingredient=ingredient,
+            change=-total_quantity_used,
+            type='export',
+            note=f"Đơn hàng (#00{self.order.id}) - ({self.product.name} x {total_quantity_used})",
+            stock_before=old_stock,
+            stock_after=ingredient.quantity_in_stock,
+            user=self.updated_by if hasattr(self, 'updated_by') else None
+        )
+
 
 class Cart(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
@@ -306,11 +367,23 @@ class CartItem(models.Model):
 class Notification(BaseModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     message = models.TextField()
-    type = models.CharField(max_length=15, choices=[('order_status', 'Order Status'), ('promotion', 'Promotion'), ('reminder', 'Reminder')])
-    status = models.CharField(max_length=10, choices=[('read', 'Read'), ('unread', 'Unread')], default='unread')
+    type = models.CharField(
+        max_length=50
+    )
+    status = models.CharField(
+        max_length=10,
+        choices=[('read', 'Read'), ('unread', 'Unread')],
+        default='unread'
+    )
+    data = models.JSONField(blank=True, null=True)  # 👈 Thêm JSON field
 
     class Meta:
         db_table = 'notification'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.type} | {self.message[:30]}"
+
 # ✅ Models hoàn tất!
 
 
@@ -379,3 +452,15 @@ class TableReservation(models.Model):
 
     class Meta:
         db_table = 'table_reservation'
+
+
+class ChatHistory(models.Model):
+    user_message = models.TextField()  # Tin nhắn người dùng
+    bot_reply = models.TextField()  # Phản hồi của chatbot
+    created_at = models.DateTimeField(auto_now_add=True)  # Thời gian gửi tin nhắn
+
+    def __str__(self):
+        return f"User: {self.user_message[:20]}... | Bot: {self.bot_reply[:20]}..."
+
+    class Meta:
+        db_table = 'chat_history'

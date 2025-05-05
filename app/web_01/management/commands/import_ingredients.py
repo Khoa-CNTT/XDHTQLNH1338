@@ -2,7 +2,7 @@ import os
 import pandas as pd
 from django.conf import settings
 from django.core.management.base import BaseCommand
-from web_01.models import Ingredient
+from web_01.models import Ingredient, InventoryLog
 
 
 class Command(BaseCommand):
@@ -32,6 +32,18 @@ class Command(BaseCommand):
                         id=ingredient_id,
                         defaults={'name': ingredient_name, 'unit': unit}
                     )
+                    # ingredient.quantity_in_stock = 100
+                    # ingredient.save()
+
+                    log = InventoryLog(
+                        ingredient=ingredient,
+                        change=100,
+                        type='import',
+                        note='',
+                        user_id=1  # thêm dòng này
+                    )
+                    log.save()
+
                     if created:
                         self.stdout.write(self.style.SUCCESS(f"✅ Đã thêm nguyên liệu: {ingredient_name} ({unit})"))
                     else:

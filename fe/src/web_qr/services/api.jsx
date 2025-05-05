@@ -20,7 +20,21 @@ const readCategories = (data) => { return axios.get("/api/categories/", { params
 const readProduct = (data) => { return axios.get("/api/products/list/", { params: data }) }
 const createInvoice = (data) => axios.post("/api/invoices/");
 const readInvoice = (data) => axios.get("/api/invoices/current/", { params: data })
+const getAwaitMomoPayment = () => {
+  return axios.post("/api/invoices/payment/");
+};
+const fetchAwaitPaymentStatus = (data) => {
+  return axios.post("/api/invoices/momo-ipn/",data);
+};
+const endSession = () => {
+  return axios.get("/api/end-session/");
+};
+
+
 export {
   loginAccount, readSession,
-  updateCart, updateQuantityCart, readCart, deleteCartItem, readCategories, readProduct, createInvoice, readInvoice
+  updateCart, updateQuantityCart, readCart, deleteCartItem, readCategories, readProduct, createInvoice, readInvoice,
+  getAwaitMomoPayment,
+  fetchAwaitPaymentStatus,
+  endSession
 }

@@ -73,8 +73,10 @@
         <!--**********************************
             Nav header start
         ***********************************-->
+		{% if request.user.employee and request.user.employee.role == 'chef'%}
+		{%else%}
         <div class="nav-header">
-            <a href="index.html" class="brand-logo">
+            <a href="/" class="brand-logo">
                 <img class="logo-abbr" src="/static/images/logo.png" alt="/">
                 <img class="logo-compact" src="/static/images/logo-text.png" alt="/">
                 <img class="brand-title" src="/static/images/logo-text.png" alt="/">
@@ -86,6 +88,7 @@
                 </div>
             </div>
         </div>
+		{%endif%}
         <!--**********************************
             Nav header end
         ***********************************-->
@@ -603,7 +606,10 @@
         <!--**********************************
             Sidebar start
         ***********************************-->
+		{% if request.user.employee and request.user.employee.role == 'chef'%}
+		{%else%}
 		{% include '/base/sidebar.html'%}
+		{%endif%}
         <!--**********************************
             Sidebar end
         ***********************************-->
@@ -631,6 +637,8 @@
                 NET.Management
             </div>
         </div>
+
+		{% include '/apps/web_01/dashboard/chatbot.html' %}
         <!--**********************************
             Footer end
         ***********************************-->
@@ -671,10 +679,39 @@
 	<!-- Toastr JS -->
 	<script src="/static/vendor/toastr/js/toastr.min.js"></script>
 
+	
 
 	<!-- Custom JS-->
 	<script src="/static/js/config/show_message.js"></script>
+	
 	<script src="/static/js/loading-bar.js"></script>
+	<script>
+		function load_notification_list() {
+			$.ajax({
+			  url: "{{ url('web_01:get_notification') }}",
+			  type: "GET",
+			  success: function (response) {
+				let html = response.notification_html; // ✅ sửa ở đây
+				let len_notification = response.notification_len; // ✅ sửa ở đây
+				$("#DZ_W_Notification1").html(html);
+				$("#number-of-notification")
+				.text(len_notification)
+				.addClass("badge-update");
+		
+				setTimeout(() => {
+					$("#number-of-notification").removeClass("badge-update");
+				}, 500); // xóa class sau hiệu ứng
+			  },
+			  error: function (xhr, status, error) {
+				console.error("Lỗi khi tải thông báo:", error);
+				$("#DZ_W_Notification1").html(
+				  '<p class="text-danger">Không thể tải thông báo.</p>'
+				);
+			  },
+			});
+		  }
+	</script>
+	<script src="/static/cjs/socket.js"></script>
 	
 	<!-- Apex Chart -->
 

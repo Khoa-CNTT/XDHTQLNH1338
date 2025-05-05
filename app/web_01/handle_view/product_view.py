@@ -10,9 +10,9 @@ from core.__Include_Library import *
 from django.shortcuts import render
 from django.views.generic import TemplateView
 import json
-from web_01.models import Product, IngredientProduct, Ingredient
+from web_01.models import Product, IngredientProduct, Ingredient, OrderDetail
 from django.forms import inlineformset_factory
-from web_01.utils.model_consts import CATEGORY_STATUS_CHOICES
+from django.db.models import Sum
 
 
 class ProductManagementView(LoginRequiredMixin, TemplateView):
@@ -38,7 +38,6 @@ class ProductManagementView(LoginRequiredMixin, TemplateView):
             # Lấy dữ liệu từ request
             category = request.POST.get("category", "[]")  # Nếu không có, mặc định là []
             price = request.POST.get("price", "-1")
-            print('category', category)
             category_ids = json.loads(category)  # Chuyển từ JSON thành danh sách Python
 
             order_column_index = int(request.POST.get("order[0][column]", 0))
@@ -127,6 +126,13 @@ class ProductForm(forms.ModelForm):
     class Meta:
         model = Product
         fields = ['name', 'category', 'price', 'description', 'image']
+        labels = {
+            'name': 'Tên sản phẩm',
+            'category': 'Loại sản phẩm',
+            'price': 'Giá',
+            'description': 'Mô tả',
+            'image': 'Hình ảnh',
+        }
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control form-control-sm'}),
             'category': forms.Select(attrs={'id': 'category-select', 'class': 'form-control form-control-sm-'}),
@@ -281,3 +287,48 @@ def detail_product(request, id):
         "ingredients": ingredients
     }
     return render(request, "apps/web_01/modal/content/content_detail_product.html", context)
+
+
+def best_seller(request):
+    now = timezone.now()
+    first_day_this_month = now.replace(day=1)
+    first_day_last_month = (first_day_this_month - timedelta(days=1)).replace(day=1)
+
+    # Doanh số tháng hiện tại
+    current_sales = (
+        OrderDetail.objects
+        .filter(created_at__gte=first_day_this_month)
+        .values('product__id', 'product__name', 'product__price', 'product__image', 'product__category__name')
+        .annotate(total_sales=Sum('quantity'))
+    )
+
+    # Doanh số tháng trước
+    previous_sales = (
+        OrderDetail.objects
+        .filter(created_at__gte=first_day_last_month, created_at__lt=first_day_this_month)
+        .values('product__id')
+        .annotate(previous_sales=Sum('quantity'))
+    )
+
+    # Map previous_sales để dễ truy cập
+    previous_map = {item['product__id']: item['previous_sales'] for item in previous_sales}
+
+    # Tính growth %
+    best_sellers = []
+    for item in current_sales:
+        product_id = item['product__id']
+        current = item['total_sales']
+        previous = previous_map.get(product_id, 0)
+
+        if previous == 0:
+            growth = 100 if current > 0 else 0
+        else:
+            growth = round(((current - previous) / previous) * 100)
+
+        item['growth'] = growth
+        best_sellers.append(item)
+
+    # Sắp xếp theo current sales giảm dần và lấy top 10
+    best_sellers = sorted(best_sellers, key=lambda x: x['total_sales'], reverse=True)[:10]
+
+    return render(request, "apps/web_01/dashboard/best_seller.html", {"best_sellers": best_sellers})
