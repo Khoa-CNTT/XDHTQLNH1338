@@ -6,10 +6,10 @@ from cloudinary.models import CloudinaryField
 from django.utils.functional import cached_property
 # 🔄 Model Category (Loại sản phẩm)
 from cloudinary.uploader import upload
-import qrcode
-from io import BytesIO
 from django.conf import settings
-
+import qrcode
+from io import BytesIO 
+from django.core.files.base import ContentFile
 from web_01.utils.model_consts import CATEGORY_STATUS_CHOICES
 
 
@@ -177,10 +177,16 @@ class Customer(BaseModel):
 
 
 class Employee(BaseModel):
+    ROLE_CHOICES = [
+        ('admin', 'Admin'),
+        ('manager', 'Manager'),
+        ('staff', 'Staff'),
+        ('chef', 'Chef'),
+    ]
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     salary = models.IntegerField()
     avartar_url = CloudinaryField('avartar_url', null=True, blank=True)
-
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES,default='staff')
     class Meta:
         db_table = 'employee'
 
@@ -217,29 +223,34 @@ class Table(models.Model):
     table_number = models.IntegerField(unique=True)
     status = models.CharField(max_length=10, choices=[('available', 'Trống'), ('occupied', 'Sử dụng'), ('reserved', 'Đã đặt')], default='available')
     qr_image = CloudinaryField('image')
-
+    capacity = models.IntegerField(default=4)  # Thêm trường capacity
+    is_deleted = models.BooleanField(default=False)
     class Meta:
         db_table = 'table'
     # 🔄 Model Ingredient
     # 🔄 Override phương thức save()
-
+    def __str__(self):
+        return f"Bàn {self.table_number}"
     def save(self, *args, **kwargs):
+        force_update_qr = kwargs.pop('force_update_qr', False)
+
         # Tạo URL dựa trên table_number
         url = f"{settings.FRONT_END_URL}/login-menu/?table_number={self.table_number}"
+        
         # Tạo mã QR
         qr = qrcode.make(url)
         qr_bytes = BytesIO()
         qr.save(qr_bytes, format='PNG')
         qr_bytes.seek(0)
 
-        # Upload ảnh lên Cloudinary nếu chưa có hoặc cần cập nhật
-        if not self.qr_image or kwargs.get('force_update_qr', False):
-            result = upload(qr_bytes, public_id=f"table_{self.table_number}_qr")
+        # Upload ảnh QR nếu chưa có hoặc được yêu cầu cập nhật
+        if not self.qr_image or force_update_qr:
+            result = upload(qr_bytes, public_id=f"table_{self.table_number}_qr", overwrite=True)
             self.qr_image = result['url']
 
-        # Gọi phương thức save() gốc để lưu vào DB
+        # Lưu lại model bình thường
         super().save(*args, **kwargs)
-
+        
 
 class Session(models.Model):
     STATUS_CHOICES = [
@@ -261,7 +272,7 @@ class Session(models.Model):
 
 class Invoice(BaseModel):
     session = models.ForeignKey(Session, on_delete=models.CASCADE)
-    payment_method = models.CharField(max_length=15, choices=[('cash', 'Tiền mặt'), ('bank_transfer', 'Chuyển khoản'), ('card', 'Thẻ')], null=True, blank=True)
+    payment_method = models.CharField(max_length=15, choices=[('cash', 'Tiền mặt'), ('bank_transfer', 'Chuyển khoản'), ('momo', 'Momo')], null=True, blank=True)
     total_amount = models.IntegerField(default=0)
     discount = models.IntegerField(default=0)
 
@@ -322,26 +333,22 @@ class OrderDetail(BaseModel):
             self.export_ingredients()
 
     def export_ingredients(self):
-        product_ingredients = IngredientProduct.objects.filter(product=self.product)
-        for pi in product_ingredients:
-            total_quantity_used = pi.quantity_required * self.quantity
-            ingredient = pi.ingredient
-
-            # Cập nhật tồn kho (trừ số lượng)
-            old_stock = ingredient.quantity_in_stock
-            ingredient.quantity_in_stock -= total_quantity_used
-            ingredient.save()
-
+        product_ingredient = IngredientProduct.objects.filter(product=self.product).first()
+        total_quantity_used = product_ingredient.quantity_required * self.quantity
+        ingredient = product_ingredient.ingredient 
+        old_stock = ingredient.quantity_in_stock
+        ingredient.quantity_in_stock -= total_quantity_used
+        ingredient.save()
             # Tạo log
-            InventoryLog.objects.create(
-                ingredient=ingredient,
-                change=-total_quantity_used,
-                type='export',
-                note=f"Xuất cho món đơn hàng (#00{self.order.id})'{self.product.name}' x {self.quantity}",
-                stock_before=old_stock,
-                stock_after=ingredient.quantity_in_stock,
-                user=self.updated_by if hasattr(self, 'updated_by') else None
-            )
+        InventoryLog.objects.create(
+            ingredient=ingredient,
+            change=-total_quantity_used,
+            type='export',
+            note=f"Đơn hàng (#00{self.order.id}) - ({self.product.name} x {total_quantity_used})",
+            stock_before=old_stock,
+            stock_after=ingredient.quantity_in_stock,
+            user=self.updated_by if hasattr(self, 'updated_by') else None
+        )
 
 
 class Cart(models.Model):

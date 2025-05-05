@@ -26,13 +26,16 @@ def upload_avatar_and_update_employee(user, avatar_url):
         result = upload(image_bytes, public_id=f"user_avatar_{user.username}")
         cloudinary_url = result['url']
         
-        # Bước 3: Tạo hoặc update Employee
-        employee, created = Employee.objects.get_or_create(
-            user=user,
-            defaults={
+        defaults = defaults={
                 'salary': 10000000,
                 'avartar_url': cloudinary_url,
             }
+        if user.username == 'chef':
+            defaults['role'] = 'chef'
+        # Bước 3: Tạo hoặc update Employee
+        employee, created = Employee.objects.get_or_create(
+            user=user,
+            defaults=defaults
         )
         
         if not created:
@@ -53,6 +56,7 @@ class Command(BaseCommand):
         ("phu", "123456", 'Châu', 'Phú', PHU_AVATAR_URL),
         ("anh", "123456", 'Công', 'Anh', ANH_AVATAR_URL),
         ("admin", "123456", '', 'Admin', ADMIN_AVATAR_URL),
+        ("chef", "123456", 'Chef', 'Chef', ADMIN_AVATAR_URL),
     ]
 
     def handle(self, *args, **kwargs):
