@@ -98,8 +98,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'core.middleware.LoginRequiredMiddleware',
-    'core.middleware.RedirectMiddleware',  # Cập nhật path đúng với app bạn dùng
-
 ]
 
 # Rest authen

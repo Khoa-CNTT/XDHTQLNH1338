@@ -1,3 +1,5 @@
+{% if user.is_superuser %}
+
 <div id="chatbot-icon" class="chatbot-icon">
     <div class="chatbot-icon-inner">
         <i class="fas fa-robot"></i>
@@ -37,6 +39,7 @@
         </div>
     </div>
 </div>
+{%endif%}
 
 <style>
 /* Chatbot Icon */
