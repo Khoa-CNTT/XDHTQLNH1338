@@ -17,7 +17,6 @@ from web_01.handle_view.customer_view import (CustomerManagementView)
 from web_01.handle_view.employee_view import (EmployeeManagementView)
 from web_01.handle_view.table_reservation_view import (TableReservationManagementView, edit_table_reservation)
 from web_01.handle_view.inventory_view import (InventoryManagementView, inventory_log_list, import_ingredient)
-from web_01.decorator import superuser_required
 from web_01.handle_view.inventory_view import (InventoryManagementView, inventory_log_list, import_ingredient, export_ingredient,
                                                add_ingredient,
                                                ingredient_request,
