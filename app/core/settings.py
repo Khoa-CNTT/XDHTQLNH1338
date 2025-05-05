@@ -133,6 +133,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
 
                 "core.context_processors.cloudinary_settings",
+                'core.context_processors.role_flags',
             ],
         },
     },

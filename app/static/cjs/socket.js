@@ -13,21 +13,11 @@ function displayNotification(message, level = "info") {
     hideMethod: "fadeOut",
   };
   const toastrMap = {
-    success: () => toastr.success(message, "✅ Thành công"),
-    error: () => toastr.error(message, "❌ Lỗi"),
-    warning: () => toastr.warning(message, "⚠️ Cảnh báo"),
-    info: () => toastr.info(message, "🔔 Thông báo"),
-    payment: () => {
-      toastr.info(
-        `<i class="fas fa-money-bill-wave"></i> ${message}`,
-        "💰 Thanh toán",
-        {
-          timeOut: 5000,
-          closeButton: true,
-          allowHtml: true, // ⬅️ Quan trọng để HTML được render
-        }
-      );
-    },
+    success: () => toastr.success(message),
+    error: () => toastr.error(message),
+    warning: () => toastr.warning(message,),
+    info: () => toastr.info(message),
+    payment: () => toastr.info(message)
   };
 
   const notify = toastrMap[level] || toastrMap["info"];

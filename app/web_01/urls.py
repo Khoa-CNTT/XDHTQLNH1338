@@ -15,12 +15,15 @@ urlpatterns = [
     path("chatbot/", chatbot_view.chatbot_api, name="chatbot_api"),
     path("get-chat-history/", views.get_chat_history, name="get_chat_history"),
     path('get-notifications', views.get_notification, name='get_notification'),
+    
 
     path('management/', include([
         path('table/', include([
             path('list', views.TableManagementView.as_view(), name='table_list'),
             path('<int:id>/', views.edit_table, name='edit_table'),
-            path('add', views.add_table, name='add_table')
+            # path('add', views.add_table, name='add_table'),
+            path('<int:table_id>/qr/', views.table_qr, name='manager_table_qr'),
+            path('create', views.table_create, name='manager_table_create'),
         ])),
         path('service/', include([
             path('list', views.ServiceManagementView.as_view(), name='service_list'),

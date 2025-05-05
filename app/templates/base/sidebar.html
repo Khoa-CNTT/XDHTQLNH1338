@@ -1,7 +1,7 @@
 <div class="deznav">
 	<div class="deznav-scroll dz-scroll">
 		<ul class="metismenu" id="menu">
-			{% if user.is_superuser %}
+			{% if is_manager %}
 				<li>
 					<a class="ai-icon" href="/">
 						<i class="fa-solid fa-chart-line"></i>
@@ -15,12 +15,14 @@
     				<span class="nav-text">Sử dụng dịch vụ</span>
 				</a>
 			</li>
+			{% if is_manager %}
 			<li>
 				<a class="ai-icon" href="{{url('web_01:table_list')}}" aria-expanded="false">
 					<i class="fa-solid fa-utensils"></i> <!-- Bàn -->
 					<span class="nav-text">Bàn</span>
 				</a>
 			</li>
+			{%endif%}
 			<li>
 				<a class="ai-icon" href="{{url('web_01:order_list')}}" aria-expanded="false">
 					<i class="fa-solid fa-list-alt"></i> <!-- Đơn hàng -->

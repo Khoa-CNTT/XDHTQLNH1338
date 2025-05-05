@@ -6,10 +6,10 @@ from cloudinary.models import CloudinaryField
 from django.utils.functional import cached_property
 # 🔄 Model Category (Loại sản phẩm)
 from cloudinary.uploader import upload
-import qrcode
-from io import BytesIO
 from django.conf import settings
-
+import qrcode
+from io import BytesIO 
+from django.core.files.base import ContentFile
 from web_01.utils.model_consts import CATEGORY_STATUS_CHOICES
 
 
@@ -223,12 +223,14 @@ class Table(models.Model):
     table_number = models.IntegerField(unique=True)
     status = models.CharField(max_length=10, choices=[('available', 'Trống'), ('occupied', 'Sử dụng'), ('reserved', 'Đã đặt')], default='available')
     qr_image = CloudinaryField('image')
-
+    capacity = models.IntegerField(default=4)  # Thêm trường capacity
+    is_deleted = models.BooleanField(default=False)
     class Meta:
         db_table = 'table'
     # 🔄 Model Ingredient
     # 🔄 Override phương thức save()
-
+    def __str__(self):
+        return f"Bàn {self.table_number}"
     def save(self, *args, **kwargs):
         # Tạo URL dựa trên table_number
         url = f"{settings.FRONT_END_URL}/login-menu/?table_number={self.table_number}"
@@ -245,7 +247,7 @@ class Table(models.Model):
 
         # Gọi phương thức save() gốc để lưu vào DB
         super().save(*args, **kwargs)
-
+        
 
 class Session(models.Model):
     STATUS_CHOICES = [

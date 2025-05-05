@@ -2,13 +2,13 @@ from core.__Include_Library import *
 from django.views.generic import TemplateView
 from django import forms
 from web_01.models import *
-from django.db.models import Sum, Count, F,Prefetch
+from django.db.models import Sum, Count, F, Prefetch
 from django.utils.decorators import method_decorator
 import requests
 from django.conf import settings
 from web_01.analyzer import analyze_message, handle_intent
 
-from web_01.handle_view.table_view import (TableManagementView, edit_table, add_table)
+from web_01.handle_view.table_view import (TableManagementView, edit_table, add_table, table_qr,table_create)
 from web_01.handle_view.order_view import (OrderManagementView, detail_order, detail_invoice)
 from web_01.handle_view.product_view import (ProductManagementView, add_product, import_product, detail_product, best_seller)
 from web_01.handle_view.service_view import (ServiceManagementView, get_order_by_table, complete_payment, get_product_service,
@@ -17,64 +17,66 @@ from web_01.handle_view.customer_view import (CustomerManagementView)
 from web_01.handle_view.employee_view import (EmployeeManagementView)
 from web_01.handle_view.table_reservation_view import (TableReservationManagementView)
 from web_01.handle_view.inventory_view import (InventoryManagementView, inventory_log_list, import_ingredient)
-from web_01.decorator import superuser_required
+from web_01.decorator import admin_required
 
 GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
 
-@method_decorator(superuser_required, name='dispatch')
-class DashboardView(LoginRequiredMixin, TemplateView):
-    template_name = 'apps/web_01/dashboard/dashboard.html'
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
+# @method_decorator(admin_required, name='dispatch')
+# class DashboardView(LoginRequiredMixin, TemplateView):
+#     template_name = 'apps/web_01/dashboard/dashboard.html'
 
-        # Tổng số thực đơn
-        context['total_products'] = Product.objects.count()
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
 
-        # Tổng doanh thu
-        context['total_revenue'] = (
-            OrderDetail.objects.aggregate(total=Sum('total'))['total'] or 0
-        )
+#         # Tổng số thực đơn
+#         context['total_products'] = Product.objects.count()
 
-        # Tổng số đơn đặt hàng
-        context['total_invoice'] = Invoice.objects.count()
+#         # Tổng doanh thu
+#         context['total_revenue'] = (
+#             OrderDetail.objects.aggregate(total=Sum('total'))['total'] or 0
+#         )
 
-        # Tổng số khách hàng
-        context['total_customers'] = Customer.objects.count()
+#         # Tổng số đơn đặt hàng
+#         context['total_invoice'] = Invoice.objects.count()
 
-        return context
+#         # Tổng số khách hàng
+#         context['total_customers'] = Customer.objects.count()
+
+#         return context
 
 
+@admin_required
 def dashboard(request):
     """Dashboard chính hiển thị thông tin tổng quan"""
     today = timezone.now().date()
     start_of_month = today.replace(day=1)
-    
+
     # Thống kê đơn hàng hôm nay
     total_orders_today = Order.objects.filter(
-        created_at__date=today, 
+        created_at__date=today,
         is_deleted=False
     ).count()
-    
+
     # Doanh thu hôm nay
     revenue_today = Invoice.objects.filter(
         created_at__date=today,
         is_deleted=False
     ).aggregate(total=Sum('total_amount'))['total'] or 0
-    
+
     # Doanh thu tháng này
     revenue_month = Invoice.objects.filter(
         created_at__date__gte=start_of_month,
         is_deleted=False
     ).aggregate(total=Sum('total_amount'))['total'] or 0
-    
+
     # Sản phẩm bán chạy
     best_selling = OrderDetail.objects.filter(
         is_deleted=False
     ).values('product__name').annotate(
         total_sold=Sum('quantity')
     ).order_by('-total_sold')[:5]
-    
+
     # Tình trạng bàn
     tables_status = {
         'available': Table.objects.filter(status='available').count(),
@@ -94,7 +96,7 @@ def dashboard(request):
         table.total_amount = current_session.total_amount if current_session else 0
     # Cảnh báo tồn kho
     low_stock_items = Ingredient.objects.filter(quantity_in_stock__lte=50).order_by('quantity_in_stock')[:5]
-    
+
     # Dữ liệu cho biểu đồ doanh thu theo ngày (7 ngày gần nhất)
     revenue_by_day = []
     day_labels = []
@@ -106,7 +108,7 @@ def dashboard(request):
         ).aggregate(total=Sum('total_amount'))['total'] or 0
         revenue_by_day.append(day_revenue)
         day_labels.append(day.strftime('%d/%m'))
-    
+
     # Dữ liệu cho biểu đồ doanh thu theo danh mục
     revenue_by_category = OrderDetail.objects.filter(
         is_deleted=False,
@@ -114,19 +116,19 @@ def dashboard(request):
     ).values('product__category__name').annotate(
         total=Sum(F('price') * F('quantity'))
     ).order_by('-total')[:5]
-    
+
     # Dữ liệu cho biểu đồ tỷ lệ đơn hàng theo trạng thái
     order_status_counts = Order.objects.filter(
         is_deleted=False
     ).values('status').annotate(
         count=Count('id')
     )
-    
+
     # Dữ liệu cho biểu đồ tồn kho nguyên liệu (10 nguyên liệu có tỷ lệ sử dụng cao nhất)
     top_ingredients = Ingredient.objects.annotate(
         usage_count=Count('ingredientproduct')
     ).order_by('-usage_count')[:10]
-    
+
     ingredient_labels = [ing.name for ing in top_ingredients]
     ingredient_stocks = [ing.quantity_in_stock for ing in top_ingredients]
 
@@ -146,7 +148,7 @@ def dashboard(request):
         'ingredient_labels': ingredient_labels,
         'ingredient_stocks': ingredient_stocks,
     }
-    
+
     return render(request, 'apps/web_01/dashboard/dashboard_2.html', context)
 
 
@@ -191,7 +193,7 @@ class CustomLoginView(FormView):
                 if user.employee.role == 'staff':
                     return redirect(reverse('web_01:service_list'))
             return redirect(self.get_success_url())
-            
+
         else:
             form.add_error('password', 'Mật khẩu không đúng!')
             return self.form_invalid(form)
