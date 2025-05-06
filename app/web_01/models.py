@@ -327,17 +327,6 @@ class Order(BaseModel):
     def formatted_price(self) -> str:
         return f'{self.total:,}đ'.replace(',', '.')
 
-    # def save(self, *args, **kwargs):
-    #     super().save(*args, **kwargs)
-    #     self.update_invoice_total_amount()
-
-    # def update_invoice_total_amount(self):
-    #     print('12321')
-    #     orders = self.invoice.order_set.all()
-    #     total_amount = sum(order.total - order.total * order.discount / 100 for order in orders)
-    #     self.invoice.total_amount = int(total_amount)
-    #     self.invoice.save(update_fields=['total_amount'])
-
 
 class OrderDetail(BaseModel):
     order = models.ForeignKey(Order, on_delete=models.CASCADE)

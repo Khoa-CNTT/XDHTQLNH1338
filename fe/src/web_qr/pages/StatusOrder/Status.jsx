@@ -46,7 +46,7 @@ const Status = () => {
       try {
         const data = JSON.parse(event.data);
         console.log('data', data)
-        if (data?.type === "product_status") {
+        if (data?.type === "product_status" && data?.data.product_status) {
           fetchInvoice();
         }
       } catch (err) {

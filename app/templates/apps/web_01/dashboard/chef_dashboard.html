@@ -134,9 +134,6 @@
                                             <button class="btn btn-sm btn-warning start-cooking" data-id="{{ order_detail.id }}">
                                                 <i class="fas fa-fire"></i> Bắt đầu
                                             </button>
-                                            <a href="" class="btn btn-sm btn-info" target="_blank">
-                                                <i class="fas fa-book"></i> Công thức
-                                            </a>
                                         </div>
                                     </div>
                                     <div class="order-content">
@@ -203,9 +200,6 @@
                                             <button class="btn btn-sm btn-success complete-order" data-id="{{ order_detail.id }}">
                                                 <i class="fas fa-check"></i> Hoàn thành
                                             </button>
-                                            <a href="" class="btn btn-sm btn-info" target="_blank">
-                                                <i class="fas fa-book"></i> Công thức
-                                            </a>
                                         </div>
                                     </div>
                                     <div class="order-content">
@@ -425,7 +419,7 @@
         $(document).on('click', '.start-cooking', function() {
             const orderDetailId = $(this).data('id');
             const orderItem = $(this).closest('.order-item');
-            
+            const tableId = $(this).data('table');
             $.ajax({
                 url: "{{url('web_01:chef_update_order_status')}}",
                 type: 'POST',
@@ -454,9 +448,6 @@
                             <button class="btn btn-sm btn-success complete-order" data-id="${orderDetailId}">
                                 <i class="fas fa-check"></i> Hoàn thành
                             </button>
-                            <a href="/chef/recipe/${orderItem.find('a').attr('href').split('/').pop()}" class="btn btn-sm btn-info" target="_blank">
-                                <i class="fas fa-book"></i> Công thức
-                            </a>
                         `;
                         
                         // Thêm badge thời gian
@@ -471,7 +462,7 @@
                         // Di chuyển món ăn sang danh sách đang nấu
                         orderItem.appendTo(inProgressOrdersList);
                         
-             
+                        socket_update_order_status_detail("product_status",'',tableId,'in_progress')
                     }
                 },
                 error: function(error) {
@@ -484,6 +475,7 @@
         // Hoàn thành món ăn
         $(document).on('click', '.complete-order', function() {
             const orderDetailId = $(this).data('id');
+            const tableId = $(this).data('table');
             const orderItem = $(this).closest('.order-item');
             $.ajax({
                 url: "{{url('web_01:chef_update_order_status')}}",
@@ -509,7 +501,8 @@
                             // Có thể thay thế bằng AJAX để cập nhật chỉ phần cần thiết
                             location.reload();
                         }, 500);
-                 
+                        
+                        socket_update_order_status_detail("product_status",'',tableId,'completed')
                     }
                 },
                 error: function(error) {

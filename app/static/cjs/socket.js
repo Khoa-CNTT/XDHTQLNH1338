@@ -32,3 +32,15 @@ socket.onmessage = function (event) {
   displayNotification(message, level);
   load_notification_list();
 };
+
+function socket_update_order_status_detail(type, product_name ='',table_id, status='') {
+  if (socket.readyState === WebSocket.OPEN) {
+    // Socket đã mở, có thể gửi ngay
+    socket.send(JSON.stringify({
+        type:type,
+        product_name: product_name,
+        table_id: table_id,
+        product_status: status,
+    }));
+  }
+}
