@@ -74,7 +74,7 @@
                 <div class="d-flex">
                     
                     {% if is_manager%}
-                    <button class="btn btn-primary btn-sm dropdown-toggle me-2" type="button" data-bs-toggle="modal" data-bs-target="#addIngredientModal">
+                    <button class="btn btn-primary btn-sm me-2" type="button" data-bs-toggle="modal" data-bs-target="#addIngredientModal">
                             <i class="fas fa-plus-circle me-1"></i> Thêm
                     </button>
 
@@ -209,13 +209,13 @@
                     data: 'quantity', 
                     title: 'Tồn kho',
                     render: function(data, type, row) {
-                        let badgeClass = 'badge-success';
+                        let badgeClass = 'text-success';
                         if (data <= 10) {
-                            badgeClass = 'badge-danger';
+                            badgeClass = 'text-danger';
                         } else if (data <= 30) {
-                            badgeClass = 'badge-warning';
+                            badgeClass = 'text-warning';
                         }
-                        return `<span class="badge ${badgeClass}">${data}</span>`;
+                        return `<span class="${badgeClass}">${data}</span>`;
                     }
                 },
                 { data: 'unit', title: 'Đơn vị' },
@@ -228,7 +228,7 @@
                     render: function (data, type, row, meta) {
                         return `
                             <div class="d-flex">
-                                <button class="btn btn-sm btn-info me-1 btn-log" 
+                                <button class="btn btn-sm btn-info me-1 btn-log " 
                                     data-id="${row.id}" 
                                     data-bs-toggle="modal" 
                                     data-bs-target="#modalLogInventory">

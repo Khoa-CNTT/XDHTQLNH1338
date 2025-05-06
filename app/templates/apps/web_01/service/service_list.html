@@ -5,7 +5,7 @@
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
         <h1 class="h3 mb-0 text-gray-800">Quản lý dịch vụ</h1>
         <div>
-            <button id="refresh-btn" class="btn btn-info ml-2">
+            <button id="refresh-btn" class="btn btn-info ml-2 btn-sm">
                 <i class="fas fa-sync-alt fa-sm"></i> Làm mới
             </button>
         </div>
@@ -107,6 +107,34 @@
 
 {% block script %}
 <script type="text/javascript">
+
+    socket.onmessage = function (event) {
+        const data = JSON.parse(event.data);
+        const type = data.type;
+        if(type == 'product_status') {
+        let tableId = "{{request.GET.get('table')}}";
+        let tabId = `tab-${tableId}`;
+        let contentId = `content-${tableId}`;
+        $.ajax({
+            url: "{{ url('web_01:get_order_by_table') }}",
+            type: 'GET',
+            data: { table_id: tableId },
+            success: function(response) {
+                console.log('response',response)
+                $("#orderContents").html(response);
+            },
+            error: function(xhr, errmsg, err) {
+                $("#orderContents").append(`
+                    <div class="tab-pane fade" id="${contentId}" role="tabpanel">
+                        <p class="text-muted">Bàn này chưa có đơn nào.</p>
+                    </div>
+                `);
+            }
+        });
+        }
+    };
+
+
     function getOrderDetail(tableId) {
         let tabId = `tab-${tableId}`;
         let contentId = `content-${tableId}`;
