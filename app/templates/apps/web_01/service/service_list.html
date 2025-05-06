@@ -30,11 +30,11 @@
                             <p class=" mb-0 fw-bold">{{ table.id }}</p>
                  
                             {% if table.status == 'available' %}
-                                 <span class="badge badge-xs badge-success">{{ table.get_status_display() }}</span>
+                                 <span class="badge badge-xs badge-outline-success">{{ table.get_status_display() }}</span>
                              {%elif table.status == 'occupied' %}
                                  <span class="badge badge-xs badge-primary">{{ table.get_status_display() }}</span>
                              {%else%}
-                                 <span class="badge badge-xs badge-secondary">{{ table.get_status_display() }}</span>
+                                 <span class="badge badge-xs badge-outline-secondary">{{ table.get_status_display() }}</span>
                              {%endif%}
                         </div>
                     </div>

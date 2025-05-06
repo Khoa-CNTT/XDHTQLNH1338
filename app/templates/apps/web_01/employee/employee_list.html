@@ -88,14 +88,14 @@
                 { 
                     data: "total_hours", title: "Tổng giờ làm",
                     render: function(data) {
-                        return `<span class="badge badge-warning">${data}</span>`;
+                        return `<span class="badge badge-outline-warning">${data}</span>`;
                     }
                 },
 
                 { 
                     data: "calculated_salary", title: "Lương thực tế",
                     render: function(data) {
-                        return `<span class="badge badge-success">${data}</span>`;
+                        return `<span class="badge badge-outline-success">${data}</span>`;
                     }
                 },
 
@@ -116,11 +116,11 @@
                 
                         let statusLabel = "";
                         if (row.status === "worked") {
-                            statusLabel = `<span class="badge badge-success d-block text-center">✅ Đã làm</span>`;
+                            statusLabel = `<span class="badge badge-outline-success d-block text-center">✅ Đã làm</span>`;
                         } else if (row.status === "off") {
-                            statusLabel = `<span class="badge badge-danger d-block text-center">❌ Nghỉ</span>`;
+                            statusLabel = `<span class="badge badge-outline-danger d-block text-center">❌ Nghỉ</span>`;
                         } else {
-                            statusLabel = `<span class="badge badge-secondary d-block text-center">⚪ Không xác định</span>`;
+                            statusLabel = `<span class="badge badge-outline-secondary d-block text-center">⚪ Không xác định</span>`;
                         }
                 
                         return `<div class="text-center">${statusLabel} <br> <span class="badge badge-dark">${shiftTypeLabel}</span></div>`;
