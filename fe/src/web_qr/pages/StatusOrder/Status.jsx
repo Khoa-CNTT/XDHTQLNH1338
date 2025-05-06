@@ -11,6 +11,7 @@ import {
   readInvoice,
   deleteCartItem,
   getAwaitMomoPayment,
+  endSession,
 } from "../../services/api";
 import { useCart } from "../../context/CartContext";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -47,7 +48,6 @@ const Status = () => {
         console.log('data', data)
         if (data?.type === "product_status") {
           fetchInvoice();
-          // toast.info(`${data?.data?.product_name} ${getStatusProductOrderENToVN(data?.data?.product_status)}`);
         }
       } catch (err) {
         console.error("Error parsing message:", err);

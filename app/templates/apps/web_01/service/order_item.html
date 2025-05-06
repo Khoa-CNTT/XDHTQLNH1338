@@ -31,6 +31,7 @@
                        type="checkbox"
                        value="{{ order.order_id }}"
                        data-total="{{ order.order_total }}"
+                       data-status="{{ order.status }}"
                        {% if order.status == 'completed' %}checked disabled{% endif %}>
                 <strong>Đơn hàng #{{ loop.index }}</strong>
             </div>
@@ -295,7 +296,10 @@
     function updateSelectedOrdersTotal() {
         let total = 0;
         $(".order-checkbox:checked").each(function () {
-            total += parseFloat($(this).data("total"));
+            let is_completed = $(this).data("status") == 'completed'; 
+            if(!is_completed) {
+                total += parseFloat($(this).data("total"));
+            }
         });
         let percent = parseInt($('#discountInput').val()) || 0;
         total = total - (total * percent/100);
@@ -327,11 +331,13 @@
         });
     }
 
+
+    
     
     $(document).ready(function() {
         $('[data-bs-toggle="tooltip"]').tooltip();
 
-      
+       
     
      
 
@@ -347,7 +353,10 @@
         function updateDiscount(percent) {
             let total = 0;
             $(".order-checkbox:checked").each(function () {
-                total += parseFloat($(this).data("total"));
+                let is_completed = $(this).data("status") == 'completed'; 
+                if(!is_completed) {
+                    total += parseFloat($(this).data("total"));
+                }
             });
             const discountAmount = Math.round((total * percent) / 100);
             $("#finalSelectedTotal").text((total - discountAmount).toLocaleString() + 'đ');

@@ -11,6 +11,7 @@ urlpatterns = [
     path('', views.index, name='index'),
     path('dashboard/', views.dashboard, name='dashboard'),
     path('chef/', chef.chef_dashboard, name='chef_dashboard'),
+    path('chef/update-order-status/', chef.update_order_status, name='chef_update_order_status'),
     path('accounts/login/', views.CustomLoginView.as_view(), name='login'),
     path('accounts/logout/', views.logout_view, name='logout'),
     path("chatbot/", chatbot_view.chatbot_api, name="chatbot_api"),

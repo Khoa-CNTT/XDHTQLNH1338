@@ -125,7 +125,8 @@ def detail_invoice(request, id):
             "status": order.status,
             "status_display": order.get_status_display(),
             "order_details": [],
-            "order_total": 0
+            "order_total": order.total,
+            "order_discount": order.discount,
         }
 
         for detail in order.orderdetail_set.all():
@@ -140,8 +141,8 @@ def detail_invoice(request, id):
                 "status_display": detail.get_status_display(),
             }
             order_data["order_details"].append(item)
-            if detail.status != 'cancelled':
-                order_data["order_total"] += detail.total
+            # if detail.status != 'cancelled':
+            #     order_data["order_total"] += detail.total
                 # total_amount += detail.total
 
         order_details_list.append(order_data)

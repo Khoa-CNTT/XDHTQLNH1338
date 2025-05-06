@@ -114,7 +114,7 @@ def dashboard(request):
     for table in tables:
         current_session = table.active_sessions[0] if table.active_sessions else None
         table.current_session = current_session
-        table.total_amount = current_session.total_amount if current_session else 0
+        # table.total_amount = current_session.total_amount if current_session else 0
     # Cảnh báo tồn kho
     low_stock_items = Ingredient.objects.filter(quantity_in_stock__lte=50).order_by('quantity_in_stock')[:5]
 

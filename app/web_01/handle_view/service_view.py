@@ -7,21 +7,21 @@ from django.views.decorators.csrf import csrf_exempt
 from web_01.models import Table, Order, Product, Invoice, Session, OrderDetail
 from django import forms
 from django.contrib.auth.decorators import login_required
-
+from django.db.models import F, ExpressionWrapper, IntegerField
 
 def service_dashboard(request):
     """Hiển thị dashboard quản lý dịch vụ"""
     # Lấy danh sách bàn
     tables = Table.objects.all().order_by('table_number')
-    
+
     # Lấy danh sách sản phẩm
     products = Product.objects.filter(is_deleted=False).order_by('category__name', 'name')
-    
+
     context = {
         'table_list': tables,
         'product_list': products,
     }
-    
+
     return render(request, '/apps/web_01/service/service_list.html', context)
 
 
@@ -129,7 +129,7 @@ def complete_payment(request):
             invoice.payment_method = payment_method
             invoice.total_amount = total
             invoice.discount = discount
-            invoice.order_set.all().update(status='completed')
+            invoice.order_set.all().update(status='completed', discount=discount)
             invoice.save()
             session.save()
             session.table.save()
@@ -164,6 +164,9 @@ def complete_payment_multi_order(request):
         orders = Order.objects.filter(id__in=order_ids).select_related('invoice')
         if not orders.exists():
             return JsonResponse({'success': False, 'message': 'Không tìm thấy đơn hàng.'}, status=404)
+        orders.update(
+            discount=discount_percent
+        )
 
         with transaction.atomic():
             # Duyệt qua các đơn và cập nhật trạng thái đã thanh toán
@@ -175,9 +178,8 @@ def complete_payment_multi_order(request):
                 invoice = order.invoice
                 related_orders = invoice.order_set.all()
                 if all(o.status == 'completed' for o in related_orders):
-                    invoice.status = 'completed'
                     invoice.payment_method = payment_method
-                    invoice.discount = discount_percent
+                    invoice.total_amount = sum(order.total - order.total * order.discount/100 for order in related_orders)
                     invoice.save()
 
             # TODO: Ghi lại lịch sử thanh toán nếu muốn
@@ -231,9 +233,9 @@ def end_session(request):
             session = Session.objects.get(id=session_id)
             invoice = Invoice.objects.get(session=session)
             session.table.status = 'available'
-            session.ended_at = timezone.now()
+            # session.ended_at = timezone.now()
 
-            session.status = 'closed'
+            # session.status = 'closed'
             invoice.order_set.all().update(status='completed')
             session.save()
             session.table.save()

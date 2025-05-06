@@ -150,12 +150,9 @@ class EndSessionView(AuthenticationPermissionMixin, APIView):
         customer = request.user.customer
         response = Response()
         session = Session.objects.filter(customer=customer).order_by('-started_at').first()
-        invoice = Invoice.objects.get(session=session)
         session.table.status = 'available'
         session.ended_at = timezone.now()
-
         session.status = 'closed'
-        invoice.order_set.all().update(status='completed')
         session.save()
         session.table.save()
         response.status_code = status.HTTP_200_OK

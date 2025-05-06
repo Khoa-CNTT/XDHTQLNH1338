@@ -8,9 +8,10 @@ from django.utils.functional import cached_property
 from cloudinary.uploader import upload
 from django.conf import settings
 import qrcode
-from io import BytesIO 
+from io import BytesIO
 from django.core.files.base import ContentFile
 from web_01.utils.model_consts import CATEGORY_STATUS_CHOICES
+from datetime import datetime
 
 
 class BaseModel(models.Model):
@@ -186,7 +187,8 @@ class Employee(BaseModel):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     salary = models.IntegerField()
     avartar_url = CloudinaryField('avartar_url', null=True, blank=True)
-    role = models.CharField(max_length=20, choices=ROLE_CHOICES,default='staff')
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='staff')
+
     class Meta:
         db_table = 'employee'
 
@@ -225,18 +227,21 @@ class Table(models.Model):
     qr_image = CloudinaryField('image')
     capacity = models.IntegerField(default=4)  # Thêm trường capacity
     is_deleted = models.BooleanField(default=False)
+
     class Meta:
         db_table = 'table'
     # 🔄 Model Ingredient
     # 🔄 Override phương thức save()
+
     def __str__(self):
         return f"Bàn {self.table_number}"
+
     def save(self, *args, **kwargs):
         force_update_qr = kwargs.pop('force_update_qr', False)
 
         # Tạo URL dựa trên table_number
         url = f"{settings.FRONT_END_URL}/login-menu/?table_number={self.table_number}"
-        
+
         # Tạo mã QR
         qr = qrcode.make(url)
         qr_bytes = BytesIO()
@@ -250,7 +255,7 @@ class Table(models.Model):
 
         # Lưu lại model bình thường
         super().save(*args, **kwargs)
-        
+
 
 class Session(models.Model):
     STATUS_CHOICES = [
@@ -269,6 +274,25 @@ class Session(models.Model):
     class Meta:
         db_table = 'session'
 
+    def save(self, *args, **kwargs):
+        if self.pk:
+            old_status = Session.objects.get(pk=self.pk).status
+            if old_status == 'active' and self.status == 'closed':
+                # Lấy tất cả các hóa đơn thuộc session
+                invoices = Invoice.objects.filter(session=self)
+                for invoice in invoices:
+                    orders = invoice.order_set.exclude(status='cancelled')
+                    # Cập nhật status Order
+                    orders.update(status='completed')
+
+                    # Cập nhật status OrderDetail tương ứng
+                    for order in orders:
+                        order.orderdetail_set.exclude(status='cancelled').update(status='completed')
+
+        if self.status == 'closed' and not self.ended_at:
+            self.ended_at = datetime.now()
+
+        super().save(*args, **kwargs)
 
 class Invoice(BaseModel):
     session = models.ForeignKey(Session, on_delete=models.CASCADE)
@@ -287,13 +311,14 @@ class Invoice(BaseModel):
 
 class Order(BaseModel):
     invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE)
-    total = models.IntegerField(default=0)
     status = models.CharField(max_length=15, choices=[
         ('pending', 'Chờ'),
         ('in_progress', 'Đang làm'),
         ('completed', 'Hoàn thành'),
         ('cancelled', 'Hủy')
     ], default='pending')
+    total = models.IntegerField(default=0)
+    discount = models.IntegerField(default=0)
 
     class Meta:
         db_table = 'order'
@@ -301,6 +326,17 @@ class Order(BaseModel):
     @cached_property
     def formatted_price(self) -> str:
         return f'{self.total:,}đ'.replace(',', '.')
+
+    # def save(self, *args, **kwargs):
+    #     super().save(*args, **kwargs)
+    #     self.update_invoice_total_amount()
+
+    # def update_invoice_total_amount(self):
+    #     print('12321')
+    #     orders = self.invoice.order_set.all()
+    #     total_amount = sum(order.total - order.total * order.discount / 100 for order in orders)
+    #     self.invoice.total_amount = int(total_amount)
+    #     self.invoice.save(update_fields=['total_amount'])
 
 
 class OrderDetail(BaseModel):
@@ -335,11 +371,11 @@ class OrderDetail(BaseModel):
     def export_ingredients(self):
         product_ingredient = IngredientProduct.objects.filter(product=self.product).first()
         total_quantity_used = product_ingredient.quantity_required * self.quantity
-        ingredient = product_ingredient.ingredient 
+        ingredient = product_ingredient.ingredient
         old_stock = ingredient.quantity_in_stock
         ingredient.quantity_in_stock -= total_quantity_used
         ingredient.save()
-            # Tạo log
+        # Tạo log
         InventoryLog.objects.create(
             ingredient=ingredient,
             change=-total_quantity_used,

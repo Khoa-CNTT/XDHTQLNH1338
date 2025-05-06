@@ -1,13 +1,29 @@
 import { createContext, useEffect, useState } from "react";
 import Cookies from "js-cookie";
+import { endSession } from "../../web_qr/services/api";
 export const SocketContext = createContext(null);
 
 export const SocketProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);
 
-  useEffect(() => {
-    const ws = new WebSocket(`${import.meta.env.VITE_SOCKET_API_URL}/ws/notifications/order/`);
+  // Function to handle session ending
+  async function asyncEndSession() {
+    try {
+      const response = await endSession();
+      if (response.status === 200) {
+        console.log("✅ End session thành công");
+        window.location.href = "/";
+      } else {
+        console.error("⚠️ End session failed:", response);
+      }
+    } catch (err) {
+      console.error("❌ Error ending session:", err);
+    }
+  }
 
+  // Set up socket connection on mount
+  useEffect(() => {
+    const ws = new WebSocket("ws://localhost:5001/ws/notifications/order/");
 
     ws.onopen = () => {
       console.log("✅ WebSocket connected!");
@@ -21,18 +37,9 @@ export const SocketProvider = ({ children }) => {
       console.error("⚠️ WebSocket error:", error);
     };
 
-    ws.onmessage = (event) => {
-      console.log("📩 WebSocket message received:", event.data);
-      var data = JSON.parse(event.data);
-      if (data?.type === "end_session") {
-        Cookies.remove("token");
-        // hoặc redirect
-        window.location.href = "/";
-      }
-    };
-
     setSocket(ws);
 
+    // Cleanup on unmount
     return () => {
       if (ws.readyState === WebSocket.OPEN) {
         ws.close();
@@ -40,7 +47,36 @@ export const SocketProvider = ({ children }) => {
     };
   }, []);
 
+  // Handle socket.onmessage separately (reactive to socket changes)
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleMessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        console.log("📩 WebSocket message received:", data);
+
+        if (data?.type === "end_session") {
+          asyncEndSession();
+        }
+
+        // Add more message type handling here if needed
+
+      } catch (err) {
+        console.error("❌ Error parsing WebSocket message:", err);
+      }
+    };
+
+    socket.addEventListener("message", handleMessage);
+
+    return () => {
+      socket.removeEventListener("message", handleMessage);
+    };
+  }, [socket]);
+
   return (
-    <SocketContext.Provider value={socket}>{children}</SocketContext.Provider>
+    <SocketContext.Provider value={socket}>
+      {children}
+    </SocketContext.Provider>
   );
 };
