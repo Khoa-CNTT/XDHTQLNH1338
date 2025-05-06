@@ -55,7 +55,7 @@ function App() {
           <Route path="/status-order/:lang" element={<ThemeProvider><MobileLayout /></ThemeProvider>} />
 
           {/* Chuyển hướng nếu không có `:lang` */}
-          <Route path="/" element={<Navigate to="/home/vn" replace />} />
+          <Route path="/thank-you" element={<Navigate to="/thank-you" replace />} />
           <Route path="/home" element={<Navigate to="/home/vn" replace />} />
           <Route path="/menu" element={<Navigate to="/menu/vn" replace />} />
           <Route path="/about" element={<Navigate to="/about/vn" replace />} />

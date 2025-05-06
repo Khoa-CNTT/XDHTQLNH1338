@@ -12,7 +12,7 @@ export const SocketProvider = ({ children }) => {
       const response = await endSession();
       if (response.status === 200) {
         console.log("✅ End session thành công");
-        window.location.href = "/";
+        window.location.href = "/thank-you";
       } else {
         console.error("⚠️ End session failed:", response);
       }
