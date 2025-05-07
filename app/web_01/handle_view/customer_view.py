@@ -72,7 +72,79 @@ class CustomerManagementView(LoginRequiredMixin, TemplateView):
                 "data": customers_data
             }, safe=False)
             
-            
-
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=400)
+            
+    @method_decorator(csrf_exempt)
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+
+
+@csrf_exempt
+def update_customer(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            customer_id = data.get('id')
+            loyalty_points = data.get('loyalty_points')
+            
+            if not customer_id:
+                return JsonResponse({"status": "error", "message": "ID khách hàng không hợp lệ"}, status=400)
+                
+            customer = Customer.objects.get(id=customer_id)
+            
+            # Cập nhật điểm tích lũy
+            if loyalty_points is not None:
+                try:
+                    customer.loyalty_points = int(loyalty_points)
+                except ValueError:
+                    return JsonResponse({"status": "error", "message": "Điểm tích lũy phải là số"}, status=400)
+            
+            customer.save()
+            
+            return JsonResponse({
+                "status": "success", 
+                "message": "Cập nhật khách hàng thành công",
+                "customer": {
+                    "id": customer.id,
+                    "username": customer.user.username if customer.user else "N/A",
+                    "loyalty_points": customer.loyalty_points,
+                    "created_at": customer.formatted_created_at
+                }
+            })
+            
+        except Customer.DoesNotExist:
+            return JsonResponse({"status": "error", "message": "Không tìm thấy khách hàng"}, status=404)
+        except Exception as e:
+            return JsonResponse({"status": "error", "message": str(e)}, status=500)
+    
+    return JsonResponse({"status": "error", "message": "Phương thức không được hỗ trợ"}, status=405)
+
+
+@csrf_exempt
+def delete_customer(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            customer_id = data.get('id')
+            
+            if not customer_id:
+                return JsonResponse({"status": "error", "message": "ID khách hàng không hợp lệ"}, status=400)
+                
+            customer = Customer.objects.get(id=customer_id)
+            
+            # Soft delete
+            customer.is_deleted = True
+            customer.save()
+            
+            return JsonResponse({
+                "status": "success", 
+                "message": "Xóa khách hàng thành công"
+            })
+            
+        except Customer.DoesNotExist:
+            return JsonResponse({"status": "error", "message": "Không tìm thấy khách hàng"}, status=404)
+        except Exception as e:
+            return JsonResponse({"status": "error", "message": str(e)}, status=500)
+    
+    return JsonResponse({"status": "error", "message": "Phương thức không được hỗ trợ"}, status=405)
