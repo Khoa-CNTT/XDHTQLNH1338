@@ -4,11 +4,13 @@
     <!-- Tiêu đề trang -->
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
         <h1 class="h3 mb-0 text-gray-800">Quản lý Sản phẩm</h1>
+        {% if is_manager %}
         <div>
             <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalAddProduct">
                 <i class="fas fa-plus"></i> Thêm sản phẩm
             </button>
         </div>
+        {%endif%}
     </div>
 
     <!-- Card bộ lọc -->
@@ -214,6 +216,7 @@
                             >
                                 <i class="fa fa-eye"></i>
                             </button>
+                             {% if is_manager %}
                             <button type='button' class="btn light btn-primary shadow btn-xs sharp me-1" 
                             data-id="${row.id}" 
                             data-bs-toggle="modal" 
@@ -221,12 +224,14 @@
                             >
                                 <i class="fa fa-edit"></i>
                             </button>
+                            
                             <button type='button' class="btn light btn-danger shadow btn-xs sharp" 
                             data-id="${row.id}" 
                             onclick="deleteProduct(${row.id})"
                             >
                                 <i class="fa fa-trash"></i>
                             </button>
+                            {%endif%}
                         </div>
                         `;
                     }
