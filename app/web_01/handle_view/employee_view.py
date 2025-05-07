@@ -172,12 +172,10 @@ def employee_update(request):
         employee_id = request.POST.get('employee_id')
         username = request.POST.get('username')
         salary = request.POST.get('salary')
-        shift_type = request.POST.get('shift_type')
-        status = request.POST.get('status')
         role = request.POST.get('role')  # Get role from form
         
         # Validate input
-        if not all([employee_id, username, salary, shift_type, status]):
+        if not all([employee_id, username, salary]):
             return JsonResponse({
                 'success': False,
                 'message': 'Vui lòng điền đầy đủ thông tin'
@@ -219,20 +217,16 @@ def employee_update(request):
         existing_shift = WorkShift.objects.filter(
             employee=employee,
             date=current_date,
-            shift_type=shift_type
         ).first()
         
         if existing_shift:
             # Update existing shift
-            existing_shift.status = status
             existing_shift.save()
         else:
             # Create new shift
             WorkShift.objects.create(
                 employee=employee,
                 date=current_date,  # Add the date field
-                shift_type=shift_type,
-                status=status,
                 duration=4.0  # Default duration is 4 hours
             )
         
