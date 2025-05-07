@@ -57,6 +57,9 @@ urlpatterns = [
 
         path('employee/', include([
             path('list', views.EmployeeManagementView.as_view(), name='employee_list'),
+            path('create/', views.employee_add, name='employee_add'),
+            path('update/', views.employee_update, name='employee_update'),
+            path('delete/', views.employee_delete, name='employee_delete'),
         ])),
 
         path('table-reservation/', include([
