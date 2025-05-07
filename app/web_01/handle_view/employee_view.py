@@ -96,12 +96,12 @@ def employee_add(request):
     try:
         username = request.POST.get('username')
         salary = request.POST.get('salary')
-        shift_type = request.POST.get('shift_type')
-        status = request.POST.get('status')
         role = request.POST.get('role', 'staff')  # Default to 'staff' if not provided
+        total_shifts = request.POST.get('total_shifts', '0')
+        total_hours = request.POST.get('total_hours', '0')
         
         # Validate input
-        if not all([username, salary, shift_type, status]):
+        if not all([username, salary]):
             return JsonResponse({
                 'success': False,
                 'message': 'Vui lòng điền đầy đủ thông tin'
@@ -110,10 +110,12 @@ def employee_add(request):
         # Convert salary to integer (remove commas)
         try:
             salary = int(salary.replace(',', ''))
+            total_shifts = int(total_shifts)
+            total_hours = float(total_hours.replace(' giờ', '').strip())
         except ValueError:
             return JsonResponse({
                 'success': False,
-                'message': 'Lương không hợp lệ'
+                'message': 'Dữ liệu không hợp lệ'
             })
         
         # Check if user exists
@@ -130,23 +132,28 @@ def employee_add(request):
         employee = Employee.objects.create(
             user=user,
             salary=salary,
-            role=role  # Use the role from form
+            role=role 
         )
         
         # Create initial work shift with current date
-        current_date = timezone.now().date()
-        WorkShift.objects.create(
-            employee=employee,
-            date=current_date,  # Add the date field
-            shift_type=shift_type,
-            status=status,
-            duration=4.0  # Default duration is 4 hours
-        )
+        if total_shifts > 0:
+            current_date = timezone.now().date()
+            hours_per_shift = total_hours / total_shifts if total_shifts > 0 else 0
+            
+            # Create shifts for the employee
+            for i in range(total_shifts):
+                shift_date = current_date - datetime.timedelta(days=i)
+                WorkShift.objects.create(
+                    employee=employee,
+                    date=shift_date,
+                    duration=hours_per_shift
+                )
         
         return JsonResponse({
             'success': True,
             'message': 'Thêm nhân viên thành công'
         })
+        
         
     except Exception as e:
         print("🔥 Exception:", str(e))
