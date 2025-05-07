@@ -10,7 +10,7 @@ from django.conf import settings
 import qrcode
 from io import BytesIO
 from django.core.files.base import ContentFile
-from web_01.utils.model_consts import CATEGORY_STATUS_CHOICES
+from web_01.utils.model_consts import STATUS_ACTIVE_CHOICES
 from datetime import datetime
 
 
@@ -42,7 +42,7 @@ class Category(models.Model):
     name = models.CharField(max_length=100, unique=True)
     description = models.TextField(null=True, blank=True)
     parent = models.ForeignKey('self', null=True, blank=True, on_delete=models.SET_NULL)
-    status = models.CharField(max_length=10, choices=CATEGORY_STATUS_CHOICES, default='active')
+    status = models.CharField(max_length=10, choices=STATUS_ACTIVE_CHOICES, default='active')
 
 # 🔄 Model Product (Sản phẩm)
     class Meta:
@@ -135,6 +135,7 @@ class Product(BaseModel):
     description = models.TextField(null=True, blank=True)
     image = CloudinaryField('image', null=True, blank=True)
     ingredients = models.ManyToManyField(Ingredient, through='IngredientProduct', blank=True, null=True)
+    status = models.CharField(max_length=10, choices=STATUS_ACTIVE_CHOICES, default='active')
 
     class Meta:
         db_table = 'product'

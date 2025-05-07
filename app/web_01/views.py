@@ -10,7 +10,7 @@ from web_01.analyzer import analyze_message, handle_intent
 
 from web_01.handle_view.table_view import (TableManagementView, edit_table, add_table, table_qr, table_create)
 from web_01.handle_view.order_view import (OrderManagementView, detail_order, detail_invoice)
-from web_01.handle_view.product_view import (ProductManagementView, add_product, import_product, detail_product, best_seller)
+from web_01.handle_view.product_view import (ExportProductsView,ProductManagementView, add_product, import_product, detail_product, best_seller,ProductEditView)
 from web_01.handle_view.service_view import (service_dashboard, get_order_by_table, complete_payment, get_product_service,
                                              complete_payment_multi_order, update_item_status, end_session, add_product_to_order)
 from web_01.handle_view.customer_view import (CustomerManagementView, update_customer, delete_customer)
