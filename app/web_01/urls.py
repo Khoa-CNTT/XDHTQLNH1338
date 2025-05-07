@@ -53,6 +53,8 @@ urlpatterns = [
 
         path('customer/', include([
             path('list', views.CustomerManagementView.as_view(), name='customer_list'),
+            path('update/', views.update_customer, name='update_customer'),
+            path('delete/', views.delete_customer, name='delete_customer'),
         ])),
 
         path('employee/', include([
