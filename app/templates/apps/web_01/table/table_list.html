@@ -8,10 +8,10 @@
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
         <h1 class="h3 mb-0 text-gray-800">Quản lý bàn</h1>
         <div>
-            <a href="{{url('web_01:index')}}" class="btn btn-secondary">
+            <a href="{{url('web_01:index')}}" class="btn btn-secondary btn-sm">
                 <i class="fas fa-arrow-left fa-sm"></i> Quay lại
             </a>
-            <button id="add-table-btn" class="btn btn-primary">
+            <button id="add-table-btn" class="btn btn-primary btn-sm">
                 <i class="fas fa-plus fa-sm"></i> Thêm bàn mới
             </button>
         </div>
@@ -57,11 +57,11 @@
                     <h5 class="font-weight-bold">Trạng thái:</h5>
                     <p>
                         {% if table.status == 'available' %}
-                        <span class="badge badge-success">Trống</span>
+                        <span class="badge badge-outline-success">Trống</span>
                         {% elif table.status == 'occupied' %}
-                        <span class="badge badge-danger">Đang sử dụng</span>
+                        <span class="badge badge-outline-danger">Đang sử dụng</span>
                         {% else %}
-                        <span class="badge badge-warning">Đã đặt</span>
+                        <span class="badge badge-outline-warning">Đã đặt</span>
                         {% endif %}
                     </p>
                     <p class="mb-0">

@@ -98,7 +98,7 @@ class InvoiceViewSet(AuthenticationPermissionMixin, ViewSet):
         secretKey = "K951B6PE1waDMi640xX08PD3vg6EkVlz"
         orderInfo = "PAY WITH MOMO"
         partnerCode = "MOMO"
-        redirectUrl = f"{settings.FRONT_END_URL}/momo/payment/success"
+        redirectUrl = f"{settings.FRONT_END_URL}/thank-you"
         ipnUrl = f"{settings.CURRENT_URL}/api/invoice/momo-ipn/"
         amount = f"{invoice.total_amount}"
         orderId = f'INVOICE_{str(random.randint(0, 10000))}_00{invoice.id}'
@@ -143,7 +143,7 @@ class InvoiceViewSet(AuthenticationPermissionMixin, ViewSet):
 
         # active_session.status = 'closed'
         # active_session.table.status = 'available'
-        invoice.payment_method = 'bank_transfer'
+        invoice.payment_method = 'momo'
         # invoice.total_amount = total
         # invoice.discount = discount
         invoice.order_set.all().update(status='completed')

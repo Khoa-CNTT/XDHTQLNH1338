@@ -1,24 +1,128 @@
-<ul class="timeline">
+<ul class="timeline notification-timeline-mini">
     {% for notif in notifications %}
-        <li class="timeline-panel border-start ps-3 pb-3 
-            {% if notif.type == 'order_status' %} border-primary
-            {% elif notif.type == 'promotion' %} border-success
-            {% elif notif.type == 'reminder' %} border-warning
-            {% else %} border-secondary
-            {% endif %}">
-            
-            <div class="d-flex align-items-center mb-2">
-                <div>
-                    <h6 class="mb-0 text-dark">
-                        🧾 {{ notif.message|safe }}
-                    </h6>
-                    <small class="text-muted">
-                        <i class="fa-solid fa-user"></i> {{ notif.user.first_name }} {{ notif.user.last_name }}
-                        &nbsp;|&nbsp;
-                        <i class="fa-regular fa-clock"></i> {{ notif.created_at.strftime('%Y/%m/%d %H:%M') }}
-                    </small>
+        <li class="timeline-item {% if not notif.is_read %}unread{% endif %}" data-id="{{ notif.id }}">
+            <div class="timeline-panel border-start
+                {% if notif.type == 'order_status' %} border-primary
+                {% elif notif.type == 'promotion' %} border-success
+                {% elif notif.type == 'reminder' %} border-warning
+                {% elif notif.type == 'payment' %} border-info
+                {% elif notif.type == 'required_payment_cash' %} border-danger
+                {% else %} border-secondary
+                {% endif %}">
+                
+                <div class="d-flex align-items-center">
+                    <div class="notification-icon mx-2">
+                        {% if notif.type == 'order_status' %}
+                            <div class="avatar avatar-sm bg-primary-light rounded-circle">
+                                <i class="fas fa-utensils text-primary"></i>
+                            </div>
+                        {% elif notif.type == 'promotion' %}
+                            <div class="avatar avatar-sm bg-success-light rounded-circle">
+                                <i class="fas fa-gift text-success"></i>
+                            </div>
+                        {% elif notif.type == 'reminder' %}
+                            <div class="avatar avatar-sm bg-warning-light rounded-circle">
+                                <i class="fas fa-bell text-warning"></i>
+                            </div>
+                        {% elif notif.type == 'payment' %}
+                            <div class="avatar avatar-sm bg-info-light rounded-circle">
+                                <i class="fas fa-money-bill-wave text-info"></i>
+                            </div>
+                        {% elif notif.type == 'required_payment_cash' %}
+                            <div class="avatar avatar-sm bg-danger-light rounded-circle">
+                                <i class="fas fa-hand-holding-usd text-danger"></i>
+                            </div>
+                        {% elif notif.type == 'session' %}
+                            <div class="avatar avatar-sm bg-secondary-light rounded-circle">
+                                <i class="fas fa-door-closed text-secondary"></i>
+                            </div>
+                        {% else %}
+                            <div class="avatar avatar-sm bg-secondary-light rounded-circle">
+                                <i class="fas fa-info-circle text-secondary"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="flex-grow-1">
+                        <h6 class="mb-1 fs-14">{{ notif.message|safe }}</h6>
+                        <small class="d-block text-muted">
+                            <i class="fa-regular fa-clock"></i> {{ notif.created_at.strftime('%d/%m/%d %H:%M') }}
+                        </small>
+                    </div>
+                    {% if not notif.is_read %}
+                        <div class="notification-status">
+                            <span class="badge bg-primary rounded-circle"></span>
+                        </div>
+                    {% endif %}
                 </div>
             </div>
         </li>
     {% endfor %}
 </ul>
+<style>
+    .notification-dropdown {
+        width: 350px;
+        max-width: 100vw;
+        padding: 0;
+    }
+    
+    .notification-scroll {
+        max-height: 380px;
+        overflow-y: auto;
+    }
+    
+    .notification-timeline-mini {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .timeline-item {
+        background-color: rgba(13, 110, 253, 0.05);
+        border-radius: 0.5rem;
+        padding:10px 5px;
+    }
+    
+    .timeline-panel {
+        border-left-width: 3px !important;
+    }
+    
+    .notification-icon .avatar {
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .notification-status .badge {
+        width: 8px;
+        height: 8px;
+        padding: 0;
+    }
+    
+    .all-notification {
+        display: block;
+        padding: 10px;
+        text-align: center;
+        background-color: #f8f9fa;
+        color: #495057;
+        text-decoration: none;
+        border-top: 1px solid #e9ecef;
+        transition: all 0.2s ease;
+    }
+    
+    .all-notification:hover {
+        background-color: #e9ecef;
+        color: #0d6efd;
+    }
+    
+    /* Animation for new notifications */
+    @keyframes newNotification {
+        0% { background-color: rgba(13, 110, 253, 0.1); }
+        100% { background-color: transparent; }
+    }
+    
+    .new-notification {
+        animation: newNotification 2s ease;
+    }
+</style>

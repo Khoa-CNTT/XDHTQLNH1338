@@ -23,9 +23,9 @@
                         {% endif %}
                         <p class="mt-2">
                             <span class="badge light
-                                {% if table.status == 'available' %} badge-success
-                                {% elif table.status == 'occupied' %} badge-danger
-                                {% elif table.status == 'reserved' %} badge-warning
+                                {% if table.status == 'available' %} badge-outline-success
+                                {% elif table.status == 'occupied' %} badge-outline-danger
+                                {% elif table.status == 'reserved' %} badge-outline-warning
                                 {% endif %}">
                                 {{ table.get_status_display() }}
                             </span>

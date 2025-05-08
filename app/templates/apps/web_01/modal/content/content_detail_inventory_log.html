@@ -12,7 +12,7 @@
                         <h5 class="mb-2">Tồn kho</h5>
                         <div class="d-flex align-items-center">
                             <h3 class="mb-0 me-2">{{ current_stock }}</h3>
-                            <span class="badge {% if current_stock <= 10 %}badge-danger{% elif current_stock <= 30 %}badge-warning{% else %}badge-success{% endif %}">
+                            <span class="badge {% if current_stock <= 10 %}badge-outline-danger{% elif current_stock <= 30 %}badge-outline-warning{% else %}badge-outline-success{% endif %}">
                                 {% if current_stock <= 10 %}Sắp hết{% elif current_stock <= 30 %}Trung bình{% else %}Đầy đủ{% endif %}
                             </span>
                         </div>
@@ -75,13 +75,13 @@
                                 <td>{{ log.stock_after or '-' }}</td>
                                 <td>
                                     {% if log.type == 'import' %}
-                                    <span class="badge badge-success">Nhập kho</span>
+                                    <span class="badge badge-outline-success">Nhập kho</span>
                                     {% elif log.type == 'export' %}
-                                    <span class="badge badge-danger">Xuất kho</span>
+                                    <span class="badge badge-outline-danger">Xuất kho</span>
                                     {% elif log.type == 'sell' %}
                                     <span class="badge badge-info">Bán hàng</span>
                                     {% else %}
-                                    <span class="badge badge-secondary">Điều chỉnh</span>
+                                    <span class="badge badge-outline-secondary">Điều chỉnh</span>
                                     {% endif %}
                                 </td>
                                 <td>{{ log.note }}</td>

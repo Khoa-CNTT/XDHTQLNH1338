@@ -31,15 +31,17 @@ class InventoryManagementView(LoginRequiredMixin, TemplateView):
             search_value = request.POST.get("search[value]", "").strip()
 
             # Lọc theo danh mục nếu có
-            category_id = request.POST.get("category_id")
+            category = request.POST.get("category", "[]")  # Nếu không có, mặc định là []
+            price = request.POST.get("price", "-1")
+            category_ids = json.loads(category)  # Chuyển từ JSON thành danh sách Python
             stock_status = request.POST.get("stock_status", '')
 
             # Queryset chính
             qs = Ingredient.objects.all()
 
             # Lọc theo danh mục
-            if category_id:
-                qs = qs.filter(id=category_id)
+            if category_ids:
+                qs = qs.filter(id__in=category_ids)
 
             # Tìm kiếm (nếu có)
             if search_value:

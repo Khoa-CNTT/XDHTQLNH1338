@@ -6,7 +6,7 @@
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
         <h1 class="h3 mb-0 text-gray-800">Quản lý Bếp</h1>
         <div>
-            <button id="refresh-btn" class="btn btn-info ml-2">
+            <button id="refresh-btn" class="btn btn-info ml-2 btn-sm">
                 <i class="fas fa-sync-alt fa-sm"></i> Làm mới
             </button>
         </div>
@@ -17,10 +17,10 @@
     <div class="alert alert-warning alert-dismissible fade show" role="alert">
         <strong>Cảnh báo!</strong> Một số nguyên liệu sắp hết:
         {% for ingredient in low_stock_ingredients %}
-            <span class="badge badge-pill badge-danger">{{ ingredient.name }}: {{ ingredient.quantity_in_stock }} {{ ingredient.unit }}</span>
+            <span class="badge badge-pill badge-outline-danger">{{ ingredient.name }}: {{ ingredient.quantity_in_stock }} {{ ingredient.unit }}</span>
         {% endfor %}
         {% if low_stock_ingredients|length %}
-            <span class="badge badge-pill badge-danger">+{{ low_stock_ingredients|length }} nguyên liệu khác</span>
+            <span class="badge badge-pill badge-outline-danger">+{{ low_stock_ingredients|length }} nguyên liệu khác</span>
         {% endif %}
     </div>
     {% endif %}
@@ -128,7 +128,7 @@
                                     <div class="order-header d-flex justify-content-between align-items-center">
                                         <div>
                                             <span class="badge badge-primary">Bàn {{ order_detail.order.invoice.session.table.table_number }}</span>
-                                            <span class="badge badge-secondary">{{ order_detail.created_at.strftime('%d/%m/%Y %H:%m') }}</span>
+                                            <span class="badge badge-outline-secondary">{{ order_detail.created_at.strftime('%d/%m/%Y %H:%m') }}</span>
                                         </div>
                                         <div class="order-actions">
                                             <button class="btn btn-sm btn-warning start-cooking" data-id="{{ order_detail.id }}">
@@ -193,8 +193,8 @@
                                     <div class="order-header d-flex justify-content-between align-items-center">
                                         <div>
                                             <span class="badge badge-primary">Bàn {{ order_detail.order.invoice.session.table.table_number }}</span>
-                                            <span class="badge badge-secondary">{{ order_detail.created_at.strftime('%d/%m/%Y %H:%m') }}</span>
-                                            <span class="badge badge-warning cooking-time" data-start="{{ order_detail.updated_at.timestamp() | int }}">00:00</span>
+                                            <span class="badge badge-outline-secondary">{{ order_detail.created_at.strftime('%d/%m/%Y %H:%m') }}</span>
+                                            <span class="badge badge-outline-warning cooking-time" data-start="{{ order_detail.updated_at.timestamp() | int }}">00:00</span>
                                         </div>
                                         <div class="order-actions">
                                             <button class="btn btn-sm btn-success complete-order" data-id="{{ order_detail.id }}">
@@ -394,7 +394,7 @@
         
                     // Change color if cooking time exceeds 15 minutes
                     if (elapsedSeconds > 15 * 60) {
-                        $(this).removeClass('badge-warning').addClass('badge-danger');
+                        $(this).removeClass('badge-outline-warning').addClass('badge-outline-danger');
                         progressBar.removeClass('bg-warning').addClass('bg-danger');
                     }
                 }
@@ -452,7 +452,7 @@
                         
                         // Thêm badge thời gian
                         orderItem.find('.order-header div:first').append(`
-                            <span class="badge badge-warning cooking-time" data-start="${now}">00:00</span>
+                            <span class="badge badge-outline-warning cooking-time" data-start="${now}">00:00</span>
                         `);
                         
                         // Cập nhật giao diện
@@ -541,8 +541,8 @@
             const orderItems = orderList.children('.order-item').get();
             
             orderItems.sort(function(a, b) {
-                const timeA = $(a).find('.badge-secondary').text();
-                const timeB = $(b).find('.badge-secondary').text();
+                const timeA = $(a).find('.badge-outline-secondary').text();
+                const timeB = $(b).find('.badge-outline-secondary').text();
                 return timeA.localeCompare(timeB);
             });
             

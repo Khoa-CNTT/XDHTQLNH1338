@@ -38,12 +38,15 @@ urlpatterns = [
             path('add-product-to-order/', views.add_product_to_order, name='add_product_to_order'),])),
         path('order/', include([
              path('list', views.OrderManagementView.as_view(), name='order_list'),
+             
              #  path('<int:id>/', views.detail_order, name='detail_order'),
              path('<int:id>/', views.detail_invoice, name='detail_invoice')
 
              ])),
         path('product/', include([
             path('list', views.ProductManagementView.as_view(), name='product_list'),
+            path('export', views.ExportProductsView.as_view(), name='export_products'),
+            path('update/', views.ProductEditView.as_view(), name='update_product'),
             path('create/', views.add_product, name='add_product'),
             path('import/', views.import_product, name='import_product'),
             path('<int:id>/', views.detail_product, name='detail_product'),
@@ -53,10 +56,15 @@ urlpatterns = [
 
         path('customer/', include([
             path('list', views.CustomerManagementView.as_view(), name='customer_list'),
+            path('update/', views.update_customer, name='update_customer'),
+            path('delete/', views.delete_customer, name='delete_customer'),
         ])),
 
         path('employee/', include([
             path('list', views.EmployeeManagementView.as_view(), name='employee_list'),
+            path('create/', views.employee_add, name='employee_add'),
+            path('update/', views.employee_update, name='employee_update'),
+            path('delete/', views.employee_delete, name='employee_delete'),
         ])),
 
         path('table-reservation/', include([
