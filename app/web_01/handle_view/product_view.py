@@ -4,6 +4,7 @@ from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
 import cloudinary.uploader
+from io import BytesIO
 import requests
 import pandas as pd
 from core.__Include_Library import *
@@ -16,16 +17,17 @@ from django.db.models import Sum
 
 
 class ProductManagementView(LoginRequiredMixin, TemplateView):
-    template_name = '/apps/web_01/product/product_list.html'
+    template_name = 'apps/web_01/product/product_list.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['category_list'] = Category.objects.filter(status='active').values_list('id', 'name')
         context['price_list'] = [
-            ('10000-50000', '10.000đ -> 50.000'),
-            ('50000-100000', '50.000đ -> 100.000'),
-            ('100000-150000', '100.000đ -> 150.000'),
-            ('150000-200000', '150.000đ -> 200.000'),
+            ('10000-50000', '10.000đ - 50.000đ'),
+            ('50000-100000', '50.000đ - 100.000đ'),
+            ('100000-150000', '100.000đ - 150.000đ'),
+            ('150000-200000', '150.000đ - 200.000đ'),
+            ('200000-1000000', 'Trên 200.000đ'),
         ]
         return context
 
@@ -87,6 +89,7 @@ class ProductManagementView(LoginRequiredMixin, TemplateView):
                     "id": product.id,
                     "name": product.name,
                     "image": product.image.url if product.image else None,
+                    "status": product.status,
                     "category": product.category.name if product.category else "Không có danh mục",
                     "price": f"{product.price:,} VND",
                 }
@@ -103,7 +106,87 @@ class ProductManagementView(LoginRequiredMixin, TemplateView):
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=400)
 
-
+class ExportProductsView(LoginRequiredMixin, View):
+    def get(self, request, *args, **kwargs):
+        # Lấy tham số từ URL
+        category_ids = request.GET.get('category', '')
+        price_range = request.GET.get('price', '-1')
+        status = request.GET.get('status', 'all')
+        
+        # Xây dựng query
+        query = Product.objects.select_related('category')
+        
+        # Áp dụng bộ lọc
+        if category_ids:
+            category_list = [int(cat_id) for cat_id in category_ids.split(',')]
+            query = query.filter(category_id__in=category_list)
+            
+        if price_range != '-1':
+            min_price, max_price = price_range.split('-')
+            query = query.filter(price__gte=int(min_price), price__lte=int(max_price))
+            
+        if status != 'all':
+            query = query.filter(status=status)
+            
+        # Lấy dữ liệu
+        products = query.order_by('id')
+        
+        # Tạo DataFrame
+        data = []
+        for product in products:
+            data.append({
+                'ID': product.id,
+                'Tên sản phẩm': product.name,
+                'Danh mục': product.category.name if product.category else 'Không có danh mục',
+                'Giá': f"{product.price:,} VND",
+                'Mô tả': product.description,
+                'Trạng thái': 'Đang bán' if product.status == 'active' else 'Ngừng bán',
+                'Ngày tạo': product.created_at.strftime('%d/%m/%Y %H:%M')
+            })
+            
+        df = pd.DataFrame(data)
+        
+        # Tạo Excel file
+        output = BytesIO()
+        writer = pd.ExcelWriter(output, engine='xlsxwriter')
+        df.to_excel(writer, sheet_name='Danh sách sản phẩm', index=False)
+        
+        # Định dạng Excel
+        workbook = writer.book
+        worksheet = writer.sheets['Danh sách sản phẩm']
+        
+        # Định dạng header
+        header_format = workbook.add_format({
+            'bold': True,
+            'text_wrap': True,
+            'valign': 'top',
+            'fg_color': '#D7E4BC',
+            'border': 1
+        })
+        
+        # Áp dụng định dạng cho header
+        for col_num, value in enumerate(df.columns.values):
+            worksheet.write(0, col_num, value, header_format)
+            
+        # Điều chỉnh độ rộng cột
+        for i, col in enumerate(df.columns):
+            column_width = max(df[col].astype(str).map(len).max(), len(col) + 2)
+            worksheet.set_column(i, i, column_width)
+            
+        writer.close()
+        
+        # Trả về file Excel
+        output.seek(0)
+        
+        response = HttpResponse(
+            output.read(),
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = 'attachment; filename=danh_sach_san_pham.xlsx'
+        
+        return response
+    
+    
 class IngredientProductForm(forms.ModelForm):
     class Meta:
         model = IngredientProduct
@@ -332,3 +415,57 @@ def best_seller(request):
     best_sellers = sorted(best_sellers, key=lambda x: x['total_sales'], reverse=True)[:10]
 
     return render(request, "apps/web_01/dashboard/best_seller.html", {"best_sellers": best_sellers})
+
+
+class ProductEditView(LoginRequiredMixin, TemplateView):
+    def get(self, request, *args, **kwargs):
+        try:
+            product_id = request.GET.get('product_id')
+            product = get_object_or_404(Product, id=product_id)
+            
+            # Lấy danh sách danh mục cho dropdown
+            categories = Category.objects.filter(status='active')
+            
+            # Render template chỉnh sửa sản phẩm
+           
+            return render(request, 'apps/web_01/modal/content/content_edit_product.html',{
+                'product': product,
+                'categories': categories,
+            }) 
+           
+        except Exception as e:
+            return JsonResponse({
+                'status': 'error',
+                'message': str(e)
+            }, status=400)
+    
+    def post(self, request, *args, **kwargs):
+        try:
+            product_id = request.POST.get('product_id')
+            product = get_object_or_404(Product, id=product_id)
+            
+            # Cập nhật thông tin sản phẩm
+            product.name = request.POST.get('name')
+            product.category_id = request.POST.get('category')
+            product.price = request.POST.get('price')
+            product.description = request.POST.get('description')
+            status = request.POST.get('status')
+            product.status =  'active' if status == 'active' else 'inactive'
+            product.is_featured = request.POST.get('is_featured') == 'on'
+            
+            # Xử lý hình ảnh nếu có
+            if 'image' in request.FILES:
+                product.image = request.FILES['image']
+            
+            # Lưu thay đổi
+            product.save()
+            
+            return JsonResponse({
+                'status': 'success',
+                'message': 'Cập nhật sản phẩm thành công'
+            })
+        except Exception as e:
+            return JsonResponse({
+                'status': 'error',
+                'message': str(e)
+            }, status=400)
