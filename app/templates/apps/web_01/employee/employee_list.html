@@ -2,6 +2,7 @@
 {% import "/apps/web_01/commom/macros.html" as macros %}
 {% block body %}
 <div class="col-lg-12">
+    
     <!-- Card table list-->
     <div id='data-table-list'>
         <div class="card">
@@ -11,6 +12,34 @@
                     <i class="fa-solid fa-user-plus me-1"></i> Thêm nhân viên
                 </button>
                 
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md">
+                            <label><strong>Tên Nhân viên</strong></label>
+                            <input type="text" class="form-control form-control-sm" id="filter-name" placeholder="Nhập tên">
+                        </div>
+                        <div class="col-md">
+                            <label><strong>Chức vụ</strong></label>
+                            <select class="form-control form-control-sm" id="filter-role">
+                                <option value="">-- Tất cả chức vụ --</option>
+                                <option value="admin">Quản trị viên</option>
+                                <option value="manager">Quản lý</option>
+                                <option value="staff">Nhân viên</option>
+                                <option value="chef">Đầu bếp</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer d-flex justify-content-end gap-2">
+                    <button type="button" class="btn btn-info btn-sm" id="btn-filter">
+                        <i class="fa fa-filter"></i> Lọc
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-sm" id="btn-reset">
+                        <i class="fa fa-times"></i> Xóa lọc
+                    </button>
+                </div>
             </div>
             <div class="card-body">
                 <div class="table-responsive">
@@ -164,6 +193,11 @@
                 url: "{{ url('web_01:employee_list') }}",
                 type: "POST",
                 headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+                data: function(d) {
+                    d.filter_name = $('#filter-name').val().trim();
+                    d.filter_role = $('#filter-role').val();
+                    return d;
+                },
                 beforeSend: function () {
                     disable_element($('#table_data'));
                 },
@@ -172,7 +206,9 @@
                 },
                 error: function(xhr, status, error) {
                     console.error("Lỗi tải dữ liệu nhân viên:", error);
-                }
+                },
+                
+
             },
             columns: [
                 { data: "index", title: "#" },
@@ -253,6 +289,37 @@
                     }
                 }
             ]
+        });
+
+        $('#btn-filter').on('click', function() {
+            // Simply reload the table - the data function will include the current filter values
+            table.ajax.reload();
+            
+            // Show filter indicators if filters are applied
+            const filterName = $('#filter-name').val().trim();
+            const filterRole = $('#filter-role').val();
+            
+            if (filterName || filterRole) {
+                let filterText = "Đang lọc: ";
+                if (filterName) filterText += `Tên: "${filterName}" `;
+                if (filterRole) {
+                    // Get the display text for the selected role
+                    const roleText = $('#filter-role option:selected').text();
+                    filterText += `Chức vụ: "${roleText}" `;
+                }
+                
+            }
+        });
+    
+        // Reset filter button click handler - FIXED
+        $('#btn-reset').on('click', function() {
+            // Clear filter inputs
+            $('#filter-name').val('');
+            $('#filter-role').val('');
+            
+            // Reload the table - the data function will pick up the cleared values
+            table.ajax.reload();
+            
         });
 
         // Edit employee button click

@@ -21,6 +21,9 @@ class EmployeeManagementView(LoginRequiredMixin, TemplateView):
             start = int(request.POST.get("start", 0))
             length = int(request.POST.get("length", 10))
             search_value = request.POST.get("search[value]", "").strip()
+            
+            filter_name = request.POST.get("filter_name", "").strip()
+            filter_role = request.POST.get("filter_role", "").strip()
 
             order_column_index = int(request.POST.get("order[0][column]", 0))
             order_dir = request.POST.get("order[0][dir]", "asc")
@@ -36,7 +39,6 @@ class EmployeeManagementView(LoginRequiredMixin, TemplateView):
                 6: "calculated_salary",
                 7: "created_at"
             }
-            print("column_mapping", column_mapping)
             order_column = column_mapping.get(order_column_index, "user_id")
             if order_dir == "desc":
                 order_column = "-" + order_column
@@ -49,6 +51,20 @@ class EmployeeManagementView(LoginRequiredMixin, TemplateView):
                 total_hours=Sum('workshifts__duration', filter=Q(workshifts__status="worked"), default=0),
                 calculated_salary=Sum(F('workshifts__duration') * F('salary') / 176, filter=Q(workshifts__status="worked"), default=0),
             )
+            
+            if filter_name:
+                employee_list = employee_list.filter(
+                    Q(user__username__icontains=filter_name) |
+                    Q(user__first_name__icontains=filter_name) |
+                    Q(user__last_name__icontains=filter_name)
+                )
+            
+            # ✅ Apply role filter if provided
+            if filter_role:
+                employee_list = employee_list.filter(role=filter_role)
+            else:
+                # If no role filter, apply the default exclusion
+                employee_list = employee_list.exclude(role='chef')
 
             # ✅ Lọc theo từ khóa tìm kiếm
             if search_value:
@@ -172,12 +188,10 @@ def employee_update(request):
         employee_id = request.POST.get('employee_id')
         username = request.POST.get('username')
         salary = request.POST.get('salary')
-        shift_type = request.POST.get('shift_type')
-        status = request.POST.get('status')
         role = request.POST.get('role')  # Get role from form
         
         # Validate input
-        if not all([employee_id, username, salary, shift_type, status]):
+        if not all([employee_id, username, salary]):
             return JsonResponse({
                 'success': False,
                 'message': 'Vui lòng điền đầy đủ thông tin'
@@ -219,20 +233,16 @@ def employee_update(request):
         existing_shift = WorkShift.objects.filter(
             employee=employee,
             date=current_date,
-            shift_type=shift_type
         ).first()
         
         if existing_shift:
             # Update existing shift
-            existing_shift.status = status
             existing_shift.save()
         else:
             # Create new shift
             WorkShift.objects.create(
                 employee=employee,
                 date=current_date,  # Add the date field
-                shift_type=shift_type,
-                status=status,
                 duration=4.0  # Default duration is 4 hours
             )
         
