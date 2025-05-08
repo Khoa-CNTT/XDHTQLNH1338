@@ -1,14 +1,20 @@
+import re
+import json
 import google.generativeai as genai
 from django.conf import settings
 from django.db.models import Sum, Count, F
 from django.utils import timezone
 from datetime import timedelta
-import json
-import re
-from web_01.models import Order, Product, Ingredient, Invoice, OrderDetail, InventoryLog
-from django.utils.timezone import is_aware, make_aware
+
+from web_01.models import (
+    ChatHistory, Invoice, Order, OrderDetail, 
+    Ingredient, InventoryLog, Table, Session, Product
+)
+
 def safe_make_aware(dt):
-    if settings.USE_TZ and not is_aware(dt):
+    """Hàm hỗ trợ để đảm bảo datetime có timezone"""
+    if settings.USE_TZ:
+        from django.utils.timezone import make_aware
         return make_aware(dt)
     return dt
 
@@ -20,45 +26,67 @@ class GeminiChatbot:
         
         # Thiết lập system prompt
         self.system_prompt = """
-        Bạn là "Bot RMS 65", trợ lý AI thông minh của hệ thống quản lý nhà hàng, có khả năng truy vấn và phân tích dữ liệu từ hệ thống.
+Bạn là "Bot RMS", trợ lý AI thông minh của hệ thống quản lý nhà hàng, có khả năng truy vấn và phân tích dữ liệu từ hệ thống.
 
-        Bạn có thể trả lời các câu hỏi về:
-        1. Thống kê doanh thu (theo ngày, tuần, tháng)
-        2. Thống kê tồn kho và cảnh báo nguyên liệu sắp hết
-        3. Thống kê món ăn bán chạy
-        4. Thông tin về đơn hàng và bàn
-        5. Quản lý nhân viên và ca làm việc
-        6. Quản lý sản phẩm và danh mục
+Bạn có thể trả lời các câu hỏi về:
+1. Thống kê doanh thu (theo ngày, tuần, tháng)
+2. Thống kê tồn kho và cảnh báo nguyên liệu sắp hết
+3. Thống kê món ăn bán chạy
+4. Thông tin về đơn hàng và bàn
+5. Quản lý nhân viên và ca làm việc
+6. Quản lý sản phẩm và danh mục
 
-        QUAN TRỌNG: Khi trả lời, hãy tuân theo các quy tắc định dạng sau:
+QUAN TRỌNG: Khi trả lời, hãy tuân theo các quy tắc định dạng sau:
 
-        1. Luôn bắt đầu câu trả lời với tiêu đề chính (# Tiêu đề) liên quan đến chủ đề
-        2. Sử dụng tiêu đề phụ (## Tiêu đề phụ) để phân chia các phần thông tin
-        3. Tổ chức dữ liệu số thành bảng có tiêu đề cột rõ ràng
-        4. Sử dụng định dạng số có dấu phân cách hàng nghìn (VD: 1,000,000đ)
-        5. Sử dụng danh sách có dấu gạch đầu dòng (-) cho các mục không có thứ tự
-        6. Sử dụng **in đậm** cho các con số quan trọng và thông tin cần nhấn mạnh
-        7. Sử dụng *in nghiêng* cho các ghi chú phụ
-        8. Khi hiển thị bảng, đảm bảo các cột được căn chỉnh đều đặn
+1. Luôn bắt đầu câu trả lời với tiêu đề chính (# Tiêu đề) liên quan đến chủ đề
+2. Sử dụng tiêu đề phụ (## Tiêu đề phụ) để phân chia các phần thông tin
+3. Tổ chức dữ liệu số thành bảng có tiêu đề cột rõ ràng
+4. Sử dụng định dạng số có dấu phân cách hàng nghìn (VD: 1,000,000đ)
+5. Sử dụng danh sách có dấu gạch đầu dòng (-) cho các mục không có thứ tự
+6. Sử dụng **in đậm** cho các con số quan trọng và thông tin cần nhấn mạnh
+7. Sử dụng *in nghiêng* cho các ghi chú phụ
+8. Khi hiển thị bảng, đảm bảo các cột được căn chỉnh đều đặn
 
-        Cấu trúc câu trả lời chuẩn:
-        1. Tiêu đề chính
-        2. Tóm tắt ngắn gọn (1-2 câu)
-        3. Dữ liệu chi tiết (bảng hoặc danh sách)
-        4. Nhận xét hoặc đề xuất (nếu có)
-        5. Luôn kết thúc bằng chữ ký "Bot RMS 65"
+Cấu trúc câu trả lời chuẩn:
+1. Tiêu đề chính
+2. Tóm tắt ngắn gọn (1-2 câu)
+3. Dữ liệu chi tiết (bảng hoặc danh sách)
+4. Nhận xét hoặc đề xuất (nếu có)
+5. Luôn kết thúc bằng chữ ký "Bot RMS"
 
-        Khi hiển thị dữ liệu số, hãy định dạng rõ ràng và dễ đọc.
-        Khi hiển thị dữ liệu thống kê, hãy tổ chức thành bảng hoặc danh sách có cấu trúc.
+Khi hiển thị dữ liệu số, hãy định dạng rõ ràng và dễ đọc.
+Khi hiển thị dữ liệu thống kê, hãy tổ chức thành bảng hoặc danh sách có cấu trúc.
 
-        Nếu không biết câu trả lời, hãy thành thật nói: "Xin lỗi, tôi không có thông tin về vấn đề này. Bạn có thể liên hệ với quản lý hoặc đặt câu hỏi khác."
+Nếu không biết câu trả lời, hãy thành thật nói: "Xin lỗi, tôi không có thông tin về vấn đề này. Bạn có thể liên hệ với quản lý hoặc đặt câu hỏi khác."
 
-        Luôn ký tên cuối mỗi câu trả lời là "Bot RMS 65".
-        """
+Luôn ký tên cuối mỗi câu trả lời là "Bot RMS".
+"""
         
         # Khởi tạo chat history
         self.chat = self.model.start_chat(history=[])
         
+        # Tải lịch sử chat gần đây để học
+        self.load_recent_chat_history()
+    
+    def load_recent_chat_history(self):
+        """Tải lịch sử chat gần đây để học"""
+        
+        # Lấy 20 cuộc hội thoại gần nhất để học
+        recent_chats = ChatHistory.objects.all().order_by('-created_at')[:20]
+        
+        # Thêm vào lịch sử chat của Gemini
+        for chat in recent_chats:
+            self.chat.history.append({
+                'role': 'user',
+                'parts': [chat.user_message]
+            })
+            self.chat.history.append({
+                'role': 'model',
+                'parts': [chat.bot_reply]
+            })
+        
+        print(f"Đã tải {len(recent_chats)} cuộc hội thoại gần đây để học.")
+    
     def get_inventory_stats(self):
         """Lấy thống kê tồn kho"""
         ingredients = Ingredient.objects.all()
@@ -131,6 +159,9 @@ class GeminiChatbot:
         elif period == 'month':
             start_date = today.replace(day=1)
             period_name = "tháng này"
+        elif period == 'year':
+            start_date = today.replace(month=1, day=1)
+            period_name = "năm nay"
         else:
             start_date = today
             period_name = "hôm nay"
@@ -202,8 +233,6 @@ class GeminiChatbot:
     
     def get_table_stats(self):
         """Lấy thống kê về bàn"""
-        from web_01.models import Table, Session
-        
         # Tổng số bàn
         tables = Table.objects.all()
         total_tables = tables.count()
@@ -239,31 +268,72 @@ class GeminiChatbot:
             'avg_session_duration': avg_session_duration
         }
     
+    def get_product_stats(self):
+        """Lấy thống kê về sản phẩm"""
+        # Tổng số sản phẩm
+        products = Product.objects.filter(is_deleted=False)
+        total_products = products.count()
+        
+        # Sản phẩm theo danh mục
+        category_stats = products.values('category__name').annotate(
+            count=Count('id')
+        ).order_by('-count')
+        
+        # Sản phẩm bán chạy nhất (30 ngày qua)
+        today = timezone.now().date()
+        start_date = today - timedelta(days=30)
+        
+        best_selling = OrderDetail.objects.filter(
+            created_at__date__gte=start_date,
+            is_deleted=False
+        ).values('product__name', 'product__price').annotate(
+            total_sold=Sum('quantity'),
+            revenue=Sum(F('price') * F('quantity'))
+        ).order_by('-total_sold')[:10]
+        
+        # Sản phẩm có tồn kho
+        in_stock_products = []
+        for product in products:
+            if hasattr(product, 'in_stock'):
+                in_stock_products.append({
+                    'name': product.name,
+                    'in_stock': product.in_stock,
+                    'price': product.price
+                })
+        
+        return {
+            'total_products': total_products,
+            'category_stats': list(category_stats),
+            'best_selling': list(best_selling),
+            'in_stock_products': in_stock_products
+        }
+    
     def format_data_for_display(self, data_type, data):
         """Định dạng dữ liệu để hiển thị đẹp hơn"""
         if data_type == 'inventory':
             # Định dạng dữ liệu tồn kho thành bảng markdown
-            low_stock_table = "| Nguyên liệu | Số lượng tồn |\n| --- | --- |\n"
-            for item in data['low_stock']:
-                low_stock_table += f"| {item['name']} | {item['quantity']} {item['unit']} |\n"
-            
-            recent_activities_list = ""
-            for item in data['recent_activities'][:5]:
-                recent_activities_list += f"- {item['date']}: {item['action']} {item['quantity']} {item['ingredient']}\n"
-            
+            low_stock_table = "| STT | Nguyên liệu | Số lượng tồn | Đơn vị |\n| :---: | :--- | :---: | :---: |\n"
+            for idx, item in enumerate(data['low_stock'], 1):
+                low_stock_table += f"| {idx} | {item['name']} | **{item['quantity']}** | {item['unit']} |\n"
+        
+            recent_activities_list = "| STT | Thời gian | Hoạt động | Nguyên liệu | Số lượng |\n| :---: | :--- | :---: | :--- | :---: |\n"
+            for idx, item in enumerate(data['recent_activities'][:5], 1):
+                recent_activities_list += f"| {idx} | {item['date']} | {item['action']} | {item['ingredient']} | **{item['quantity']}** |\n"
+        
             return {
                 'summary': f"**Tổng số nguyên liệu:** {data['total_ingredients']}\n**Nguyên liệu sắp hết:** {len(data['low_stock'])} loại",
                 'low_stock_table': low_stock_table,
                 'recent_activities': recent_activities_list
             }
-            
+        
         elif data_type == 'sales':
             # Định dạng dữ liệu doanh thu
-            best_selling_table = "| Sản phẩm | Số lượng | Doanh thu |\n| --- | --- | --- |\n"
-            for item in data['best_selling']:
-                best_selling_table += f"| {item['product__name']} | {item['total_sold']} | {item['revenue']:,}đ |\n"
-            
-            order_status_list = ""
+            best_selling_table = "| STT | Sản phẩm | Số lượng | Doanh thu |\n| :---: | :--- | :---: | ---: |\n"
+            for idx, item in enumerate(data['best_selling'], 1):
+                best_selling_table += f"| {idx} | {item['product__name']} | **{item['total_sold']}** | **{item['revenue']:,}đ** |\n"
+        
+            order_status_list = "| STT | Trạng thái | Số lượng |\n| :---: | :--- | :---: |\n"
+            status_idx = 1
             for status in data['order_status']:
                 status_name = status['status']
                 if status_name == 'pending': status_name = 'Chờ xử lý'
@@ -271,14 +341,17 @@ class GeminiChatbot:
                 elif status_name == 'completed': status_name = 'Hoàn thành'
                 elif status_name == 'cancelled': status_name = 'Đã hủy'
                 
-                order_status_list += f"- {status_name}: {status['count']} đơn\n"
+                order_status_list += f"| {status_idx} | {status_name} | **{status['count']}** |\n"
+                status_idx += 1
             
             hourly_data = ""
             if data['hourly_stats']:
-                hourly_data = "| Giờ | Doanh thu | Số đơn |\n| --- | --- | --- |\n"
+                hourly_data = "| STT | Giờ | Doanh thu | Số đơn |\n| :---: | :---: | ---: | :---: |\n"
+                hour_idx = 1
                 for hour in data['hourly_stats']:
                     if hour['orders'] > 0:
-                        hourly_data += f"| {hour['hour']} | {hour['revenue']:,}đ | {hour['orders']} |\n"
+                        hourly_data += f"| {hour_idx} | {hour['hour']} | **{hour['revenue']:,}đ** | {hour['orders']} |\n"
+                        hour_idx += 1
             
             return {
                 'summary': f"**Doanh thu {data['period']}:** {data['revenue']:,}đ\n**Số đơn hàng:** {data['order_count']}\n**Giá trị trung bình/đơn:** {data['avg_order_value']:,.0f}đ",
@@ -286,23 +359,44 @@ class GeminiChatbot:
                 'order_status': order_status_list,
                 'hourly_data': hourly_data
             }
-            
+        
         elif data_type == 'table':
             # Định dạng dữ liệu bàn
-            table_status_list = ""
+            table_status_table = "| STT | Trạng thái | Số lượng |\n| :---: | :--- | :---: |\n"
+            status_idx = 1
             for status in data['table_status']:
                 status_name = status['status']
                 if status_name == 'available': status_name = 'Trống'
                 elif status_name == 'occupied': status_name = 'Đang sử dụng'
                 elif status_name == 'reserved': status_name = 'Đã đặt'
                 
-                table_status_list += f"- {status_name}: {status['count']} bàn\n"
+                table_status_table += f"| {status_idx} | {status_name} | **{status['count']}** |\n"
+                status_idx += 1
             
             return {
                 'summary': f"**Tổng số bàn:** {data['total_tables']}\n**Phiên đang hoạt động:** {data['active_sessions']}\n**Thời gian trung bình/phiên:** {data['avg_session_duration']:.1f} phút",
-                'table_status': table_status_list
+                'table_status': table_status_table
             }
         
+        elif data_type == 'product':
+            # Định dạng dữ liệu sản phẩm
+            category_list = "| STT | Danh mục | Số sản phẩm |\n| :---: | :--- | :---: |\n"
+            cat_idx = 1
+            for category in data['category_stats']:
+                cat_name = category['category__name'] or "Không có danh mục"
+                category_list += f"| {cat_idx} | {cat_name} | **{category['count']}** |\n"
+                cat_idx += 1
+            
+            best_selling_table = "| STT | Sản phẩm | Giá | Số lượng bán | Doanh thu |\n| :---: | :--- | ---: | :---: | ---: |\n"
+            for idx, item in enumerate(data['best_selling'], 1):
+                best_selling_table += f"| {idx} | {item['product__name']} | {item['product__price']:,}đ | **{item['total_sold']}** | **{item['revenue']:,}đ** |\n"
+            
+            return {
+                'summary': f"**Tổng số sản phẩm:** {data['total_products']}",
+                'category_list': category_list,
+                'best_selling_table': best_selling_table
+            }
+            
         return {}
     
     def process_query(self, user_message):
@@ -314,20 +408,22 @@ class GeminiChatbot:
             # Truy vấn dữ liệu tồn kho
             inventory_data = self.get_inventory_stats()
             formatted_data = self.format_data_for_display('inventory', inventory_data)
-            
+        
             # Tạo context cho Gemini
             context = f"""
-            # Thông tin tồn kho
-            
-            {formatted_data['summary']}
-            
-            ## Nguyên liệu sắp hết
-            {formatted_data['low_stock_table']}
-            
-            ## Hoạt động nhập xuất gần đây
-            {formatted_data['recent_activities']}
-            """
-            
+# Thông tin tồn kho nguyên liệu
+
+{formatted_data['summary']}
+
+## Nguyên liệu sắp hết
+{formatted_data['low_stock_table']}
+
+## Hoạt động nhập xuất gần đây
+{formatted_data['recent_activities']}
+
+*Dữ liệu được cập nhật vào {timezone.now().strftime('%d/%m/%Y %H:%M')}*
+"""
+        
         elif "doanh thu" in user_message_lower or "bán hàng" in user_message_lower:
             # Xác định khoảng thời gian
             period = 'today'
@@ -344,22 +440,24 @@ class GeminiChatbot:
             
             # Tạo context cho Gemini
             context = f"""
-            # Thống kê doanh thu {sales_data['period']}
-            
-            {formatted_data['summary']}
-            
-            ## Món bán chạy
-            {formatted_data['best_selling_table']}
-            
-            ## Trạng thái đơn hàng
-            {formatted_data['order_status']}
-            """
+# Thống kê doanh thu {sales_data['period']}
+
+{formatted_data['summary']}
+
+## Món bán chạy nhất
+{formatted_data['best_selling_table']}
+
+## Trạng thái đơn hàng
+{formatted_data['order_status']}
+"""
             
             if formatted_data['hourly_data']:
                 context += f"""
-                ## Doanh thu theo giờ
-                {formatted_data['hourly_data']}
-                """
+## Doanh thu theo giờ
+{formatted_data['hourly_data']}
+"""
+                
+            context += f"\n*Dữ liệu được cập nhật vào {timezone.now().strftime('%d/%m/%Y %H:%M')}*"
             
         elif "bàn" in user_message_lower or "phiên" in user_message_lower:
             # Truy vấn dữ liệu bàn
@@ -368,27 +466,36 @@ class GeminiChatbot:
             
             # Tạo context cho Gemini
             context = f"""
-            # Thống kê bàn
-            
-            {formatted_data['summary']}
-            
-            ## Trạng thái bàn
-            {formatted_data['table_status']}
-            """
+# Thống kê trạng thái bàn
+
+{formatted_data['summary']}
+
+## Trạng thái bàn
+{formatted_data['table_status']}
+
+*Dữ liệu được cập nhật vào {timezone.now().strftime('%d/%m/%Y %H:%M')}*
+"""
             
         else:
             # Trường hợp không xác định được ý định cụ thể
             context = """
-            # Trợ giúp
-            
-            Tôi có thể giúp bạn với các thông tin sau:
-            
-            - **Tồn kho**: Kiểm tra tồn kho nguyên liệu, cảnh báo hết hàng
-            - **Doanh thu**: Xem doanh thu theo ngày, tuần, tháng
-            - **Bàn**: Kiểm tra trạng thái bàn, phiên hoạt động
-            
-            Hãy hỏi tôi về một trong các chủ đề trên!
-            """
+# Xin chào, tôi là Bot RMS!
+
+Tôi có thể giúp bạn với các thông tin sau:
+
+- **Tồn kho**: Kiểm tra tồn kho nguyên liệu, cảnh báo hết hàng
+- **Doanh thu**: Xem doanh thu theo ngày, tuần, tháng
+- **Bàn**: Kiểm tra trạng thái bàn, phiên hoạt động
+- **Sản phẩm**: Thông tin về sản phẩm và danh mục
+
+Bạn có thể hỏi tôi các câu như:
+1. "Doanh thu hôm nay là bao nhiêu?"
+2. "Kiểm tra tồn kho nguyên liệu"
+3. "Món nào bán chạy nhất tháng này?"
+4. "Trạng thái các bàn hiện tại"
+
+Hãy hỏi tôi về một trong các chủ đề trên!
+"""
         
         # Gửi câu hỏi và context đến Gemini
         response = self.chat.send_message(
@@ -401,6 +508,10 @@ class GeminiChatbot:
         # Thêm định dạng cho các bảng nếu cần
         reply = self.enhance_markdown_tables(reply)
         
+        # Đảm bảo có chữ ký Bot RMS
+        if "Bot RMS" not in reply:
+            reply += "\n\n*Bot RMS*"
+        
         return reply
     
     def enhance_markdown_tables(self, text):
@@ -410,17 +521,55 @@ class GeminiChatbot:
         
         def format_table(match):
             table = match.group(1)
-            # Thêm class cho bảng để styling
+            # Đảm bảo bảng có khoảng trống trước và sau
             return f"\n{table}\n"
         
         enhanced_text = re.sub(table_pattern, format_table, text)
+        
+        # Đảm bảo các tiêu đề được định dạng đúng
+        heading_pattern = r"^(#+)\s+(.+)$"
+        
+        def format_heading(match):
+            level = len(match.group(1))
+            text = match.group(2)
+        
+            # Thêm emoji phù hợp với tiêu đề
+            emoji = ""
+            if "doanh thu" in text.lower():
+                emoji = ""
+            elif "tồn kho" in text.lower() or "nguyên liệu" in text.lower():
+                emoji = ""
+            elif "bàn" in text.lower():
+                emoji = ""
+            elif "món" in text.lower() or "sản phẩm" in text.lower():
+                emoji = ""
+            elif "trạng thái" in text.lower():
+                emoji = ""
+            elif "hoạt động" in text.lower():
+                emoji = ""
+            elif "xin chào" in text.lower():
+                emoji = ""
+        
+            return f"{'#' * level} {emoji}{text}"
+        
+        enhanced_text = re.sub(heading_pattern, format_heading, enhanced_text, flags=re.MULTILINE)
+        
         return enhanced_text
 
     def save_chat_history(self, user_message, bot_reply):
         """Lưu lịch sử chat vào database"""
-        from web_01.models import ChatHistory
         
         ChatHistory.objects.create(
             user_message=user_message,
             bot_reply=bot_reply
         )
+        
+        # Thêm vào lịch sử chat của Gemini để học
+        self.chat.history.append({
+            'role': 'user',
+            'parts': [user_message]
+        })
+        self.chat.history.append({
+            'role': 'model',
+            'parts': [bot_reply]
+        })

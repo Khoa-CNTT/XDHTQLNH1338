@@ -311,8 +311,32 @@ def chatbot_api(request):
         return JsonResponse({"reply": reply})
 
 
-@csrf_exempt
+@login_required
 def get_chat_history(request):
-    history = ChatHistory.objects.all().order_by('-created_at')[:10]  # Lấy 10 tin nhắn gần nhất
-    chat_history = [{"user_message": h.user_message, "bot_reply": h.bot_reply, "created_at": h.created_at} for h in history]
-    return JsonResponse({"chat_history": chat_history})
+    """API endpoint để lấy lịch sử chat"""
+    try:
+        # Lấy 10 cuộc trò chuyện gần nhất
+        chat_history = ChatHistory.objects.all().order_by('-created_at')[:10]
+        
+        # Đảo ngược để hiển thị theo thứ tự thời gian
+        chat_history = reversed(list(chat_history))
+        
+        # Chuyển đổi thành JSON
+        history_data = []
+        for chat in chat_history:
+            history_data.append({
+                'user_message': chat.user_message,
+                'bot_reply': chat.bot_reply,
+                'created_at': chat.created_at.strftime('%d/%m/%Y %H:%M:%S')
+            })
+        
+        return JsonResponse({
+            'status': 'success',
+            'chat_history': history_data
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': str(e)
+        }, status=500)
