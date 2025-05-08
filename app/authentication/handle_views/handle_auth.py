@@ -9,7 +9,7 @@ from django.contrib.auth.hashers import make_password
 import jwt
 from drf_yasg.utils import swagger_auto_schema
 from web_01.models import Customer, Session, Table,Invoice
-
+from django.db import transaction
 
 class LoginView(APIView):
     parser_classes = (JSONParser, MultiPartParser)
@@ -36,21 +36,18 @@ class LoginView(APIView):
             - 404: If table not found.
             - 401: If credentials are invalid.
         """
-        # 🛡 Validate input
         serializer = UserLoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         username = serializer.validated_data["username"]
         first_name = serializer.validated_data["first_name"]
         last_name = serializer.validated_data["last_name"]
-        password = '123123'  # Mật khẩu mặc định nếu tạo tài khoản mới
+        password = '123123'  # Default password
 
-        # 🗂 Lấy table_number từ URL query parameter
         table_number = request.data.get('table_number')
         if not table_number:
             return Response({"error": "Thiếu tên bàn (table_number)!"}, status=status.HTTP_400_BAD_REQUEST)
 
-        # 🗂 Kiểm tra bàn theo table_number
         try:
             table = Table.objects.get(table_number=table_number)
         except Table.DoesNotExist:
@@ -59,33 +56,33 @@ class LoginView(APIView):
         if table.status != 'available':
             return Response({"error": "Bàn không có sẵn!"}, status=status.HTTP_400_BAD_REQUEST)
 
-        table.status = 'occupied'
-        table.save()
-        # 🗂 Kiểm tra hoặc tạo tài khoản User
-        user, user_created = User.objects.get_or_create(
-            username=username,
-            defaults={
-                'password': make_password(password),
-                'first_name': first_name,
-                'last_name': last_name
-            }
-        )
+        with transaction.atomic():
+            # Lock the table row to prevent race conditions
+            table = Table.objects.select_for_update().get(pk=table.pk)
+            if table.status != 'available':
+                return Response({"error": "Bàn không có sẵn!"}, status=status.HTTP_400_BAD_REQUEST)
 
-        # 🗂 Kiểm tra hoặc tạo Customer
-        customer, customer_created = Customer.objects.get_or_create(
-            user=user,
-            defaults={'loyalty_points': 0}
-        )
+            table.status = 'occupied'
+            table.save()
 
-        # 🗂 Kiểm tra Session đã tồn tại chưa
-        active_session = Session.objects.filter(customer=customer, table=table, status='active').first()
-        if active_session:
-            session = active_session
-        else:
-            # 🗂 Tạo mới Session nếu chưa có
-            session = Session.objects.create(customer=customer, table=table)
+            user, user_created = User.objects.get_or_create(
+                username=username,
+                defaults={
+                    'password': make_password(password),
+                    'first_name': first_name,
+                    'last_name': last_name
+                }
+            )
 
-        # 🛡 Tạo JWT token
+            customer, customer_created = Customer.objects.get_or_create(
+                user=user,
+                defaults={'loyalty_points': 0}
+            )
+
+            session = Session.objects.filter(customer=customer, table=table, status='active').first()
+            if not session:
+                session = Session.objects.create(customer=customer, table=table)
+
         expiration_time = datetime.utcnow() + timedelta(days=30)
         payload = {
             "id": user.id,
@@ -99,7 +96,6 @@ class LoginView(APIView):
         }
         token = jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
 
-        # 🛡 Set cookie và trả về response
         response = Response()
         response.set_cookie(
             key="rms_access_token",
@@ -118,7 +114,6 @@ class LoginView(APIView):
             }
         }
         response.status_code = status.HTTP_200_OK
-
         return response
 
 
