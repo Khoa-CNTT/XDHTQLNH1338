@@ -16,6 +16,7 @@
                             <tr>
                                 <th>#</th>
                                 <th>Khách hàng</th>
+                                <th>Số Điện Thoại</th>
                                 <th>Điểm tích lũy</th>
                                 <th>Ngày tạo</th>
                                 <th>Thao tác</th>
@@ -112,9 +113,15 @@
                 { 
                     data: null, title: "Khách hàng",
                     render: function(data, type, row) {
-                        const username = row.username || "N/A";
                         const full_name = `${row.first_name || ''}`.trim();
-                        return `${username} <br><span class='text-muted'>${full_name}</span>`;
+                        return `<br><span class='text-muted'>${full_name}</span>`;
+                    }
+                },
+                { 
+                    data: null, title: "Khách hàng",
+                    render: function(data, type, row) {
+                        const username = row.username || "N/A";
+                        return `<br><span class='text-muted'>${username}</span>`;
                     }
                 },
                 { 
