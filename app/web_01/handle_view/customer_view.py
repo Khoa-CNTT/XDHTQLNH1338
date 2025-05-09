@@ -45,8 +45,8 @@ class CustomerManagementView(LoginRequiredMixin, TemplateView):
             print('-----1------', customer_list)
             if search_value:
                 customer_list = customer_list.filter(
-                    Q(user__username__icontains=search_value) 
-                    # Q(user__first_name__icontains=search_value) |
+                    Q(user__username__icontains=search_value) |
+                    Q(user__first_name__icontains=search_value) 
                     # Q(user__last_name__icontains=search_value)
                 )
 
