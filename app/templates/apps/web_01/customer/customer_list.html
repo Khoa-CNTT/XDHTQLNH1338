@@ -114,14 +114,14 @@
                     data: null, title: "Khách hàng",
                     render: function(data, type, row) {
                         const full_name = `${row.first_name || ''}`.trim();
-                        return `<br><span class='text-muted'>${full_name}</span>`;
+                        return `<span class=''>${full_name}</span>`;
                     }
                 },
                 { 
                     data: null, title: "Khách hàng",
                     render: function(data, type, row) {
                         const username = row.username || "N/A";
-                        return `<br><span class='text-muted'>${username}</span>`;
+                        return `<span class=''>${username}</span>`;
                     }
                 },
                 { 
