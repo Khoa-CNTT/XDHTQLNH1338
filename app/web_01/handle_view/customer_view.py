@@ -26,8 +26,8 @@ class CustomerManagementView(LoginRequiredMixin, TemplateView):
             # ✅ Mapping column cho DataTables
             column_mapping = {
                 0: "id",
-                1: "user__username",
-                # 2: "user__first_name",
+                1: "user__first_name",
+                2: "user__username",
                 3: "loyalty_points",
                 4: "created_at"
             }
@@ -58,8 +58,8 @@ class CustomerManagementView(LoginRequiredMixin, TemplateView):
                 {
                     "index": index + 1,
                     "id": customer.id,
-                    "username": customer.user.username if customer.user else "N/A",
-                    # "first_name": customer.user.first_name if customer.user else "",
+                    "first_name": customer.user.first_name if customer.user else "N/A",
+                    "username": customer.user.username if customer.user else "",
                     "loyalty_points": customer.loyalty_points,
                     "created_at": customer.formatted_created_at,
                 }
@@ -107,7 +107,7 @@ def update_customer(request):
                 "message": "Cập nhật khách hàng thành công",
                 "customer": {
                     "id": customer.id,
-                    "username": customer.user.username if customer.user else "N/A",
+                    "first_name": customer.user.first_name if customer.user else "N/A",
                     "loyalty_points": customer.loyalty_points,
                     "created_at": customer.formatted_created_at
                 }
