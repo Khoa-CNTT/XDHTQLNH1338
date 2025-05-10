@@ -200,23 +200,44 @@ class WorkShift(models.Model):
         ('afternoon', 'Chiều'),
         ('evening', 'Tối')
     ]
-    STATUS_CHOICES = [
-        ('worked', 'Đã làm'),
-        ('off', 'Nghỉ')
-    ]
 
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name="workshifts")
     date = models.DateField()
     shift_type = models.CharField(max_length=10, choices=SHIFT_TYPE_CHOICES)
-    duration = models.DecimalField(max_digits=4, decimal_places=2, default=4.0)  # Mặc định mỗi ca 4 giờ
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='worked')
+    time_start = models.DateTimeField(blank=True, null=True)
+    time_end = models.DateTimeField(blank=True, null=True)
+    notes = models.TextField(blank=True, null=True)
 
     class Meta:
         db_table = 'work_shift'
-        unique_together = ['employee', 'date', 'shift_type']  # Một ca/ngày/nhân viên
+        unique_together = ('employee', 'date', 'shift_type')
 
     def __str__(self):
-        return f"{self.employee.user.username} - {self.date} - {self.shift_type} ({self.duration} giờ)"
+        return f"{self.employee.user.username} - {self.date} - {self.shift_type}"
+
+
+class ShiftRegistration(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Chờ duyệt'),
+        ('approved', 'Đã duyệt'),
+        ('rejected', 'Từ chối')
+    ]
+
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name="shift_registrations")
+    date = models.DateField()
+    shift_type = models.CharField(max_length=10, choices=WorkShift.SHIFT_TYPE_CHOICES)
+    is_off = models.BooleanField(default=False)
+    reason = models.TextField(blank=True, null=True)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'shift_registration'
+        unique_together = ('employee', 'date', 'shift_type')
+
+    def __str__(self):
+        return f"{self.employee.user.username} - {self.date} - {self.shift_type} - {'Nghỉ' if self.is_off else 'Làm việc'}"
+
 
 
 # 🔄 Model Table
