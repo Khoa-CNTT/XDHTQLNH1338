@@ -66,6 +66,14 @@ urlpatterns = [
             path('update/', views.employee_update, name='employee_update'),
             path('delete/', views.employee_delete, name='employee_delete'),
         ])),
+        
+        path('work-shift-management/', views.WorkShiftManagementView.as_view(), name='work_shift_management'),
+        path('work-shift-list/', views.work_shift_list, name='work_shift_list'),
+        path('shift-registration-list/', views.shift_registration_list, name='shift_registration_list'),
+        path('register-shift/', views.register_shift, name='register_shift'),
+        path('approve-registration/', views.approve_registration, name='approve_registration'),
+        path('check-in/', views.check_in, name='check_in'),
+        path('check-out/', views.check_out, name='check_out'),
 
         path('table-reservation/', include([
             path('list', views.TableReservationManagementView.as_view(), name='table_reservation_list'),

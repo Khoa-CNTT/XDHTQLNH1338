@@ -80,20 +80,23 @@ const Order = () => {
 
     // Xóa sản phẩm khỏi giỏ hàng
     const handleDeleteItem = async (product_id) => {
-        setCart((prevCart) => ({
-            ...prevCart,
-            items: prevCart.items.filter((item) => item.product !== product_id),
-        }));
-
         try {
-            await updateQuantityCart({ product_id, quantity: 0 });
-            fetchCart();
+            // Optimistically update UI
+            const newItems = cart.items.filter((item) => item.product !== product_id);
+            setCart({ ...cart, items: newItems });
 
+            // Then make API call
+            await updateQuantityCart({ product_id, quantity: 0 });
+
+            // No need to re-fetch cart unless something failed
         } catch (error) {
             toast.error("Lỗi khi xóa sản phẩm:", error);
+
+            // Only fetch cart if error happens, to restore correct state
             fetchCart();
         }
     };
+
 
     // Tính tổng tiền đơn hàng
     const totalOrderPrice = cartItems.reduce((total, item) => total + item.product_price * item.quantity, 0);
