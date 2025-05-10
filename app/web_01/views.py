@@ -22,6 +22,7 @@ from web_01.handle_view.inventory_view import (InventoryManagementView, inventor
                                                ingredient_request,
                                                inventory_dashboard,
                                                inventory_report,inventory_dashboard_stats)
+from web_01.handle_view.work_shifts_view import (WorkShiftManagementView,work_shift_list, shift_registration_list, register_shift, approve_registration, check_in, check_out, )
 from web_01.decorator import admin_required
 
 GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
