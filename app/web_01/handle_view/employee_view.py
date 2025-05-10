@@ -121,11 +121,6 @@ def employee_add(request):
                 'success': False,
                 'message': 'Vui lòng điền đầy đủ thông tin'
             })
-            
-        if not total_hours or float(total_hours) == 0:
-            default_hours_per_shift = 4  # giả định mỗi ca là 4h
-            total_hours = total_shifts * default_hours_per_shift
-
         
         # Convert salary to integer (remove commas)
         try:
