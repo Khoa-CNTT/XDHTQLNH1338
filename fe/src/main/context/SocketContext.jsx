@@ -1,13 +1,14 @@
 import { createContext, useEffect, useState } from "react";
-import Cookies from "js-cookie";
 import { endSession } from "../../web_qr/services/api";
+
+// Create a context for the socket
 export const SocketContext = createContext(null);
 
 export const SocketProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);
 
-  // Function to handle session ending
-  async function asyncEndSession() {
+  // Ends the session and redirects the user
+  const asyncEndSession = async () => {
     try {
       const response = await endSession();
       if (response.status === 200) {
@@ -19,35 +20,25 @@ export const SocketProvider = ({ children }) => {
     } catch (err) {
       console.error("❌ Error ending session:", err);
     }
-  }
+  };
 
-  // Set up socket connection on mount
+  // Initialize WebSocket connection on mount
   useEffect(() => {
     const ws = new WebSocket("ws://192.168.20.61:5001/ws/notifications/order/");
 
-    ws.onopen = () => {
-      console.log("✅ WebSocket connected!");
-    };
-
-    ws.onclose = (event) => {
-      console.log("❌ WebSocket disconnected!", event);
-    };
-
-    ws.onerror = (error) => {
-      console.error("⚠️ WebSocket error:", error);
-    };
+    ws.onopen = () => console.log("✅ WebSocket connected!");
+    ws.onclose = (event) => console.log("❌ WebSocket disconnected!", event);
+    ws.onerror = (error) => console.error("⚠️ WebSocket error:", error);
 
     setSocket(ws);
 
-    // Cleanup on unmount
+    // Cleanup WebSocket on unmount
     return () => {
-      if (ws.readyState === WebSocket.OPEN) {
-        ws.close();
-      }
+      ws.close();
     };
   }, []);
 
-  // Handle socket.onmessage separately (reactive to socket changes)
+  // Listen for messages from the WebSocket
   useEffect(() => {
     if (!socket) return;
 
@@ -59,9 +50,7 @@ export const SocketProvider = ({ children }) => {
         if (data?.type === "end_session") {
           asyncEndSession();
         }
-
-        // Add more message type handling here if needed
-
+        // Handle other message types here if needed
       } catch (err) {
         console.error("❌ Error parsing WebSocket message:", err);
       }
@@ -69,6 +58,7 @@ export const SocketProvider = ({ children }) => {
 
     socket.addEventListener("message", handleMessage);
 
+    // Cleanup event listener on unmount or socket change
     return () => {
       socket.removeEventListener("message", handleMessage);
     };
