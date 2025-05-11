@@ -11098,7 +11098,6 @@ svg.pulse-svg {
           max-width: 100px; } }
   .notification_dropdown .dropdown-menu-end .all-notification {
     display: block;
-    padding: 15px 30px 0;
     color: #EA7A9A;
     text-align: center;
     border-top: 1px solid #F4F5F9; }
@@ -32922,5 +32921,32 @@ font-weight: 600;
 .prompt-btn:hover {
   background-color: #007bff;
   color: white;
+}
+
+
+
+/* Hiệu ứng khi đánh dấu đã đọc */
+.timeline-item.unread {
+  transition: background-color 0.3s ease;
+}
+
+.timeline-item.read-processing {
+  opacity: 0.7;
+}
+
+/* Hiệu ứng khi hover vào thông báo */
+.timeline-item:hover {
+  background-color: rgba(13, 110, 253, 0.08);
+  cursor: pointer;
+}
+
+/* Nút đánh dấu tất cả đã đọc */
+#mark-all-read {
+  font-size: 0.8rem;
+  padding: 0;
+}
+
+#mark-all-read:hover {
+  text-decoration: underline;
 }
 

@@ -233,15 +233,39 @@ def logout_view(request):
 
 @login_required
 def get_notification(request):
-    notifications = Notification.objects.all()
+    notifications = Notification.objects.filter()
 
     notification_html = render_to_string('apps/web_01/commom/notifcation.html', {"notifications": notifications})
-    notification_len = notifications.count()
+    notification_len = notifications.filter(is_read=False).count()
 
     return JsonResponse({
         'notification_html': notification_html,  # ✅ sửa key ở đây
         'notification_len': notification_len,
     })
+
+
+@login_required
+def mark_notification_read(request):
+    try:
+        data = json.loads(request.body)
+        notification_id = data.get('notification_id')
+        
+        # Đánh dấu một thông báo cụ thể đã đọc
+        if notification_id:
+            notification = get_object_or_404(Notification, id=notification_id)
+            notification.is_read = True
+            notification.save()
+            return JsonResponse({'status': 'success', 'message': 'Đã đánh dấu thông báo đã đọc'})
+        
+        # Đánh dấu tất cả thông báo đã đọc
+        elif data.get('mark_all', False):
+            Notification.objects.filter(is_read=False).update(is_read=True)
+            return JsonResponse({'status': 'success', 'message': 'Đã đánh dấu tất cả thông báo đã đọc'})
+        
+        return JsonResponse({'status': 'error', 'message': 'Thiếu thông tin thông báo'}, status=400)
+    
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
 
 def call_gemini(prompt):

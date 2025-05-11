@@ -6,10 +6,10 @@ import json
 from web_01.models import Table
 from django import forms
 from django.contrib.auth.decorators import login_required
-from web_01.decorator import manager_required
+from web_01.decorator import manager_required, staff_required
 
 
-@method_decorator(manager_required, name='dispatch')
+@method_decorator(staff_required, name='dispatch')
 class TableManagementView(LoginRequiredMixin, TemplateView):
 
     template_name = 'apps/web_01/table/table_list.html'
@@ -79,8 +79,6 @@ def table_qr(request, table_id):
 def table_create(request):
     """Tạo bàn mới"""
     # Kiểm tra nếu là AJAX request để hiển thị popup
-    
-
 
     if request.method == 'POST':
         print('table_number11', 11)

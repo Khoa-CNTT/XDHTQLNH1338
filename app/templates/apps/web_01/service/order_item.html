@@ -109,7 +109,8 @@
                         {% endif %}
                         </td>
                         <td>
-                            <div class="dropdown text-sans-serif"  {% if item.status in ['completed','cancelled'] %}data-bs-toggle="tooltip" data-bs-placement="top" title="Món ăn đã hoàn thành/hủy không thể chỉnh sửa."{% endif %}>
+                            {% if item.status not in ['completed','cancelled'] %}
+                            <div class="dropdown text-sans-serif">
                                 <button class="btn btn-sm btn-light sharp {% if item.status == 'completed' %}disabled{% endif %}"
                                         type="button"
                                         id="dropdown-item-{{ item.item_id }}"
@@ -147,18 +148,21 @@
                                                 data-item-id="{{ item.item_id }}" data-status="completed">
                                                 <i class="fas fa-check me-1"></i> Hoàn thành   
                                             </a>
+
+                                            {% if item.status == 'pending' %}
                                             <a class="dropdown-item update-status-option" href="#!"
                                                 data-order-id="{{ order.order_id }}"
                                                 data-product-name="{{ item.product_name }}" 
                                                 data-item-id="{{ item.item_id }}" data-status="cancelled">
                                                 <i class="fas fa-trash-alt me-1"></i> Hủy
                                             </a>
+                                            {%endif%}
                                         {% endif %}
                                     </div>
                                 </div>
                                 {% endif %}
                             </div>
-                            
+                            {% endif %}
                         </td>
                     </tr>
                     {% endfor %}

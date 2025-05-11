@@ -427,6 +427,7 @@ class Notification(BaseModel):
         choices=[('read', 'Read'), ('unread', 'Unread')],
         default='unread'
     )
+    is_read = models.BooleanField(default=False)
     data = models.JSONField(blank=True, null=True)  # 👈 Thêm JSON field
 
     class Meta:

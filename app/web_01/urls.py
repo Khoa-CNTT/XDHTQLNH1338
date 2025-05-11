@@ -18,6 +18,7 @@ urlpatterns = [
     path('download-report/', chatbot_view.download_report, name='download_report'),
     path("get-chat-history/", views.get_chat_history, name="get_chat_history"),
     path('get-notifications', views.get_notification, name='get_notification'),
+    path('mark-notification-read/', views.mark_notification_read, name='mark_notification_read'),
 
 
     path('management/', include([
