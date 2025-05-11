@@ -19,7 +19,9 @@ urlpatterns = [
     path("get-chat-history/", views.get_chat_history, name="get_chat_history"),
     path('get-notifications', views.get_notification, name='get_notification'),
     path('mark-notification-read/', views.mark_notification_read, name='mark_notification_read'),
-
+    path('notifications/', views.NotificationListView.as_view(), name='notification_list'),
+    path('get-notification-detail/<int:notification_id>/', views.get_notification_detail, name='get_notification_detail'),
+    path('delete-notifications/', views.delete_notifications, name='delete_notifications'),
 
     path('management/', include([
         path('table/', include([
