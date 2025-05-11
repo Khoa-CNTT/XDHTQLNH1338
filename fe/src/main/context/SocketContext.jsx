@@ -24,7 +24,7 @@ export const SocketProvider = ({ children }) => {
 
   // Initialize WebSocket connection on mount
   useEffect(() => {
-    const ws = new WebSocket("ws://192.168.20.61:5001/ws/notifications/order/");
+    const ws = new WebSocket("ws://localhost:5001/ws/notifications/order/");
 
     ws.onopen = () => console.log("✅ WebSocket connected!");
     ws.onclose = (event) => console.log("❌ WebSocket disconnected!", event);
@@ -65,8 +65,6 @@ export const SocketProvider = ({ children }) => {
   }, [socket]);
 
   return (
-    <SocketContext.Provider value={socket}>
-      {children}
-    </SocketContext.Provider>
+    <SocketContext.Provider value={socket}>{children}</SocketContext.Provider>
   );
 };
