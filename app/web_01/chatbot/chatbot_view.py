@@ -69,7 +69,7 @@ def chatbot_api(request):
                     bot_reply = f"""
 # Báo cáo Excel đã được tạo
 
-Tôi đã tạo báo cáo Excel **{report_type}** cho **{get_period_name(period)}**.
+Bot RMS 65 đã tạo báo cáo Excel **{report_type}** cho **{get_period_name(period)}**.
 
 Bạn có thể tải xuống báo cáo bằng cách nhấp vào [đường dẫn này](/download-report/?type={report_type}&period={period}).
 
@@ -77,8 +77,6 @@ Báo cáo bao gồm:
 - Tổng quan doanh thu
 - Chi tiết theo sản phẩm
 - Biểu đồ phân tích
-
-*Bot RMS*
                     """
                     
                     chatbot.save_chat_history(user_message, bot_reply)

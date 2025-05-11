@@ -15,6 +15,7 @@ urlpatterns = [
     path('accounts/login/', views.CustomLoginView.as_view(), name='login'),
     path('accounts/logout/', views.logout_view, name='logout'),
     path("chatbot/", chatbot_view.chatbot_api, name="chatbot_api"),
+    path('download-report/', chatbot_view.download_report, name='download_report'),
     path("get-chat-history/", views.get_chat_history, name="get_chat_history"),
     path('get-notifications', views.get_notification, name='get_notification'),
 
