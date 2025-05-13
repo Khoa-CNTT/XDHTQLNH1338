@@ -4,6 +4,7 @@ from django.views.generic import TemplateView
 import json
 from django.db.models import Q
 from web_01.models import TableReservation, Table
+from django.views.decorators.http import require_POST
 
 class TableReservationManagementView(LoginRequiredMixin, TemplateView):
     template_name = '/apps/web_01/table_reservation/table_reservation_list.html'
@@ -113,3 +114,82 @@ def edit_table_reservation(request, id):
         'form': form,
         'reservation_id': id
     })
+    
+class TableReservationCreateForm(forms.ModelForm):
+    class Meta:
+        model = TableReservation
+        fields = ['name', 'phone_number', 'many_person', 'table', 'date', 'hour']
+        widgets = {
+            'date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'hour': forms.TimeInput(attrs={'type': 'time', 'class': 'form-control'}),
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'phone_number': forms.TextInput(attrs={'class': 'form-control'}),
+            'many_person': forms.NumberInput(attrs={'class': 'form-control'}),
+            'table': forms.Select(attrs={'class': 'form-control'}),
+        }
+
+@require_POST
+def create_table_reservation(request):
+    """Tạo mới đặt bàn - Trả về JSON"""
+    try:
+        form = TableReservationCreateForm(request.POST)
+        if form.is_valid():
+            # Kiểm tra bàn có tồn tại không
+            table = form.cleaned_data.get('table')
+            if not table:
+                return JsonResponse({
+                    "success": False,
+                    "error": "Bàn không tồn tại"
+                }, status=404)
+
+            # Kiểm tra bàn đã được đặt chưa
+            date = form.cleaned_data.get('date')
+            hour = form.cleaned_data.get('hour')
+            existing_reservation = TableReservation.objects.filter(
+                table=table,
+                date=date,
+                hour=hour,
+                status__in=['pending', 'confirmed']
+            ).first()
+
+            if existing_reservation:
+                return JsonResponse({
+                    "success": False,
+                    "error": f"Bàn {table.table_number} đã được đặt vào {date.strftime('%d/%m/%Y')} lúc {hour.strftime('%H:%M')}"
+                }, status=400)
+
+            # Tạo đặt bàn mới
+            reservation = form.save(commit=False)
+            reservation.status = 'pending'  # Set trạng thái mặc định
+            reservation.save()
+
+            return JsonResponse({
+                "success": True,
+                "message": "Tạo đặt bàn thành công!",
+                "data": {
+                    "id": reservation.id,
+                    "name": reservation.name,
+                    "phone_number": reservation.phone_number,
+                    "many_person": reservation.many_person,
+                    "table": {
+                        "id": reservation.table.id,
+                        "table_number": reservation.table.table_number
+                    },
+                    "date": reservation.date.strftime('%Y-%m-%d'),
+                    "hour": reservation.hour.strftime('%H:%M'),
+                    "status": reservation.status,
+                    "status_display": reservation.get_status_display(),
+                    "created_at": reservation.created_at.strftime('%Y-%m-%d %H:%M:%S')
+                }
+            }, status=201)
+        else:
+            return JsonResponse({
+                "success": False,
+                "error": "Dữ liệu không hợp lệ",
+                "errors": form.errors
+            }, status=400)
+    except Exception as e:
+        return JsonResponse({
+            "success": False,
+            "error": f"Lỗi khi tạo đặt bàn: {str(e)}"
+        }, status=500)
