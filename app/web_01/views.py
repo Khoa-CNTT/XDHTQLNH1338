@@ -15,7 +15,7 @@ from web_01.handle_view.service_view import (service_dashboard, get_order_by_tab
                                              complete_payment_multi_order, update_item_status, end_session, add_product_to_order)
 from web_01.handle_view.customer_view import (CustomerManagementView, update_customer, delete_customer)
 from web_01.handle_view.employee_view import (EmployeeManagementView, employee_add, employee_update, employee_delete)
-from web_01.handle_view.table_reservation_view import (TableReservationManagementView, edit_table_reservation, create_table_reservation)
+from web_01.handle_view.table_reservation_view import (TableReservationManagementView, edit_table_reservation, create_table_reservation, delete_table_reservation, approve_table_reservation, reject_table_reservation)
 from web_01.handle_view.inventory_view import (InventoryManagementView, inventory_log_list, import_ingredient)
 from web_01.handle_view.inventory_view import (InventoryManagementView, inventory_log_list, import_ingredient, export_ingredient,
                                                add_ingredient,

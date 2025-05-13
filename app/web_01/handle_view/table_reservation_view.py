@@ -193,3 +193,37 @@ def create_table_reservation(request):
             "success": False,
             "error": f"Lỗi khi tạo đặt bàn: {str(e)}"
         }, status=500)
+
+
+@require_POST
+@login_required
+def approve_table_reservation(request, id):
+    try:
+        reservation = get_object_or_404(TableReservation, id=id)
+        reservation.status = 'confirmed'
+        reservation.save()
+        return JsonResponse({"success": True, "message": "Đặt bàn đã được xác nhận!"})
+    except Exception as e:
+        return JsonResponse({"success": False, "message": f"Lỗi: {str(e)}"}, status=400)
+
+
+@require_POST
+@login_required
+def reject_table_reservation(request, id):
+    try:
+        reservation = get_object_or_404(TableReservation, id=id)
+        reservation.status = 'cancelled'
+        reservation.save()
+        return JsonResponse({"success": True, "message": "Đặt bàn đã bị từ chối!"})
+    except Exception as e:
+        return JsonResponse({"success": False, "message": f"Lỗi: {str(e)}"}, status=400)
+
+@require_POST
+@login_required
+def delete_table_reservation(request, id):
+    try:
+        reservation = get_object_or_404(TableReservation, id=id)
+        reservation.delete()
+        return JsonResponse({"success": True, "message": "Đã xóa đặt bàn!"})
+    except Exception as e:
+        return JsonResponse({"success": False, "message": f"Lỗi: {str(e)}"}, status=400)

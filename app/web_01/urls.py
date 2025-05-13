@@ -79,6 +79,9 @@ urlpatterns = [
             path('list', views.TableReservationManagementView.as_view(), name='table_reservation_list'),
             path('<int:id>/', views.edit_table_reservation, name='edit_table_reservation'),
             path('create', views.create_table_reservation, name='create_table_reservation'),
+            path('<int:id>/approve/', views.approve_table_reservation, name='approve_table_reservation'),
+            path('<int:id>/reject/', views.reject_table_reservation, name='reject_table_reservation'),
+            path('<int:id>/delete/', views.delete_table_reservation, name='delete_table_reservation'),
         ])),
 
 
