@@ -189,22 +189,104 @@
                     title: "Thao tác",
                     className: "text-center",
                     render: function(data, type, row) {
-                        return `
-                            <button class="btn btn-sm confirm-reservation me-1" title="Xác nhận" data-id="${row.id}">
-                                ✅
-                            </button>
-                            <button class="btn btn-sm cancel-reservation me-1" title="Hủy" data-id="${row.id}">
-                                ❌
-                            </button>
-                            <button class="btn btn-sm edit-reservation" title="Chỉnh sửa" data-id="${row.id}" data-bs-toggle="modal" data-bs-target="#modalEditReservation">
-                                ✏️
-                            </button>
-                        `;
+                        const status = row.status?.trim()?.toLowerCase();
+                    
+                        const hideAction = (
+                            status === "đã xác nhận" ||
+                            status === "đã hoàn thành" ||
+                            status === "đã hủy"
+                        );
+                    
+                        const approveBtn = !hideAction ? `
+                            <button class="btn btn-sm btn-outline-success confirm-reservation me-1" title="Xác nhận" data-id="${row.id}">
+                                <i class="fa fa-check"></i>
+                            </button>` : '';
+                    
+                        const rejectBtn = !hideAction ? `
+                            <button class="btn btn-sm btn-outline-danger cancel-reservation me-1" title="Hủy" data-id="${row.id}">
+                                <i class="fa fa-times"></i>
+                            </button>` : '';
+                    
+                        const editBtn = `
+                            <button class="btn btn-sm btn-outline-secondary edit-reservation me-1" title="Chỉnh sửa" data-id="${row.id}" data-bs-toggle="modal" data-bs-target="#modalEditReservation">
+                                <i class="fa fa-pencil-alt"></i>
+                            </button>`;
+                    
+                        const deleteBtn = `
+                            <button class="btn btn-sm btn-outline-dark delete-reservation" title="Xóa" data-id="${row.id}">
+                                <i class="fa fa-trash"></i>
+                            </button>`;
+                    
+                        return approveBtn + rejectBtn + editBtn + deleteBtn;
                     }
+                    
                 }
+                
                 
             ]
 
+        });
+
+        function sendReservationAction(id, action, confirmText, confirmButtonText) {
+            Swal.fire({
+                title: confirmText,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: confirmButtonText || 'Xác nhận',
+                cancelButtonText: 'Hủy bỏ',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    fetch(`/management/table-reservation/${id}/${action}/`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': '{{ csrf_token }}'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: data.message || 'Thành công!',
+                                showConfirmButton: false,
+                                timer: 1500
+                            });
+                            $('#table_reservation_data').DataTable().ajax.reload();
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Thất bại',
+                                text: data.message || 'Đã xảy ra lỗi.'
+                            });
+                        }
+                    })
+                    .catch(err => {
+                        console.error("Lỗi thao tác:", err);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Lỗi hệ thống',
+                            text: 'Không thể kết nối đến máy chủ.'
+                        });
+                    });
+                }
+            });
+        }
+        
+
+        $('#table_reservation_data').on('click', '.confirm-reservation', function () {
+            const id = $(this).data('id');
+            sendReservationAction(id, 'approve', 'Bạn có muốn xác nhận đặt bàn này không?', 'Xác nhận');
+        });
+        
+        $('#table_reservation_data').on('click', '.cancel-reservation', function () {
+            const id = $(this).data('id');
+            sendReservationAction(id, 'reject', 'Bạn có chắc muốn hủy đặt bàn này?', 'Hủy đặt bàn');
+        });
+        
+        $('#table_reservation_data').on('click', '.delete-reservation', function () {
+            const id = $(this).data('id');
+            sendReservationAction(id, 'delete', 'Bạn có chắc muốn xóa đặt bàn này?', 'Xóa');
         });
 
         $('#btn-filter').on('click', function () {
