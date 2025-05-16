@@ -166,7 +166,7 @@ def shift_registration_list(request):
 
         # Xác định cột sắp xếp
         order_column_index = int(request.POST.get("order[0][column]", 0))
-        order_dir = request.POST.get("order[0][dir]", "asc")
+        order_dir = request.POST.get("order[0][dir]", "desc")
 
         column_mapping = {
             0: "id",
@@ -327,6 +327,11 @@ def approve_registration(request):
         return JsonResponse({'success': False, 'message': 'Phương thức không được hỗ trợ'})
     
     try:
+        user = request.user
+        
+        if not (user.is_superuser or user.groups.filter(name__in=['Admin', 'Manager']).exists()):
+            return JsonResponse({'success': False, 'message': 'Bạn không có quyền duyệt đăng ký ca làm việc'}, status=403)
+        
         registration_id = request.POST.get('registration_id')
         status = request.POST.get('status')  # 'approved' hoặc 'rejected'
         
