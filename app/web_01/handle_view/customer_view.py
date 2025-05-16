@@ -21,7 +21,7 @@ class CustomerManagementView(LoginRequiredMixin, TemplateView):
             search_value = request.POST.get("search[value]", "").strip()
 
             order_column_index = int(request.POST.get("order[0][column]", 0))
-            order_dir = request.POST.get("order[0][dir]", "asc")
+            order_dir = request.POST.get("order[0][dir]", "desc")
 
             # ✅ Mapping column cho DataTables
             column_mapping = {

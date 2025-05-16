@@ -38,7 +38,7 @@ def work_shift_list(request):
 
         # Xác định cột sắp xếp
         order_column_index = int(request.POST.get("order[0][column]", 0))
-        order_dir = request.POST.get("order[0][dir]", "asc")
+        order_dir = request.POST.get("order[0][dir]", "desc")
 
         column_mapping = {
             0: "id",
