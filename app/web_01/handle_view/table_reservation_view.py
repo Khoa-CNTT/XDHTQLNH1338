@@ -22,7 +22,7 @@ class TableReservationManagementView(LoginRequiredMixin, TemplateView):
             length = int(request.POST.get("length", 10))
             search_value = request.POST.get("search[value]", "").strip()
             order_column_index = int(request.POST.get("order[0][column]", 0))
-            order_dir = request.POST.get("order[0][dir]", "asc")
+            order_dir = request.POST.get("order[0][dir]", "desc")
             name = request.POST.get("name", "").strip()
             phone_number = request.POST.get("phone_number", "").strip()
             table_number = request.POST.get("table_number", "").strip()
