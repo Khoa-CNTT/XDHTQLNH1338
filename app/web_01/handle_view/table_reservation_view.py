@@ -5,6 +5,8 @@ import json
 from django.db.models import Q
 from web_01.models import TableReservation, Table
 from django.views.decorators.http import require_POST
+from datetime import date as current_date
+
 
 class TableReservationManagementView(LoginRequiredMixin, TemplateView):
     template_name = '/apps/web_01/table_reservation/table_reservation_list.html'
@@ -20,7 +22,7 @@ class TableReservationManagementView(LoginRequiredMixin, TemplateView):
             length = int(request.POST.get("length", 10))
             search_value = request.POST.get("search[value]", "").strip()
             order_column_index = int(request.POST.get("order[0][column]", 0))
-            order_dir = request.POST.get("order[0][dir]", "asc")
+            order_dir = request.POST.get("order[0][dir]", "desc")
             name = request.POST.get("name", "").strip()
             phone_number = request.POST.get("phone_number", "").strip()
             table_number = request.POST.get("table_number", "").strip()
@@ -104,6 +106,11 @@ def edit_table_reservation(request, id):
     if request.method == "POST":
         form = TableReservationForm(request.POST, instance=reservation)
         if form.is_valid():
+            if form.cleaned_data.get('date') < current_date.today():
+                return JsonResponse({
+                    "success": False,
+                    "error": "Không thể cập nhật đặt bàn với ngày trong quá khứ"
+                }, status=400)
             form.save()
             return JsonResponse({"success": True, "message": "Cập nhật đặt bàn thành công!"}, status=200)
         else:
@@ -144,6 +151,11 @@ def create_table_reservation(request):
 
             # Kiểm tra bàn đã được đặt chưa
             date = form.cleaned_data.get('date')
+            if date < current_date.today():
+                return JsonResponse({
+                    "success": False,
+                    "error": "Không thể đặt bàn cho ngày trong quá khứ"
+                }, status=400)
             hour = form.cleaned_data.get('hour')
             existing_reservation = TableReservation.objects.filter(
                 table=table,

@@ -26,7 +26,7 @@ class EmployeeManagementView(LoginRequiredMixin, TemplateView):
             filter_role = request.POST.get("filter_role", "").strip()
 
             order_column_index = int(request.POST.get("order[0][column]", 0))
-            order_dir = request.POST.get("order[0][dir]", "asc")
+            order_dir = request.POST.get("order[0][dir]", "desc")
 
             column_mapping = {
                 0: "user_id",

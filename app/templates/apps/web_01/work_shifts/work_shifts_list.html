@@ -304,9 +304,11 @@
                 <input type="hidden" id="approve_registration_id">
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                <button type="button" class="btn btn-danger" id="btnRejectRegistration">Từ chối</button>
-                <button type="button" class="btn btn-success" id="btnApproveRegistration">Duyệt</button>
+                {% if request.user.is_superuser or request.user.groups.filter(name__in=['Admin', 'Manager']).exists %}
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-danger" id="btnRejectRegistration">Từ chối</button>
+                    <button type="button" class="btn btn-success" id="btnApproveRegistration">Duyệt</button>
+                {% endif %}
             </div>
         </div>
     </div>
