@@ -7,11 +7,11 @@ import { ImBin } from "react-icons/im";
 import { IoClose } from "react-icons/io5";
 import { FaStar } from "react-icons/fa";
 import {
-  readCart,
+
   readInvoice,
   deleteCartItem,
   getAwaitMomoPayment,
-  endSession,
+
 } from "../../services/api";
 import { useCart } from "../../context/CartContext";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -123,12 +123,12 @@ const Status = () => {
 
     if (socket && socket.readyState === WebSocket.OPEN) {
       socket.send(
-          JSON.stringify({
-              type: "required_payment_cash",
-              session: session
-          })
+        JSON.stringify({
+          type: "required_payment_cash",
+          session: session
+        })
       );
-  }
+    }
 
 
     // Hiển thị modal đánh giá sau 3 giây
@@ -189,7 +189,7 @@ const Status = () => {
 
 
   const getAsyncMomoPayment = async () => {
-    
+
     try {
       const response = await getAwaitMomoPayment(); // gọi API Django
       const payUrl = response?.data?.payUrl;
@@ -199,7 +199,7 @@ const Status = () => {
       }
     } catch (error) {
       console.error("Lỗi khi xử lý thanh toán:", error);
-      
+
     }
   };
 
