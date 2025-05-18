@@ -10,6 +10,7 @@ router = DefaultRouter()
 router.register(r'products', views.ProductViewSet, basename='product')
 router.register(r'table', views.TableViewSet, basename='table')
 router.register(r'tables/reservations', views.TableReservationViewSet, basename='table_reservation')
+router.register(r'book/tables/reservations', views.BookaTableViewSet, basename='book_table_reservation')
 router.register(r'cart', views.CartViewSet, basename='cart')
 router.register(r'invoices', views.InvoiceViewSet, basename='invoices')  # Thêm dòng này
 router.register(r'categories', views.CategoryViewSet, basename='category')
