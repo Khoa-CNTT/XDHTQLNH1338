@@ -26,7 +26,7 @@ class EmployeeManagementView(LoginRequiredMixin, TemplateView):
             filter_role = request.POST.get("filter_role", "").strip()
 
             order_column_index = int(request.POST.get("order[0][column]", 0))
-            order_dir = request.POST.get("order[0][dir]", "asc")
+            order_dir = request.POST.get("order[0][dir]", "desc")
 
             column_mapping = {
                 0: "user_id",
@@ -42,13 +42,18 @@ class EmployeeManagementView(LoginRequiredMixin, TemplateView):
             if order_dir == "desc":
                 order_column = "-" + order_column
 
-            employees = Employee.objects.select_related('user').annotate(
-                total_shifts=Count('workshifts', distinct=True),
-                total_hours=Sum(
-                    ExpressionWrapper(F('workshifts__time_end') - F('workshifts__time_start'), output_field=DurationField()),
-                    filter=Q(workshifts__time_start__isnull=False, workshifts__time_end__isnull=False)
-                ),
-            )
+            employees = Employee.objects.select_related('user') \
+                .filter(~Q(role__iexact='chef')) \
+                .annotate(
+                    total_shifts=Count('workshifts', distinct=True),
+                    total_hours=Sum(
+                        ExpressionWrapper(
+                            F('workshifts__time_end') - F('workshifts__time_start'),
+                            output_field=DurationField()
+                        ),
+                        filter=Q(workshifts__time_start__isnull=False, workshifts__time_end__isnull=False)
+                    ),
+                )
 
             if filter_name:
                 employees = employees.filter(

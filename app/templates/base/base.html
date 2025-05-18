@@ -44,6 +44,9 @@
 	<link rel="stylesheet" href='{{ static ("/vendor/toastr/css/toastr.min.css") }}'>
 	
 	<script src='{{ static ("/vendor/jquery/jquery.min.js") }}'></script>
+	<!-- SweetAlert2 -->
+	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 	<script>
 		// WebSocket setup
 		var socket = new WebSocket("ws://localhost:5001/ws/notifications/order/");
