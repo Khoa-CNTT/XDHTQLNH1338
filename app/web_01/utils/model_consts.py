@@ -1,4 +1,4 @@
-CATEGORY_STATUS_CHOICES = [
+STATUS_ACTIVE_CHOICES = [
     ('active', 'Hoạt động'),
     ('inactive', 'Ngưng hoạt động'),
 ]

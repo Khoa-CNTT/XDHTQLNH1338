@@ -15,7 +15,7 @@
         "Combo đặc biệt": "Special Combo"
     },
     "order_summary": {
-        "title": "Order",
+        "title": "Cart",
         "items": "{{count}} items",
         "total_price": "{{price}} VND"
     },
@@ -24,6 +24,8 @@
         "button": "Order",
         "total": "Total",
         "empty_cart": "Cart is empty",
+        "empty_cart_message": "Looks like you haven't added any items to your cart yet",
+        "continue_shopping": "Continue order",
         "quantity": "Quantity"
     },
     "status_order": {
@@ -42,6 +44,11 @@
         "close": "Close",
         "qr_title": "Scan QR Code to Pay",
         "qr_instruction": "Please scan the QR code using your banking app to make payment",
+        "rating_title": "Rate Your Order",
+        "feedback_placeholder": "Share your thoughts about the order...",
+        "submit_rating": "Submit Rating",
+        "rating_warning": "Please select a star rating",
+        "rating_success": "Thank you for your rating!",
         "status": {
             "pending": "Pending",
             "confirmed": "In Progress",

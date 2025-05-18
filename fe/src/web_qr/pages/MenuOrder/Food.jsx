@@ -66,30 +66,39 @@ export default function Food({ searchTerm, selectedCategoryId }) {
     }, [cart]);
 
     const increaseQuantity = async (productId) => {
-
-        const newQuantity = (quantities[productId] || 0) + 1;
-
-        setQuantities(prev => ({ ...prev, [productId]: newQuantity }));
-
-        await addItem(productId, 1);
-        await fetchCart();
+        try {
+            const newQuantity = (quantities[productId] || 0) + 1;
+            // Update cart first
+            await addItem(productId, 1);
+            // Then update local state
+            setQuantities(prev => ({ ...prev, [productId]: newQuantity }));
+            // Finally refresh cart
+            await fetchCart();
+        } catch (error) {
+            console.error("Error increasing quantity:", error);
+            // Revert local state if API call fails
+            setQuantities(prev => ({ ...prev, [productId]: quantities[productId] }));
+        }
     };
 
-
     const decreaseQuantity = async (productId) => {
-
         const currentQuantity = quantities[productId] || 0;
         if (currentQuantity <= 0) return;
 
-        const newQuantity = currentQuantity - 1;
-
-        setQuantities(prev => ({ ...prev, [productId]: newQuantity }));
-
-        await updateItem(productId, newQuantity);
-        await fetchCart();
+        try {
+            const newQuantity = currentQuantity - 1;
+            // Update cart first
+            await updateItem(productId, newQuantity);
+            // Then update local state
+            setQuantities(prev => ({ ...prev, [productId]: newQuantity }));
+            // Finally refresh cart
+            await fetchCart();
+        } catch (error) {
+            console.error("Error decreasing quantity:", error);
+            // Revert local state if API call fails
+            setQuantities(prev => ({ ...prev, [productId]: quantities[productId] }));
+        }
     };
-
-
 
     // Format tiền
     const formatCurrency = (price) => {

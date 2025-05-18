@@ -1,4 +1,5 @@
-from authentication.handle_views.handle_auth import (LoginView,SessionView)
+
+from authentication.handle_views.handle_auth import (LoginView,SessionView,EndSessionView)
 from authentication.handle_views.handle_product import (ProductViewSet)
 from authentication.handle_views.handle_cart import (CartViewSet)
 from authentication.handle_views.handle_invoice import (InvoiceViewSet)

@@ -7,28 +7,22 @@ from django.views.decorators.csrf import csrf_exempt
 from web_01.models import Table, Order, Product, Invoice, Session, OrderDetail
 from django import forms
 from django.contrib.auth.decorators import login_required
+from django.db.models import F, ExpressionWrapper, IntegerField
 
+def service_dashboard(request):
+    """Hiển thị dashboard quản lý dịch vụ"""
+    # Lấy danh sách bàn
+    tables = Table.objects.all().order_by('table_number')
 
-class ServiceManagementView(LoginRequiredMixin, TemplateView):
-    template_name = 'apps/web_01/service/service_list.html'
+    # Lấy danh sách sản phẩm
+    products = Product.objects.filter(is_deleted=False).order_by('category__name', 'name')
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        tables = Table.objects.all()
-        context['table_list'] = tables
-        products = Product.objects.select_related('category').all()
-        product_list = [
-            {
-                "id": product.id,
-                "name": product.name,
-                "image": getattr(product.image, 'url', None),
-                "category": product.category.name or "Không có danh mục",
-                "price": f"{product.price:,}đ",
-            }
-            for product in products
-        ]
-        context['product_list'] = product_list
-        return context
+    context = {
+        'table_list': tables,
+        'product_list': products,
+    }
+
+    return render(request, '/apps/web_01/service/service_list.html', context)
 
 
 def process_data_order(request, table_id, is_payment=0):
@@ -82,7 +76,7 @@ def process_data_order(request, table_id, is_payment=0):
             order_details_list.append(order_data)
 
     # Lấy thông tin khách hàng (nếu có)
-    customer_name = session.customer.user.username if session.customer else "Khách vãng lai"
+    customer_name = f'{session.customer.user.username}({session.customer.user.first_name})' if session.customer else "Khách vãng lai"
     if is_payment:
         html_template = 'apps/web_01/service/modal/content_payment_order.html'
     else:
@@ -135,7 +129,7 @@ def complete_payment(request):
             invoice.payment_method = payment_method
             invoice.total_amount = total
             invoice.discount = discount
-            invoice.order_set.all().update(status='completed')
+            invoice.order_set.all().update(status='completed', discount=discount)
             invoice.save()
             session.save()
             session.table.save()
@@ -170,6 +164,9 @@ def complete_payment_multi_order(request):
         orders = Order.objects.filter(id__in=order_ids).select_related('invoice')
         if not orders.exists():
             return JsonResponse({'success': False, 'message': 'Không tìm thấy đơn hàng.'}, status=404)
+        orders.update(
+            discount=discount_percent
+        )
 
         with transaction.atomic():
             # Duyệt qua các đơn và cập nhật trạng thái đã thanh toán
@@ -181,7 +178,8 @@ def complete_payment_multi_order(request):
                 invoice = order.invoice
                 related_orders = invoice.order_set.all()
                 if all(o.status == 'completed' for o in related_orders):
-                    invoice.status = 'completed'
+                    invoice.payment_method = payment_method
+                    invoice.total_amount = sum(order.total - order.total * order.discount/100 for order in related_orders)
                     invoice.save()
 
             # TODO: Ghi lại lịch sử thanh toán nếu muốn
@@ -205,13 +203,17 @@ def update_item_status(request):
             item = OrderDetail.objects.get(id=item_id, order_id=order_id)
             old_status = item.status  # Trạng thái cũ trước khi cập nhật
             item.status = new_status
+            item.updated_by = request.user
             item.save()
 
             # Nếu chuyển từ trạng thái khác sang 'cancelled' => cập nhật tổng tiền
             if new_status == 'cancelled':
-                order = item.order  # Quan hệ FK đến Order
+                order = item.order
+                invoice = order.invoice  # Quan hệ FK đến Order
                 order.total -= item.price * item.quantity  # hoặc item.total_price nếu có
                 order.save()
+                invoice.total_amount -= order.total
+                invoice.save()
 
             return process_data_order(request, table_id)
         except OrderDetail.DoesNotExist:
@@ -223,14 +225,18 @@ def update_item_status(request):
 def end_session(request):
     if request.method == 'POST':
         data = json.loads(request.body)
+
+        print('data', data)
         session_id = data.get('session_id')
 
         try:
             session = Session.objects.get(id=session_id)
+            invoice = Invoice.objects.get(session=session)
             session.table.status = 'available'
-            session.ended_at = timezone.now()
-            session.status = 'closed'
-            session.save()
+            # session.ended_at = timezone.now()
+
+            # session.status = 'closed'
+            invoice.order_set.all().update(status='completed')
             session.save()
             session.table.save()
             return JsonResponse({'success': True})

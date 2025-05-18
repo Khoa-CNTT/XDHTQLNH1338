@@ -4,28 +4,30 @@ from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
 import cloudinary.uploader
+from io import BytesIO
 import requests
 import pandas as pd
 from core.__Include_Library import *
 from django.shortcuts import render
 from django.views.generic import TemplateView
 import json
-from web_01.models import Product, IngredientProduct, Ingredient
+from web_01.models import Product, IngredientProduct, Ingredient, OrderDetail
 from django.forms import inlineformset_factory
-from web_01.utils.model_consts import CATEGORY_STATUS_CHOICES
+from django.db.models import Sum
 
 
 class ProductManagementView(LoginRequiredMixin, TemplateView):
-    template_name = '/apps/web_01/product/product_list.html'
+    template_name = 'apps/web_01/product/product_list.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['category_list'] = Category.objects.filter(status='active').values_list('id', 'name')
         context['price_list'] = [
-            ('10000-50000', '10.000đ -> 50.000'),
-            ('50000-100000', '50.000đ -> 100.000'),
-            ('100000-150000', '100.000đ -> 150.000'),
-            ('150000-200000', '150.000đ -> 200.000'),
+            ('10000-50000', '10.000đ - 50.000đ'),
+            ('50000-100000', '50.000đ - 100.000đ'),
+            ('100000-150000', '100.000đ - 150.000đ'),
+            ('150000-200000', '150.000đ - 200.000đ'),
+            ('200000-1000000', 'Trên 200.000đ'),
         ]
         return context
 
@@ -38,7 +40,6 @@ class ProductManagementView(LoginRequiredMixin, TemplateView):
             # Lấy dữ liệu từ request
             category = request.POST.get("category", "[]")  # Nếu không có, mặc định là []
             price = request.POST.get("price", "-1")
-            print('category', category)
             category_ids = json.loads(category)  # Chuyển từ JSON thành danh sách Python
 
             order_column_index = int(request.POST.get("order[0][column]", 0))
@@ -88,6 +89,7 @@ class ProductManagementView(LoginRequiredMixin, TemplateView):
                     "id": product.id,
                     "name": product.name,
                     "image": product.image.url if product.image else None,
+                    "status": product.status,
                     "category": product.category.name if product.category else "Không có danh mục",
                     "price": f"{product.price:,} VND",
                 }
@@ -104,7 +106,87 @@ class ProductManagementView(LoginRequiredMixin, TemplateView):
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=400)
 
-
+class ExportProductsView(LoginRequiredMixin, View):
+    def get(self, request, *args, **kwargs):
+        # Lấy tham số từ URL
+        category_ids = request.GET.get('category', '')
+        price_range = request.GET.get('price', '-1')
+        status = request.GET.get('status', 'all')
+        
+        # Xây dựng query
+        query = Product.objects.select_related('category')
+        
+        # Áp dụng bộ lọc
+        if category_ids:
+            category_list = [int(cat_id) for cat_id in category_ids.split(',')]
+            query = query.filter(category_id__in=category_list)
+            
+        if price_range != '-1':
+            min_price, max_price = price_range.split('-')
+            query = query.filter(price__gte=int(min_price), price__lte=int(max_price))
+            
+        if status != 'all':
+            query = query.filter(status=status)
+            
+        # Lấy dữ liệu
+        products = query.order_by('id')
+        
+        # Tạo DataFrame
+        data = []
+        for product in products:
+            data.append({
+                'ID': product.id,
+                'Tên sản phẩm': product.name,
+                'Danh mục': product.category.name if product.category else 'Không có danh mục',
+                'Giá': f"{product.price:,} VND",
+                'Mô tả': product.description,
+                'Trạng thái': 'Đang bán' if product.status == 'active' else 'Ngừng bán',
+                'Ngày tạo': product.created_at.strftime('%d/%m/%Y %H:%M')
+            })
+            
+        df = pd.DataFrame(data)
+        
+        # Tạo Excel file
+        output = BytesIO()
+        writer = pd.ExcelWriter(output, engine='xlsxwriter')
+        df.to_excel(writer, sheet_name='Danh sách sản phẩm', index=False)
+        
+        # Định dạng Excel
+        workbook = writer.book
+        worksheet = writer.sheets['Danh sách sản phẩm']
+        
+        # Định dạng header
+        header_format = workbook.add_format({
+            'bold': True,
+            'text_wrap': True,
+            'valign': 'top',
+            'fg_color': '#D7E4BC',
+            'border': 1
+        })
+        
+        # Áp dụng định dạng cho header
+        for col_num, value in enumerate(df.columns.values):
+            worksheet.write(0, col_num, value, header_format)
+            
+        # Điều chỉnh độ rộng cột
+        for i, col in enumerate(df.columns):
+            column_width = max(df[col].astype(str).map(len).max(), len(col) + 2)
+            worksheet.set_column(i, i, column_width)
+            
+        writer.close()
+        
+        # Trả về file Excel
+        output.seek(0)
+        
+        response = HttpResponse(
+            output.read(),
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = 'attachment; filename=danh_sach_san_pham.xlsx'
+        
+        return response
+    
+    
 class IngredientProductForm(forms.ModelForm):
     class Meta:
         model = IngredientProduct
@@ -127,6 +209,13 @@ class ProductForm(forms.ModelForm):
     class Meta:
         model = Product
         fields = ['name', 'category', 'price', 'description', 'image']
+        labels = {
+            'name': 'Tên sản phẩm',
+            'category': 'Loại sản phẩm',
+            'price': 'Giá',
+            'description': 'Mô tả',
+            'image': 'Hình ảnh',
+        }
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control form-control-sm'}),
             'category': forms.Select(attrs={'id': 'category-select', 'class': 'form-control form-control-sm-'}),
@@ -281,3 +370,102 @@ def detail_product(request, id):
         "ingredients": ingredients
     }
     return render(request, "apps/web_01/modal/content/content_detail_product.html", context)
+
+
+def best_seller(request):
+    now = timezone.now()
+    first_day_this_month = now.replace(day=1)
+    first_day_last_month = (first_day_this_month - timedelta(days=1)).replace(day=1)
+
+    # Doanh số tháng hiện tại
+    current_sales = (
+        OrderDetail.objects
+        .filter(created_at__gte=first_day_this_month)
+        .values('product__id', 'product__name', 'product__price', 'product__image', 'product__category__name')
+        .annotate(total_sales=Sum('quantity'))
+    )
+
+    # Doanh số tháng trước
+    previous_sales = (
+        OrderDetail.objects
+        .filter(created_at__gte=first_day_last_month, created_at__lt=first_day_this_month)
+        .values('product__id')
+        .annotate(previous_sales=Sum('quantity'))
+    )
+
+    # Map previous_sales để dễ truy cập
+    previous_map = {item['product__id']: item['previous_sales'] for item in previous_sales}
+
+    # Tính growth %
+    best_sellers = []
+    for item in current_sales:
+        product_id = item['product__id']
+        current = item['total_sales']
+        previous = previous_map.get(product_id, 0)
+
+        if previous == 0:
+            growth = 100 if current > 0 else 0
+        else:
+            growth = round(((current - previous) / previous) * 100)
+
+        item['growth'] = growth
+        best_sellers.append(item)
+
+    # Sắp xếp theo current sales giảm dần và lấy top 10
+    best_sellers = sorted(best_sellers, key=lambda x: x['total_sales'], reverse=True)[:10]
+
+    return render(request, "apps/web_01/dashboard/best_seller.html", {"best_sellers": best_sellers})
+
+
+class ProductEditView(LoginRequiredMixin, TemplateView):
+    def get(self, request, *args, **kwargs):
+        try:
+            product_id = request.GET.get('product_id')
+            product = get_object_or_404(Product, id=product_id)
+            
+            # Lấy danh sách danh mục cho dropdown
+            categories = Category.objects.filter(status='active')
+            
+            # Render template chỉnh sửa sản phẩm
+           
+            return render(request, 'apps/web_01/modal/content/content_edit_product.html',{
+                'product': product,
+                'categories': categories,
+            }) 
+           
+        except Exception as e:
+            return JsonResponse({
+                'status': 'error',
+                'message': str(e)
+            }, status=400)
+    
+    def post(self, request, *args, **kwargs):
+        try:
+            product_id = request.POST.get('product_id')
+            product = get_object_or_404(Product, id=product_id)
+            
+            # Cập nhật thông tin sản phẩm
+            product.name = request.POST.get('name')
+            product.category_id = request.POST.get('category')
+            product.price = request.POST.get('price')
+            product.description = request.POST.get('description')
+            status = request.POST.get('status')
+            product.status =  'active' if status == 'active' else 'inactive'
+            product.is_featured = request.POST.get('is_featured') == 'on'
+            
+            # Xử lý hình ảnh nếu có
+            if 'image' in request.FILES:
+                product.image = request.FILES['image']
+            
+            # Lưu thay đổi
+            product.save()
+            
+            return JsonResponse({
+                'status': 'success',
+                'message': 'Cập nhật sản phẩm thành công'
+            })
+        except Exception as e:
+            return JsonResponse({
+                'status': 'error',
+                'message': str(e)
+            }, status=400)

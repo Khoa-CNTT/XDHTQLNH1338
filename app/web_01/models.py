@@ -6,11 +6,12 @@ from cloudinary.models import CloudinaryField
 from django.utils.functional import cached_property
 # 🔄 Model Category (Loại sản phẩm)
 from cloudinary.uploader import upload
+from django.conf import settings
 import qrcode
 from io import BytesIO
-from django.conf import settings
-
-from web_01.utils.model_consts import CATEGORY_STATUS_CHOICES
+from django.core.files.base import ContentFile
+from web_01.utils.model_consts import STATUS_ACTIVE_CHOICES
+from datetime import datetime
 
 
 class BaseModel(models.Model):
@@ -41,7 +42,7 @@ class Category(models.Model):
     name = models.CharField(max_length=100, unique=True)
     description = models.TextField(null=True, blank=True)
     parent = models.ForeignKey('self', null=True, blank=True, on_delete=models.SET_NULL)
-    status = models.CharField(max_length=10, choices=CATEGORY_STATUS_CHOICES, default='active')
+    status = models.CharField(max_length=10, choices=STATUS_ACTIVE_CHOICES, default='active')
 
 # 🔄 Model Product (Sản phẩm)
     class Meta:
@@ -63,6 +64,16 @@ class Ingredient(models.Model):
         ('gói', 'Gói'),
         ('hộp', 'Hộp'),
         ('lon', 'Lon'),
+        ('cai', 'Cái'),
+        ('lang', 'Lạng'),
+        ('trai', 'Trái'),
+        ('hop', 'Hộp'),
+        ('o', 'Ổ'),
+        ('cu', 'Củ'),
+        ('lit', 'Lít'),
+        ('ml', 'Ml'),
+        ('chai', 'Chai'),
+        ('quả', 'Quả'),
     ]
 
     name = models.CharField(max_length=100, unique=True)
@@ -88,6 +99,7 @@ class InventoryLog(models.Model):
     TYPE_CHOICES = [
         ('import', 'Nhập kho'),
         ('export', 'Xuất kho'),
+        ('sell', 'Bán hàng'),
         ('adjustment', 'Điều chỉnh'),
     ]
 
@@ -96,14 +108,22 @@ class InventoryLog(models.Model):
     type = models.CharField(max_length=15, choices=TYPE_CHOICES)
     note = models.TextField(null=True, blank=True)
     last_updated = models.DateTimeField(auto_now_add=True)
+    stock_before = models.IntegerField(null=True, blank=True)  # 🆕 thêm
+    stock_after = models.IntegerField(null=True, blank=True)   # đã có
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
 
     class Meta:
         db_table = 'inventory_log'
+        ordering = ['-last_updated']
 
     def save(self, *args, **kwargs):
-        """Cập nhật tồn kho khi có thay đổi."""
+        if not self.stock_before:
+            self.stock_before = self.ingredient.quantity_in_stock
         super().save(*args, **kwargs)
         self.ingredient.update_stock()
+        self.stock_after = self.ingredient.quantity_in_stock
+        InventoryLog.objects.filter(pk=self.pk).update(stock_after=self.stock_after)
+
 
 # 🔄 Sản phẩm
 
@@ -115,6 +135,7 @@ class Product(BaseModel):
     description = models.TextField(null=True, blank=True)
     image = CloudinaryField('image', null=True, blank=True)
     ingredients = models.ManyToManyField(Ingredient, through='IngredientProduct', blank=True, null=True)
+    status = models.CharField(max_length=10, choices=STATUS_ACTIVE_CHOICES, default='active')
 
     class Meta:
         db_table = 'product'
@@ -158,8 +179,16 @@ class Customer(BaseModel):
 
 
 class Employee(BaseModel):
+    ROLE_CHOICES = [
+        ('admin', 'Admin'),
+        ('manager', 'Manager'),
+        ('staff', 'Staff'),
+        ('chef', 'Chef'),
+    ]
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     salary = models.IntegerField()
+    avartar_url = CloudinaryField('avartar_url', null=True, blank=True)
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='staff')
 
     class Meta:
         db_table = 'employee'
@@ -171,23 +200,44 @@ class WorkShift(models.Model):
         ('afternoon', 'Chiều'),
         ('evening', 'Tối')
     ]
-    STATUS_CHOICES = [
-        ('worked', 'Đã làm'),
-        ('off', 'Nghỉ')
-    ]
 
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name="workshifts")
     date = models.DateField()
     shift_type = models.CharField(max_length=10, choices=SHIFT_TYPE_CHOICES)
-    duration = models.DecimalField(max_digits=4, decimal_places=2, default=4.0)  # Mặc định mỗi ca 4 giờ
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='worked')
+    time_start = models.DateTimeField(blank=True, null=True)
+    time_end = models.DateTimeField(blank=True, null=True)
+    notes = models.TextField(blank=True, null=True)
 
     class Meta:
         db_table = 'work_shift'
-        unique_together = ['employee', 'date', 'shift_type']  # Một ca/ngày/nhân viên
+        unique_together = ('employee', 'date', 'shift_type')
 
     def __str__(self):
-        return f"{self.employee.user.username} - {self.date} - {self.shift_type} ({self.duration} giờ)"
+        return f"{self.employee.user.username} - {self.date} - {self.shift_type}"
+
+
+class ShiftRegistration(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Chờ duyệt'),
+        ('approved', 'Đã duyệt'),
+        ('rejected', 'Từ chối')
+    ]
+
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name="shift_registrations")
+    date = models.DateField()
+    shift_type = models.CharField(max_length=10, choices=WorkShift.SHIFT_TYPE_CHOICES)
+    is_off = models.BooleanField(default=False)
+    reason = models.TextField(blank=True, null=True)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'shift_registration'
+        unique_together = ('employee', 'date', 'shift_type')
+
+    def __str__(self):
+        return f"{self.employee.user.username} - {self.date} - {self.shift_type} - {'Nghỉ' if self.is_off else 'Làm việc'}"
+
 
 
 # 🔄 Model Table
@@ -197,27 +247,35 @@ class Table(models.Model):
     table_number = models.IntegerField(unique=True)
     status = models.CharField(max_length=10, choices=[('available', 'Trống'), ('occupied', 'Sử dụng'), ('reserved', 'Đã đặt')], default='available')
     qr_image = CloudinaryField('image')
+    capacity = models.IntegerField(default=4)  # Thêm trường capacity
+    is_deleted = models.BooleanField(default=False)
 
     class Meta:
         db_table = 'table'
     # 🔄 Model Ingredient
     # 🔄 Override phương thức save()
 
+    def __str__(self):
+        return f"Bàn {self.table_number}"
+
     def save(self, *args, **kwargs):
+        force_update_qr = kwargs.pop('force_update_qr', False)
+
         # Tạo URL dựa trên table_number
-        url = f"{settings.FRONT_END_URL}login-menu/?table_number={self.table_number}"
+        url = f"{settings.FRONT_END_URL}/login-menu/?table_number={self.table_number}"
+
         # Tạo mã QR
         qr = qrcode.make(url)
         qr_bytes = BytesIO()
         qr.save(qr_bytes, format='PNG')
         qr_bytes.seek(0)
 
-        # Upload ảnh lên Cloudinary nếu chưa có hoặc cần cập nhật
-        if not self.qr_image or kwargs.get('force_update_qr', False):
-            result = upload(qr_bytes, public_id=f"table_{self.table_number}_qr")
+        # Upload ảnh QR nếu chưa có hoặc được yêu cầu cập nhật
+        if not self.qr_image or force_update_qr:
+            result = upload(qr_bytes, public_id=f"table_{self.table_number}_qr", overwrite=True)
             self.qr_image = result['url']
 
-        # Gọi phương thức save() gốc để lưu vào DB
+        # Lưu lại model bình thường
         super().save(*args, **kwargs)
 
 
@@ -238,10 +296,29 @@ class Session(models.Model):
     class Meta:
         db_table = 'session'
 
+    def save(self, *args, **kwargs):
+        if self.pk:
+            old_status = Session.objects.get(pk=self.pk).status
+            if old_status == 'active' and self.status == 'closed':
+                # Lấy tất cả các hóa đơn thuộc session
+                invoices = Invoice.objects.filter(session=self)
+                for invoice in invoices:
+                    orders = invoice.order_set.exclude(status='cancelled')
+                    # Cập nhật status Order
+                    orders.update(status='completed')
+
+                    # Cập nhật status OrderDetail tương ứng
+                    for order in orders:
+                        order.orderdetail_set.exclude(status='cancelled').update(status='completed')
+
+        if self.status == 'closed' and not self.ended_at:
+            self.ended_at = datetime.now()
+
+        super().save(*args, **kwargs)
 
 class Invoice(BaseModel):
     session = models.ForeignKey(Session, on_delete=models.CASCADE)
-    payment_method = models.CharField(max_length=15, choices=[('cash', 'Tiền mặt'), ('bank_transfer', 'Chuyển khoản'), ('card', 'Thẻ')], null=True, blank=True)
+    payment_method = models.CharField(max_length=15, choices=[('cash', 'Tiền mặt'), ('bank_transfer', 'Chuyển khoản'), ('momo', 'Momo')], null=True, blank=True)
     total_amount = models.IntegerField(default=0)
     discount = models.IntegerField(default=0)
 
@@ -249,16 +326,21 @@ class Invoice(BaseModel):
         db_table = 'invoice'
 # 🔄 Model Order
 
+    @cached_property
+    def formatted_total_amount(self) -> str:
+        return f'{self.total_amount:,}đ'.replace(',', '.')
+
 
 class Order(BaseModel):
     invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE)
-    total = models.IntegerField(default=0)
     status = models.CharField(max_length=15, choices=[
         ('pending', 'Chờ'),
         ('in_progress', 'Đang làm'),
         ('completed', 'Hoàn thành'),
         ('cancelled', 'Hủy')
     ], default='pending')
+    total = models.IntegerField(default=0)
+    discount = models.IntegerField(default=0)
 
     class Meta:
         db_table = 'order'
@@ -284,6 +366,37 @@ class OrderDetail(BaseModel):
     class Meta:
         db_table = 'order_detail'
 
+    def save(self, *args, **kwargs):
+        is_new = self.pk is None
+        prev_status = None
+        if not is_new:
+            prev = OrderDetail.objects.get(pk=self.pk)
+            prev_status = prev.status
+
+        super().save(*args, **kwargs)
+
+        # Nếu chuyển sang "completed" mà trước đó không phải completed
+        if self.status == 'completed' and prev_status != 'completed':
+            self.export_ingredients()
+
+    def export_ingredients(self):
+        product_ingredient = IngredientProduct.objects.filter(product=self.product).first()
+        total_quantity_used = product_ingredient.quantity_required * self.quantity
+        ingredient = product_ingredient.ingredient
+        old_stock = ingredient.quantity_in_stock
+        ingredient.quantity_in_stock -= total_quantity_used
+        ingredient.save()
+        # Tạo log
+        InventoryLog.objects.create(
+            ingredient=ingredient,
+            change=-total_quantity_used,
+            type='export',
+            note=f"Đơn hàng (#00{self.order.id}) - ({self.product.name} x {total_quantity_used})",
+            stock_before=old_stock,
+            stock_after=ingredient.quantity_in_stock,
+            user=self.updated_by if hasattr(self, 'updated_by') else None
+        )
+
 
 class Cart(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
@@ -306,11 +419,24 @@ class CartItem(models.Model):
 class Notification(BaseModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     message = models.TextField()
-    type = models.CharField(max_length=15, choices=[('order_status', 'Order Status'), ('promotion', 'Promotion'), ('reminder', 'Reminder')])
-    status = models.CharField(max_length=10, choices=[('read', 'Read'), ('unread', 'Unread')], default='unread')
+    type = models.CharField(
+        max_length=50
+    )
+    status = models.CharField(
+        max_length=10,
+        choices=[('read', 'Read'), ('unread', 'Unread')],
+        default='unread'
+    )
+    is_read = models.BooleanField(default=False)
+    data = models.JSONField(blank=True, null=True)  # 👈 Thêm JSON field
 
     class Meta:
         db_table = 'notification'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.type} | {self.message[:30]}"
+
 # ✅ Models hoàn tất!
 
 
@@ -379,3 +505,15 @@ class TableReservation(models.Model):
 
     class Meta:
         db_table = 'table_reservation'
+
+
+class ChatHistory(models.Model):
+    user_message = models.TextField()  # Tin nhắn người dùng
+    bot_reply = models.TextField()  # Phản hồi của chatbot
+    created_at = models.DateTimeField(auto_now_add=True)  # Thời gian gửi tin nhắn
+
+    def __str__(self):
+        return f"User: {self.user_message[:20]}... | Bot: {self.bot_reply[:20]}..."
+
+    class Meta:
+        db_table = 'chat_history'

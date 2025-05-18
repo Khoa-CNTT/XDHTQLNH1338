@@ -11,3 +11,14 @@
 ## config class bootstrap
   + button:        .btn-primary
   
+
+
+ws://localhost
+http://localhost
+
+
+---- Nhung file can update IP
+base.html
+SocketContext
+.env
+setting.py

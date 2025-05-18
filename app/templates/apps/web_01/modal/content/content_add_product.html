@@ -46,7 +46,7 @@
 <div class="form-check mb-3">
     <input class="form-check-input" type="checkbox" id="toggle-ingredients">
     <label class="form-check-label" for="toggle-ingredients">
-        <strong>Có nguyên liệu</strong>
+        <strong>Nguyên liệu</strong>
     </label>
 </div>
 
@@ -60,7 +60,7 @@
             <div class="row ingredient-item align-items-center mb-2">
                 <div class="col-md-7">
                     <div class="form-group">
-                        <label  class="form-label">dsadsa</label>
+                        <label  class="form-label">Nguyên liệu</label>
                         <select name="ingredient[]" class="ingredient-select form-control form-control-sm" required>
                             <option value="">Chọn nguyên liệu...</option>
                             {% for ingredient in ingredients %}
@@ -71,7 +71,7 @@
                 </div>
                 <div class="col-md-4">
                     <div class="form-group">
-                        <label  class="form-label">dsadsa</label>
+                        <label  class="form-label">Số lượng</label>
                         <input type="number" name="quantity[]" class="ingredient-quantity form-control form-control-sm text-center" min="1" value="1" required>
                         <small class="help-block text-danger"></small>
                     </div>
@@ -225,7 +225,7 @@
                 <div class="row ingredient-item align-items-center mb-2">
                     <div class="col-md-7">
                         <div class="form-group">
-                            <label  class="form-label">dsadsa</label>
+                            <label  class="form-label">Nguyên liệu</label>
                             <select name="ingredient[]" class="ingredient-select form-control form-control-sm">
                                 <option value="">Chọn nguyên liệu...</option>
                                 {% for ingredient in ingredients %}
@@ -236,7 +236,7 @@
                     </div>
                     <div class="col-md-4">
                         <div class="form-group">
-                            <label  class="form-label">dsadsa</label>
+                            <label  class="form-label">Số lượng</label>
                             <input type="number" name="quantity[]" class="ingredient-quantity form-control form-control-sm text-center" min="1" value="1">
                         </div>
                     </div>

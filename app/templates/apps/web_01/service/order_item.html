@@ -31,6 +31,7 @@
                        type="checkbox"
                        value="{{ order.order_id }}"
                        data-total="{{ order.order_total }}"
+                       data-status="{{ order.status }}"
                        {% if order.status == 'completed' %}checked disabled{% endif %}>
                 <strong>Đơn hàng #{{ loop.index }}</strong>
             </div>
@@ -40,20 +41,17 @@
                 <!-- Trạng thái với tooltip -->
                 {% if order.status == 'completed' %}
                     <span class="badge bg-success d-inline-flex align-items-center"
-                          data-bs-toggle="tooltip" data-bs-placement="top"
-                          title="Đơn đã được thanh toán">
+                          >
                         <i class="fas fa-check-circle me-1"></i> Đã thanh toán
                     </span>
                 {% elif order.status == 'pending' %}
                     <span class="badge bg-warning d-inline-flex align-items-center"
-                          data-bs-toggle="tooltip" data-bs-placement="top"
-                          title="Đơn chưa được thanh toán">
+                          >
                         <i class="fas fa-hourglass-half me-1"></i> Chưa thanh toán
                     </span>
                 {% else %}
                     <span class="badge bg-secondary d-inline-flex align-items-center"
-                          data-bs-toggle="tooltip" data-bs-placement="top"
-                          title="Trạng thái khác">
+                         >
                         <i class="fas fa-question-circle me-1"></i> Không xác định
                     </span>
                 {% endif %}
@@ -93,25 +91,26 @@
                         <td>{{ macros.format_currency(item.total) }}</td>
                         <td>
                         {% if item.status == 'pending' %}
-                            <span class="badge bg-warning " data-bs-toggle="tooltip" data-bs-placement="top" title="Mặt hàng đang chờ xử lý">
+                            <span class="badge bg-warning " >
                                 <span class="fas fa-stream me-1"></span> Chờ
                             </span>
                         {% elif item.status == 'in_progress' %}
-                            <span class="badge bg-primary" data-bs-toggle="tooltip" data-bs-placement="top" title="Mặt hàng đang được chế biến">
+                            <span class="badge bg-primary" >
                                 <i class="fas fa-redo me-1"></i> Đang chế biến
                             </span>
                         {% elif item.status == 'completed' %}
-                            <span class="badge bg-success" data-bs-toggle="tooltip" data-bs-placement="top" title="Mặt hàng đã hoàn thành">
+                            <span class="badge bg-success" >
                                 <i class="fas fa-check me-1"></i> Hoàn thành
                             </span>
                         {% else %}
-                            <span class="badge bg-danger" data-bs-toggle="tooltip" data-bs-placement="top" title="Mặt hàng đã bị hủy">
+                            <span class="badge bg-danger" >
                                 <i class="fas fa-times me-1"></i> Đã hủy
                             </span>
                         {% endif %}
                         </td>
                         <td>
-                            <div class="dropdown text-sans-serif"  {% if item.status in ['completed','cancelled'] %}data-bs-toggle="tooltip" data-bs-placement="top" title="Sản phẩm đã hoàn thành/hủy không thể chỉnh sửa."{% endif %}>
+                            {% if item.status not in ['completed','cancelled'] %}
+                            <div class="dropdown text-sans-serif">
                                 <button class="btn btn-sm btn-light sharp {% if item.status == 'completed' %}disabled{% endif %}"
                                         type="button"
                                         id="dropdown-item-{{ item.item_id }}"
@@ -137,6 +136,7 @@
                                             <a class="dropdown-item update-status-option" href="#!"
                                                 data-order-id="{{ order.order_id }}"
                                                 data-item-id="{{ item.item_id }}" 
+                                                data-product-name="{{ item.product_name }}" 
                                             
                                                 data-status="in_progress">
                                                 <i class="fas fa-redo me-1"></i> Chế biến
@@ -144,20 +144,25 @@
                                             {%endif%}
                                             <a class="dropdown-item update-status-option" href="#!"
                                                 data-order-id="{{ order.order_id }}"
+                                                data-product-name="{{ item.product_name }}" 
                                                 data-item-id="{{ item.item_id }}" data-status="completed">
                                                 <i class="fas fa-check me-1"></i> Hoàn thành   
                                             </a>
+
+                                            {% if item.status == 'pending' %}
                                             <a class="dropdown-item update-status-option" href="#!"
                                                 data-order-id="{{ order.order_id }}"
+                                                data-product-name="{{ item.product_name }}" 
                                                 data-item-id="{{ item.item_id }}" data-status="cancelled">
                                                 <i class="fas fa-trash-alt me-1"></i> Hủy
                                             </a>
+                                            {%endif%}
                                         {% endif %}
                                     </div>
                                 </div>
                                 {% endif %}
                             </div>
-                            
+                            {% endif %}
                         </td>
                     </tr>
                     {% endfor %}
@@ -166,7 +171,7 @@
         </div>
     </div>
 {% endfor %}
-
+{% if not all_paid %}
 <div class="row g-3">
     <div class="col-md-6">
         <label class="form-label">Phương thức thanh toán:</label>
@@ -174,8 +179,8 @@
             <button class="btn btn-outline-info active btn-sm" data-value='cash' id="btn-cash">
                 <i class="fas fa-money-bill-wave"></i> Tiền mặt
             </button>
-            <button class="btn btn-outline-info btn-sm" id="btn-card" data-value='card'>
-                <i class="fas fa-credit-card"></i> Thẻ
+            <button class="btn btn-outline-info btn-sm" id="btn-card" data-value='momo'>
+                <i class="fas fa-credit-card"></i> Momo
             </button>
             <button class="btn btn-outline-info btn-sm" id="btn-bank" data-value="bank_transfer">
                 <i class="fas fa-university"></i> Chuyển khoản
@@ -198,17 +203,26 @@
         </div>
     </div>
 </div>
+{% endif %}
 <hr/>
 
 <div class="row mb-3 align-items-center">
     <div class='col-md-4 text-start'>
+        {% if not all_paid %}
         Tổng tiền đã chọn: <strong id="finalSelectedTotal">0đ</strong>
+        {%endif%}
     </div>
     <div class='col-md-8 text-end'>
+        {% if not all_paid %}
         <button class="btn btn-primary me-2" data-bs-toggle="tooltip" data-placement="top" title="Thanh toán các hóa đơn đã được chọn." onclick="confirm_payment()">
             <i class="fas fa-money-bill-wave"></i> Thanh toán
         </button>
-        <span class='h-100 d-inline-block' data-bs-toggle="tooltip" data-placement="top" title="Cần thanh toán trước khi đóng phiên bàn.">
+        {%endif%}
+        <span class='h-100 d-inline-block' 
+        {% if not all_paid %}
+        data-bs-toggle="tooltip" data-placement="top" title="Cần thanh toán trước khi đóng phiên bàn."
+        {%endif%}
+        >
             <button type="button"
                     class="btn btn-secondary"
                     onclick='end_session({{session.id}})'
@@ -230,6 +244,10 @@
 
 {% block script %}
 <script type="text/javascript">
+
+   
+
+
     function confirm_payment() {
         const selectedOrders = $(".order-checkbox:checked").map(function () {
             return $(this).val();
@@ -283,7 +301,10 @@
     function updateSelectedOrdersTotal() {
         let total = 0;
         $(".order-checkbox:checked").each(function () {
-            total += parseFloat($(this).data("total"));
+            let is_completed = $(this).data("status") == 'completed'; 
+            if(!is_completed) {
+                total += parseFloat($(this).data("total"));
+            }
         });
         let percent = parseInt($('#discountInput').val()) || 0;
         total = total - (total * percent/100);
@@ -300,19 +321,25 @@
             contentType: "application/json",
             data: JSON.stringify({ session_id: session_id }),
             success: function (res) {
-                location.reload()
+                location.reload();
+                if (socket.readyState === WebSocket.OPEN) {
+                    // Socket đã mở, có thể gửi ngay
+                    socket.send(JSON.stringify({
+                        type: "end_session",
+                        session_id: session_id
+                    }));
+                }
             },
             error: function (err) {
                 console.error(err);
             }
         });
     }
-
     
     $(document).ready(function() {
         $('[data-bs-toggle="tooltip"]').tooltip();
 
-      
+       
     
      
 
@@ -328,7 +355,10 @@
         function updateDiscount(percent) {
             let total = 0;
             $(".order-checkbox:checked").each(function () {
-                total += parseFloat($(this).data("total"));
+                let is_completed = $(this).data("status") == 'completed'; 
+                if(!is_completed) {
+                    total += parseFloat($(this).data("total"));
+                }
             });
             const discountAmount = Math.round((total * percent) / 100);
             $("#finalSelectedTotal").text((total - discountAmount).toLocaleString() + 'đ');
@@ -393,7 +423,7 @@
             const orderId = $(this).data('order-id');
             const itemId = $(this).data('item-id');
             const status = $(this).data('status');
-    
+            const product_name = $(this).data('product-name');
             $.ajax({
                 url: "{{ url('web_01:update_item_status') }}",
                 method: "POST",
@@ -407,6 +437,7 @@
                 }),
                 success: function (res) {
                     $('#orderContents').html(res)
+                    socket_update_order_status_detail("product_status",product_name,"{{ table_id }}",status)
                 },
                 error: function (err) {
                     console.error(err);
@@ -414,8 +445,10 @@
             });
         });
 
+       
 
-        $(document).on("dragstart", ".draggable-product", function (e) {
+        // GẮN LẠI dragstart (với .off để tránh duplicate)
+        $(document).off("dragstart", ".draggable-product").on("dragstart", ".draggable-product", function (e) {
             const $menuItem = $(this).closest(".menu-item");
         
             draggedProduct = {
@@ -426,10 +459,9 @@
                 html: $menuItem.prop("outerHTML")
             };
         
-            // Tạo phần tử hiển thị tạm thời
             const dragPreview = document.createElement("div");
             dragPreview.style.position = "absolute";
-            dragPreview.style.top = "-9999px";  // tránh hiển thị thật trên màn hình
+            dragPreview.style.top = "-9999px";
             dragPreview.style.padding = "5px";
             dragPreview.style.background = "white";
             dragPreview.style.border = "1px solid #ccc";
@@ -442,72 +474,80 @@
             `;
             document.body.appendChild(dragPreview);
         
-            // Gắn làm hình kéo
             e.originalEvent.dataTransfer.setDragImage(dragPreview, 0, 0);
         
-            // Xoá sau 100ms để tránh DOM bị phình
             setTimeout(() => {
                 document.body.removeChild(dragPreview);
             }, 100);
-            
+        
             e.originalEvent.dataTransfer.setData("application/json", JSON.stringify(draggedProduct));
         });
-
-    $(".dropzone").on("dragover", function (e) {
+        
+        // GỠ và GẮN lại sự kiện dropzone
+        $(".dropzone").off("dragover dragleave drop");
+        
+        $(".dropzone").on("dragover", function (e) {
             const status = $(this).data("order-status");
         
             if (status === "completed") {
                 $(this).addClass("blocked");
-                return; // Không cho phép drop
+                return;
             }
-            e.preventDefault(); // Cho phép drop
+            e.preventDefault();
             $(this).addClass("border-success");
+        
         }).on("dragleave", function () {
             $(this).removeClass("border-success blocked");
-        });
-
-    $(".dropzone").on("drop", function (e) {
-        e.preventDefault();
-        $(this).removeClass("border-success");
-    
-        const orderId = $(this).data("order-id");
-        const orderStatus = $(this).data("order-status");
         
-        if (orderStatus === 'completed') {
-            alert("Không thể thêm sản phẩm vào đơn đã hoàn tất!");
-            return;
-        }
-    
-        const rawData = e.originalEvent.dataTransfer.getData("application/json");
-    
-        if (!rawData) {
-            alert("Không lấy được dữ liệu sản phẩm khi kéo!");
-            return;
-        }
-    
-        const draggedProduct = JSON.parse(rawData);
-
-        console.log('draggedProduct',draggedProduct)
-    
-        $.ajax({
-            url: "{{ url('web_01:add_product_to_order') }}",
-            method: "POST",
-            headers: { 'X-CSRFToken': '{{ csrf_token }}' },
-            contentType: "application/json",
-            data: JSON.stringify({
-                table_id: "{{table_id}}",
-                order_id: orderId,
-                product_id: draggedProduct.id,
-                quantity: 1
-            }),
-            success: function (res) {
-                $('#orderContents').html(res);
-            },
-            error: function (err) {
-                console.error("Lỗi khi thêm sản phẩm:", err);
+        }).on("drop", function (e) {
+            e.preventDefault();
+            $(this).removeClass("border-success");
+        
+            const orderId = $(this).data("order-id");
+            const orderStatus = $(this).data("order-status");
+        
+            if (orderStatus === 'completed') {
+                alert("Không thể thêm sản phẩm vào đơn đã hoàn tất!");
+                return;
             }
+        
+            const rawData = e.originalEvent.dataTransfer.getData("application/json");
+        
+            if (!rawData) {
+                alert("Không lấy được dữ liệu sản phẩm khi kéo!");
+                return;
+            }
+        
+            const draggedProduct = JSON.parse(rawData);
+        
+            $.ajax({
+                url: "{{ url('web_01:add_product_to_order') }}",
+                method: "POST",
+                headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+                contentType: "application/json",
+                data: JSON.stringify({
+                    table_id: "{{ table_id }}",
+                    order_id: orderId,
+                    product_id: draggedProduct.id,
+                    quantity: 1
+                }),
+                success: function (res) {
+                    $('#orderContents').html(res);
+        
+                    // Sau khi nội dung order thay đổi, nếu có dropzone trong res, cần gắn lại sự kiện
+                    setTimeout(() => {
+                        $(".dropzone").off("dragover dragleave drop");
+                        // Gắn lại dragover, dragleave, drop tương tự ở đây nếu cần
+                    }, 100);
+
+                    socket_update_order_status_detail("product_status",'',"{{ table_id }}",'')
+                },
+                error: function (err) {
+                    console.error("Lỗi khi thêm sản phẩm:", err);
+                }
+            });
         });
-    });
+        
 
 
     });

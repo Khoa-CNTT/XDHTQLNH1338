@@ -12,20 +12,20 @@
                                 <div class="text-center mb-3">
                                     <a href="index.html"><img src="/static/images/logo.png" alt="/"></a>
                                 </div>
-                                <h4 class="text-center mb-4">Đăng nhập với tài khoản của bạn</h4>
+                                <h4 class="text-center mb-4">Đăng nhập</h4>
 
                                 <form method="post"  action="{{url('web_01:login')}}">
                                     <input name='csrfmiddlewaretoken' value='{{csrf_token}}' hidden/>
                                     
                                     <div class="form-group mb-3">
-                                        <label class="form-label">Username</label>
+                                        <label class="form-label">Tài khoản</label>
                                         <input type="text" name="username" class="form-control" placeholder="viettai" required>
                                         {% if form.username.errors %}
                                             <div class="text-danger">{{ form.username.errors }}</div>
                                         {% endif %}
                                     </div>
                                     <div class="form-group mb-3">
-                                        <label class="form-label">Password</label>
+                                        <label class="form-label">Mật khẩu</label>
                                         <div class="position-relative">
                                             <input type="password" name="password" class="form-control" placeholder="Password" required>
                                             <span class="show-pass eye">
@@ -41,15 +41,15 @@
                                         <div class="form-group me-3 py-1">
                                             <div class="form-check custom-checkbox mb-0">
                                                 <input type="checkbox" class="form-check-input" id="customCheckBox1">
-                                                <label class="form-check-label" for="customCheckBox1">Remember my preference</label>
+                                                <label class="form-check-label" for="customCheckBox1">Ghi nhớ tôi</label>
                                             </div>
                                         </div>
                                         <div class="form-group py-1">
-                                            <a class="" href="page-forgot-password.html">Forgot Password?</a>
+                                            <a class="" href="page-forgot-password.html">Quên mật khẩu?</a>
                                         </div>
                                     </div>
                                     <div class="text-center">
-                                        <button type="submit" class="btn btn-primary btn-block">Sign In</button>
+                                        <button type="submit" class="btn btn-primary btn-block">Đăng nhập</button>
                                     </div>
                                 </form>
 
