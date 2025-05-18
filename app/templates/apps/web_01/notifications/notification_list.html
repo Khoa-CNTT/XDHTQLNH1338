@@ -13,9 +13,12 @@
                         <button id="mark-all-read-btn" class="btn btn-primary btn-sm me-2">
                             <i class="fas fa-check-double me-1"></i> Đánh dấu tất cả đã đọc
                         </button>
+
+                        {% if is_manager %}
                         <button id="delete-selected-btn" class="btn btn-danger btn-sm" disabled>
                             <i class="fas fa-trash me-1"></i> Xóa đã chọn
                         </button>
+                        {%endif%}
                     </div>
                 </div>
                 <div class="card-body">
@@ -56,24 +59,30 @@
                     </div>
                     
                     <div class="table-responsive">
-                        <table class="table table-hover">
+                        <table class="table table-hover" id='table_data'>
                             <thead>
                                 <tr>
+                                    <th width="40">
+                                       #
+                                    </th>
                                     <th width="40">
                                         <div class="form-check">
                                             <input class="form-check-input" type="checkbox" id="select-all">
                                         </div>
                                     </th>
-                                    <th width="50">Loại</th>
+                                    <th>Loại</th>
                                     <th>Nội dung</th>
-                                    <th width="150">Thời gian</th>
-                                    <th width="100">Trạng thái</th>
-                                    <th width="120">Thao tác</th>
+                                    <th>Thời gian</th>
+                                    <th>Trạng thái</th>
+                                    <th>Thao tác</th>
                                 </tr>
                             </thead>
                             <tbody id="notifications-table-body">
                                 {% for notif in notifications %}
                                 <tr class="{% if not notif.is_read %}table-light{% endif %}" data-id="{{ notif.id }}">
+                                    <td>
+                                        {{loop.index}}
+                                    </td>
                                     <td>
                                         <div class="form-check">
                                             <input class="form-check-input notification-checkbox" type="checkbox" value="{{ notif.id }}">
@@ -139,54 +148,6 @@
                                 {% endfor %}
                             </tbody>
                         </table>
-                    </div>
-                    
-                    <!-- Phân trang -->
-                    <div class="d-flex justify-content-between align-items-center mt-4">
-                        <div class="pagination-info">
-                            Hiển thị {{ page_obj.start_index }} đến {{ page_obj.end_index }} của {{ paginator.count }} thông báo
-                        </div>
-                        <nav>
-                            <ul class="pagination pagination-sm">
-                                {% if page_obj.has_previous %}
-                                <li class="page-item">
-                                    <a class="page-link" href="?page=1{% if request.GET.type %}&type={{ request.GET.type }}{% endif %}{% if request.GET.read %}&read={{ request.GET.read }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}" aria-label="First">
-                                        <span aria-hidden="true">&laquo;&laquo;</span>
-                                    </a>
-                                </li>
-                                <li class="page-item">
-                                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.type %}&type={{ request.GET.type }}{% endif %}{% if request.GET.read %}&read={{ request.GET.read }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}" aria-label="Previous">
-                                        <span aria-hidden="true">&laquo;</span>
-                                    </a>
-                                </li>
-                                {% endif %}
-                                
-                                {% for num in page_obj.paginator.page_range %}
-                                    {% if page_obj.number == num %}
-                                    <li class="page-item active">
-                                        <span class="page-link">{{ num }}</span>
-                                    </li>
-                                    {% elif num > page_obj.number - 3 and num < page_obj.number + 3 %}
-                                    <li class="page-item">
-                                        <a class="page-link" href="?page={{ num }}{% if request.GET.type %}&type={{ request.GET.type }}{% endif %}{% if request.GET.read %}&read={{ request.GET.read }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">{{ num }}</a>
-                                    </li>
-                                    {% endif %}
-                                {% endfor %}
-                                
-                                {% if page_obj.has_next %}
-                                <li class="page-item">
-                                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.type %}&type={{ request.GET.type }}{% endif %}{% if request.GET.read %}&read={{ request.GET.read }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}" aria-label="Next">
-                                        <span aria-hidden="true">&raquo;</span>
-                                    </a>
-                                </li>
-                                <li class="page-item">
-                                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.type %}&type={{ request.GET.type }}{% endif %}{% if request.GET.read %}&read={{ request.GET.read }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}" aria-label="Last">
-                                        <span aria-hidden="true">&raquo;&raquo;</span>
-                                    </a>
-                                </li>
-                                {% endif %}
-                            </ul>
-                        </nav>
                     </div>
                 </div>
             </div>
@@ -315,6 +276,10 @@
 {% block script %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+
+        var table = $('#table_data').DataTable({
+            ...DATATABLE_CONFIG
+        })
         // Xử lý chọn tất cả
         const selectAllCheckbox = document.getElementById('select-all');
         const notificationCheckboxes = document.querySelectorAll('.notification-checkbox');
