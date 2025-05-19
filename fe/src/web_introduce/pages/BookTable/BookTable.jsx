@@ -1,50 +1,50 @@
 import classNames from 'classnames/bind'
 import styles from './BookTable.module.scss'
 import { useState } from 'react'
-import { toast } from 'react-toastify';
-
+import { toast } from 'react-toastify'
+import axios from 'axios'
 const cx = classNames.bind(styles)
 
 const BookTable = () => {
   const [formData, setFormData] = useState({
     name: '',
-    phone: '',
-    email: '',
-    persons: '',
-    time: '00:00',
-    date: ''
+    phone_number: '',
+    many_person: '',
+    table: '',
+    date: '',
+    hour: '00:00'
   })
+  const [isLoading, setIsLoading] = useState(false)
 
   const handleChange = (e) => {
     const { id, value } = e.target
     setFormData((prev) => ({ ...prev, [id]: value }))
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
+    setIsLoading(true)
 
-    const { name, phone, persons, time, date, email } = formData
+    const { name, phone_number, many_person, table, date, hour } = formData
 
-    if (!name || !phone || !persons || !time || !date || !email) {
+    // Validation checks
+    if (!name || !phone_number || !many_person || !table || !date || !hour) {
       toast.error('Vui lòng điền đầy đủ thông tin!')
+      setIsLoading(false)
       return
     }
 
     const phoneRegex = /^0\d{9}$/
-    if (!phoneRegex.test(phone)) {
+    if (!phoneRegex.test(phone_number)) {
       toast.error('Số điện thoại không hợp lệ! (10 chữ số, bắt đầu bằng 0)')
+      setIsLoading(false)
       return
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(email)) {
-      toast.error('Email không hợp lệ!')
-      return
-    }
-
-    const personNum = parseInt(persons)
+    const personNum = parseInt(many_person)
     if (isNaN(personNum) || personNum < 1) {
       toast.error('Số người phải là số nguyên >= 1!')
+      setIsLoading(false)
       return
     }
 
@@ -53,11 +53,26 @@ const BookTable = () => {
     today.setHours(0, 0, 0, 0)
     if (selectedDate < today) {
       toast.error('Ngày đến không được ở quá khứ!')
+      setIsLoading(false)
       return
     }
 
-    console.log('Thông tin đặt bàn:', formData)
-    toast.success('Đặt bàn thành công!')
+    try {
+      const response = await axios.post('http://localhost:8000/api/book/tables/reservations/', formData)
+      toast.success(response.data.message)
+      setFormData({
+        name: '',
+        phone_number: '',
+        many_person: '',
+        table: '',
+        date: '',
+        hour: '00:00'
+      })
+    } catch (error) {
+      toast.error(error.response.data.message || 'Có lỗi xảy ra, vui lòng thử lại!')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -69,7 +84,7 @@ const BookTable = () => {
               <div className={cx('cs-booking-form')}>
                 <h2 className={cx('cs-form-title', 'text-center mb-4')}>Liên hệ đặt bàn</h2>
                 <form className='d-flex flex-wrap justify-content-around' onSubmit={handleSubmit}>
-                  {/* Name */}
+                  {/* Name Input */}
                   <div className='mb-3 col-md-5 col-12'>
                     <label htmlFor='name' className={cx('cs-form-label')}>Tên của bạn:</label>
                     <input
@@ -82,47 +97,48 @@ const BookTable = () => {
                     />
                   </div>
 
-                  {/* Phone */}
+                  {/* Phone Input */}
                   <div className='mb-3 col-md-5 col-12'>
-                    <label htmlFor='phone' className={cx('cs-form-label')}>Số điện thoại của bạn:</label>
+                    <label htmlFor='phone_number' className={cx('cs-form-label')}>Số điện thoại của bạn:</label>
                     <input
                       type='tel'
                       className={`form-control ${cx('cs-form-input')}`}
-                      id='phone'
-                      value={formData.phone}
+                      id='phone_number'
+                      value={formData.phone_number}
                       onChange={handleChange}
                       placeholder='Số điện thoại...'
                     />
                   </div>
 
-                  {/* Persons */}
+                  {/* Persons Input */}
                   <div className='mb-3 col-md-5 col-12'>
-                    <label htmlFor='persons' className={cx('cs-form-label')}>Bạn đi mấy người?</label>
+                    <label htmlFor='many_person' className={cx('cs-form-label')}>Bạn đi mấy người?</label>
                     <input
                       type='number'
                       className={`form-control ${cx('cs-form-input')}`}
-                      id='persons'
-                      value={formData.persons}
+                      id='many_person'
+                      value={formData.many_person}
                       onChange={handleChange}
                       placeholder='Số người...'
                       min='1'
                     />
                   </div>
 
-                  {/* Email */}
+                  {/* Table Input */}
                   <div className='mb-3 col-md-5 col-12'>
-                    <label htmlFor='email' className={cx('cs-form-label')}>Email của bạn:</label>
+                    <label htmlFor='table' className={cx('cs-form-label')}>Số bàn:</label>
                     <input
-                      type='email'
+                      type='number'
                       className={`form-control ${cx('cs-form-input')}`}
-                      id='email'
-                      value={formData.email}
+                      id='table'
+                      value={formData.table}
                       onChange={handleChange}
-                      placeholder='Email'
+                      placeholder='Số bàn...'
+                      min='1'
                     />
                   </div>
 
-                  {/* Date */}
+                  {/* Date Input */}
                   <div className='col-md-5 mb-3 mb-md-0 col-12'>
                     <label htmlFor='date' className={cx('cs-form-label')}>Bạn có thể đến ngày nào?</label>
                     <input
@@ -131,33 +147,38 @@ const BookTable = () => {
                       id='date'
                       value={formData.date}
                       onChange={handleChange}
-                      
                     />
                   </div>
 
-                  {/* Time */}
+                  {/* Time Input */}
                   <div className='col-md-5 col-12'>
-                    <label htmlFor='time' className={cx('cs-form-label')}>Thời gian bạn đến?</label>
+                    <label htmlFor='hour' className={cx('cs-form-label')}>Thời gian bạn đến?</label>
                     <input
                       type='time'
                       className={`form-control ${cx('cs-form-input')}`}
-                      id='time'
-                      value={formData.time}
+                      id='hour'
+                      value={formData.hour}
                       onChange={handleChange}
-                      
                     />
                   </div>
 
-                  {/* Submit */}
+                  {/* Submit Button */}
                   <button
                     type='submit'
                     className={`col-md-5 d-flex justify-content-center mt-3 ${cx('cs-submit-btn')}`}
+                    disabled={isLoading}
                   >
-                    Đặt bàn ngay
+                    {isLoading ? (
+                      <div className="spinner-border text-light" role="status">
+                        <span className="visually-hidden">Loading...</span>
+                      </div>
+                    ) : (
+                      'Đặt bàn ngay'
+                    )}
                   </button>
                 </form>
 
-                {/* Footer */}
+                {/* Footer Note */}
                 <p className={cx('cs-note-text', 'text-center mt-3 mb-0')}>
                   Khách đặt tiệc hội nghị, liên hoan vui lòng gọi trực tiếp: <strong>1900 6750</strong>
                 </p>

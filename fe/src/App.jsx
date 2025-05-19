@@ -69,7 +69,7 @@ function App() {
           <Route path="*" element={<Navigate to="/home/vn" replace />} />
         </Routes>
 
-        <ToastContainer autoClose={600} position="top-center" />
+        <ToastContainer autoClose={1400} position="top-center" />
       </div>
     </BrowserRouter>
   );
