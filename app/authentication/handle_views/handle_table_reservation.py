@@ -2,12 +2,12 @@ from rest_framework.viewsets import ViewSet, ModelViewSet
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import status
-from authentication.serializers import TableSerializer, TableReservationSerializer, TableReservation
+from authentication.serializers import TableSerializer, TableReservation, BookTableSerializer
 from django.utils.timezone import now
 
 class BookaTableViewSet(ModelViewSet):
     queryset = TableReservation.objects.all()
-    serializer_class = TableReservationSerializer
+    serializer_class = BookTableSerializer
 
     def create(self, request, *args, **kwargs):
         """📌 API tạo đơn đặt bàn"""
@@ -18,7 +18,7 @@ class BookaTableViewSet(ModelViewSet):
             date = serializer.validated_data['date']
             hour = serializer.validated_data['hour']
             phone_number = serializer.validated_data['phone_number']
-            table = serializer.validated_data['table'] 
+            table = serializer.validated_data.get('table', None) 
 
             # ✅ Kiểm tra người dùng đã đặt bàn chưa (đang chờ hoặc đã xác nhận)
             existing_reservation = TableReservation.objects.filter(
@@ -29,7 +29,7 @@ class BookaTableViewSet(ModelViewSet):
                 return Response(
                     {
                         "message": "Bạn đã có đặt bàn và đây là chi tiết bàn của bạn!",
-                        "reservation": TableReservationSerializer(existing_reservation).data
+                        "reservation": BookTableSerializer(existing_reservation).data
                     },
                     status=status.HTTP_400_BAD_REQUEST
                 )

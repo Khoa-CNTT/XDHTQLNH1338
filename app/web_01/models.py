@@ -492,7 +492,7 @@ class TableReservation(models.Model):
     name = models.CharField(max_length=100)
     phone_number = models.CharField(max_length=15)
     many_person = models.IntegerField()
-    table = models.ForeignKey(Table, on_delete=models.CASCADE, related_name='reservations')
+    table = models.ForeignKey(Table, on_delete=models.CASCADE, related_name='reservations', null=True, blank=True)
 
     date = models.DateField(null=False)  # Ngày đặt bàn
     hour = models.TimeField(null=False)  # Giờ đặt bàn
