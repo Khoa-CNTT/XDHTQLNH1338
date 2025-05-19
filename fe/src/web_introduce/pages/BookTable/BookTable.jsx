@@ -10,7 +10,7 @@ const BookTable = () => {
     name: '',
     phone_number: '',
     many_person: '',
-    table: '',
+    // table: '',
     date: '',
     hour: '00:00'
   })
@@ -25,10 +25,10 @@ const BookTable = () => {
     e.preventDefault()
     setIsLoading(true)
 
-    const { name, phone_number, many_person, table, date, hour } = formData
+    const { name, phone_number, many_person, date, hour } = formData
 
     // Validation checks
-    if (!name || !phone_number || !many_person || !table || !date || !hour) {
+    if (!name || !phone_number || !many_person || !date || !hour) {
       toast.error('Vui lòng điền đầy đủ thông tin!')
       setIsLoading(false)
       return
@@ -64,7 +64,7 @@ const BookTable = () => {
         name: '',
         phone_number: '',
         many_person: '',
-        table: '',
+        // table: '',
         date: '',
         hour: '00:00'
       })
@@ -125,7 +125,7 @@ const BookTable = () => {
                   </div>
 
                   {/* Table Input */}
-                  <div className='mb-3 col-md-5 col-12'>
+                  {/* <div className='mb-3 col-md-5 col-12'>
                     <label htmlFor='table' className={cx('cs-form-label')}>Số bàn:</label>
                     <input
                       type='number'
@@ -136,7 +136,7 @@ const BookTable = () => {
                       placeholder='Số bàn...'
                       min='1'
                     />
-                  </div>
+                  </div> */}
 
                   {/* Date Input */}
                   <div className='col-md-5 mb-3 mb-md-0 col-12'>
