@@ -198,7 +198,8 @@ class WorkShift(models.Model):
     SHIFT_TYPE_CHOICES = [
         ('morning', 'Sáng'),
         ('afternoon', 'Chiều'),
-        ('evening', 'Tối')
+        ('evening', 'Tối'),
+        ('allday', 'Cả Ngày')
     ]
 
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name="workshifts")
