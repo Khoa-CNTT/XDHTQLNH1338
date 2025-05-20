@@ -1,7 +1,7 @@
 from core.__Include_Library import *
 from django.shortcuts import render
 from django.http import JsonResponse
-from django.db.models import Q, Sum, Count, F, ExpressionWrapper, DurationField
+from django.db.models import Q, Sum, Count, F, ExpressionWrapper, DurationField, Case, When, FloatField, Value
 from web_01.models import Employee, WorkShift, User
 from django.utils import timezone
 import datetime
@@ -45,14 +45,36 @@ class EmployeeManagementView(LoginRequiredMixin, TemplateView):
             employees = Employee.objects.select_related('user') \
                 .filter(~Q(role__iexact='chef')) \
                 .annotate(
-                    total_shifts=Count('workshifts', distinct=True),
-                    total_hours=Sum(
-                        ExpressionWrapper(
-                            F('workshifts__time_end') - F('workshifts__time_start'),
-                            output_field=DurationField()
-                        ),
-                        filter=Q(workshifts__time_start__isnull=False, workshifts__time_end__isnull=False)
+                    total_shifts=Sum(
+                        Case(
+                            When(
+                                Q(workshifts__time_start__isnull=False) & Q(workshifts__time_end__isnull=False) &
+                                Q(workshifts__shift_type='allday'),
+                                then=Value(1.0)
+                            ),
+                            When(
+                                Q(workshifts__time_start__isnull=False) & Q(workshifts__time_end__isnull=False),
+                                then=Value(0.5)
+                            ),
+                            default=Value(0.0),
+                            output_field=FloatField()
+                        )
                     ),
+                    total_hours=Sum(
+                        Case(
+                            When(
+                                Q(workshifts__time_start__isnull=False) & Q(workshifts__time_end__isnull=False) &
+                                Q(workshifts__shift_type='allday'),
+                                then=Value(8.0)
+                            ),
+                            When(
+                                Q(workshifts__time_start__isnull=False) & Q(workshifts__time_end__isnull=False),
+                                then=Value(4.0)
+                            ),
+                            default=Value(0.0),
+                            output_field=FloatField()
+                        )
+                    )
                 )
 
             if filter_name:
@@ -77,13 +99,10 @@ class EmployeeManagementView(LoginRequiredMixin, TemplateView):
 
             employees_data = []
             for index, employee in enumerate(employees, start=start + 1):
-                if employee.total_hours:
-                    total_hours = employee.total_hours.total_seconds() / 3600
-                else:
-                    # fallback: giả định mỗi ca là 4 tiếng nếu không có time_start/time_end
-                    total_hours = employee.total_shifts * 4
+                total_shifts = employee.total_shifts or 0.0
+                total_hours = employee.total_hours or 0.0
 
-                hourly_rate = employee.salary / 176  # Giả định 176 giờ mỗi tháng
+                hourly_rate = employee.salary / 176  # giả định chuẩn 176 giờ/tháng
                 actual_salary = total_hours * hourly_rate
 
                 employees_data.append({
@@ -92,7 +111,7 @@ class EmployeeManagementView(LoginRequiredMixin, TemplateView):
                     "username": employee.user.username,
                     "role": employee.role,
                     "salary": f"{employee.salary:,} VND",
-                    "total_shifts": employee.total_shifts,
+                    "total_shifts": f"{total_shifts:.1f}",
                     "total_hours": f"{total_hours:.2f} giờ",
                     "actual_salary": f"{actual_salary:,.0f} VND",
                     "created_at": employee.user.date_joined.strftime('%d/%m/%Y') if hasattr(employee.user, 'date_joined') else ""
@@ -106,7 +125,6 @@ class EmployeeManagementView(LoginRequiredMixin, TemplateView):
             })
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=400)
-
 @login_required
 def employee_add(request):
     """Thêm nhân viên mới"""
