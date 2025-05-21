@@ -44,7 +44,7 @@ const Menu = () => {
       <h2 className={cx("menu-title")}>Our Menu</h2>
 
       {/* Danh mục filter */}
-      <div className={cx("category-filter")}>
+      <div className={cx("category-filter", "justify-content-center")}>
         <button
           className={cx("filter-button", { active: selectedCategory === "All" })}
           onClick={() => handleCategoryChange("All")}
