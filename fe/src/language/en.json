@@ -4,6 +4,12 @@
     "logout": "Logout",
     "language": "English",
     "search_placeholder": "What do you want to eat...",
+    "call_staff": {
+        "title": "Call Staff",
+        "message": "Would you like to call a staff member for assistance?",
+        "confirm": "Call Staff",
+        "cancel": "Cancel"
+    },
     "menu": {
         "title": "Restaurant Menu",
         "subtitle": "Delicious moments",
