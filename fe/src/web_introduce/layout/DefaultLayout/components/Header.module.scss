@@ -86,3 +86,95 @@
     background-color: #e69c00;
   }
 }
+
+// Mobile menu styles
+.cs-mobile-menu-icon {
+  display: none;
+  margin: 0 10px;
+  font-size: 24px;
+  color: #fff;
+  cursor: pointer;
+  
+  &:hover {
+    color: var(--foreignKey);
+  }
+}
+
+.cs-mobile-menu {
+  position: fixed;
+  top: 0;
+  right: -300px;
+  width: 300px;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.9);
+  z-index: 1000;
+  transition: right 0.3s ease;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.cs-mobile-menu-open {
+  right: 0;
+}
+
+.cs-mobile-menu-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.cs-mobile-menu-links {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.cs-mobile-text-center {
+  font-size: 18px;
+  color: #fff;
+  padding: 15px 0;
+  text-decoration: none;
+  width: 100%;
+  text-align: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  
+  &:hover {
+    color: var(--foreignKey);
+  }
+}
+
+.cs-mobile-btn-primary {
+  margin-top: 20px;
+  padding: 10px 30px;
+  background-color: var(--foreignKey);
+  color: #fff;
+  border-radius: 45px;
+  text-decoration: none;
+  font-size: 16px;
+  text-align: center;
+  width: 80%;
+  
+  &:hover {
+    background-color: #e69c00;
+  }
+}
+
+// Media queries for responsiveness
+@media (max-width: 991px) {
+  .cs-desktop-menu {
+    display: none !important;
+  }
+  
+  .cs-mobile-menu-icon {
+    display: block;
+  }
+  
+  .cs-btn-primary {
+    display: none;
+  }
+  
+  .cs-nav-right {
+    align-items: center;
+  }
+}
