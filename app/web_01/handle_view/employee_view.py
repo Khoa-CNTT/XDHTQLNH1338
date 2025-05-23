@@ -43,7 +43,7 @@ class EmployeeManagementView(LoginRequiredMixin, TemplateView):
                 order_column = "-" + order_column
 
             employees = Employee.objects.select_related('user') \
-                .filter(~Q(role__iexact='chef')) \
+                .filter(~Q(role__iexact='chef'), is_deleted=False) \
                 .annotate(
                     total_shifts=Sum(
                         Case(
