@@ -41,7 +41,7 @@ const Menu = () => {
 
   return (
     <div className={cx("menu-container")}>
-      <h2 className={cx("menu-title")}>Our Menu</h2>
+      <h2 className={cx("menu-title")}>Thực đơn</h2>
 
       {/* Danh mục filter */}
       <div className={cx("category-filter", "justify-content-center")}>
@@ -86,7 +86,7 @@ const Menu = () => {
         )}
       </div>
 
-      <button className={cx("view-more-button")}>View More</button>
+      <button className={cx("view-more-button")}>Xem thêm</button>
     </div>
   );
 };

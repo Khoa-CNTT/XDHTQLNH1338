@@ -52,15 +52,15 @@ const Header = () => {
         
         {/* Desktop Menu */}
         <div className={cx('cs-desktop-menu', 'd-flex justify-content-between', 'd-none d-md-flex')}>
-          <Link to={config.routes.home} className={cx('cs-text-center')}>HOME</Link>
-          <Link to={config.routes.menu} className={cx('cs-text-center')}>MENU</Link>
-          <Link to={config.routes.about} className={cx('cs-text-center')}>ABOUT</Link>
-          <Link to={config.routes.bookTable} className={cx('cs-text-center')}>FEEDBACK</Link>
+          <Link to={config.routes.home} className={cx('cs-text-center')}>TRANG CHỦ</Link>
+          <Link to={config.routes.menu} className={cx('cs-text-center')}>THỰC ĐƠN</Link>
+          <Link to={config.routes.about} className={cx('cs-text-center')}>GIỚI THIỆU</Link>
+          <Link to={config.routes.bookTable} className={cx('cs-text-center')}>ĐÁNH GIÁ</Link>
         </div>
         
         <div className={cx('d-flex align-items-center', 'cs-nav-right')}>
           <IoSearch className={cx('cs-icon')} onClick={handleSearchFullscreen} />
-          <Link to={config.routes.bookTable} className={cx('cs-btn-primary')}>Book a table</Link>
+          <Link to={config.routes.bookTable} className={cx('cs-btn-primary')}>Đặt bàn</Link>
           <FaBars className={cx('cs-mobile-menu-icon')} onClick={toggleMobileMenu} />
         </div>
       </div>
@@ -72,11 +72,11 @@ const Header = () => {
           <FaTimes className={cx('cs-icon')} onClick={toggleMobileMenu} />
         </div>
         <div className={cx('cs-mobile-menu-links')}>
-          <Link to={config.routes.home} className={cx('cs-mobile-text-center')} onClick={toggleMobileMenu}>HOME</Link>
-          <Link to={config.routes.menu} className={cx('cs-mobile-text-center')} onClick={toggleMobileMenu}>MENU</Link>
-          <Link to={config.routes.about} className={cx('cs-mobile-text-center')} onClick={toggleMobileMenu}>ABOUT</Link>
-          <Link to={config.routes.bookTable} className={cx('cs-mobile-text-center')} onClick={toggleMobileMenu}>FEEDBACK</Link>
-          <Link to={config.routes.bookTable} className={cx('cs-mobile-btn-primary')} onClick={toggleMobileMenu}>Book a table</Link>
+          <Link to={config.routes.home} className={cx('cs-mobile-text-center')} onClick={toggleMobileMenu}>TRANG CHỦ</Link>
+          <Link to={config.routes.menu} className={cx('cs-mobile-text-center')} onClick={toggleMobileMenu}>THỰC ĐƠN</Link>
+          <Link to={config.routes.about} className={cx('cs-mobile-text-center')} onClick={toggleMobileMenu}>GIỚI THIỆU</Link>
+          <Link to={config.routes.bookTable} className={cx('cs-mobile-text-center')} onClick={toggleMobileMenu}>ĐÁNH GIÁ</Link>
+          <Link to={config.routes.bookTable} className={cx('cs-mobile-btn-primary')} onClick={toggleMobileMenu}>Đặt bàn</Link>
         </div>
       </div>
       
