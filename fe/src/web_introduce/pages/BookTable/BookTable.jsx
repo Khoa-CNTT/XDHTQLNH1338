@@ -3,6 +3,7 @@ import styles from './BookTable.module.scss'
 import { useState, useEffect } from 'react'
 import { toast } from 'react-toastify'
 import axios from 'axios'
+
 const cx = classNames.bind(styles)
 
 const BookTable = () => {
@@ -10,15 +11,15 @@ const BookTable = () => {
     name: '',
     phone_number: '',
     many_person: '',
-    // table: '',
     date: '',
     hour: '00:00'
   })
   const [isLoading, setIsLoading] = useState(false)
   const [minDate, setMinDate] = useState('')
+  const [reservationDetail, setReservationDetail] = useState(null)
+  const [showModal, setShowModal] = useState(false)
 
   useEffect(() => {
-    // Set the minimum date to today's date
     const today = new Date()
     const year = today.getFullYear()
     const month = String(today.getMonth() + 1).padStart(2, '0')
@@ -37,7 +38,6 @@ const BookTable = () => {
 
     const { name, phone_number, many_person, date, hour } = formData
 
-    // Validation checks
     if (!name || !phone_number || !many_person || !date || !hour) {
       toast.error('Vui lòng điền đầy đủ thông tin!')
       setIsLoading(false)
@@ -58,13 +58,6 @@ const BookTable = () => {
       return
     }
 
-    const selectedDate = new Date(date)
-    if (selectedDate < minDate) {
-      toast.error('Ngày đến không được ở quá khứ!')
-      setIsLoading(false)
-      return
-    }
-
     try {
       const response = await axios.post('http://localhost:8000/api/book/tables/reservations/', formData)
       toast.success(response.data.message)
@@ -72,12 +65,19 @@ const BookTable = () => {
         name: '',
         phone_number: '',
         many_person: '',
-        // table: '',
         date: '',
         hour: '00:00'
       })
     } catch (error) {
-      toast.error(error.response.data.message || 'Có lỗi xảy ra, vui lòng thử lại!')
+      const res = error.response
+      if (res?.data?.reservation) {
+        setReservationDetail(res.data.reservation)
+        toast.error('Bạn đã có đặt bàn và đây là chi tiết bàn của bạn!', {
+          onClick: () => setShowModal(true),
+        })
+      } else {
+        toast.error(res?.data?.message || 'Có lỗi xảy ra, vui lòng thử lại!')
+      }
     } finally {
       setIsLoading(false)
     }
@@ -92,83 +92,30 @@ const BookTable = () => {
               <div className={cx('cs-booking-form')}>
                 <h2 className={cx('cs-form-title', 'text-center mb-4')}>Liên hệ đặt bàn</h2>
                 <form className='d-flex flex-column align-items-center' onSubmit={handleSubmit}>
-                  {/* Name Input */}
                   <div className='mb-3 col-md-10 col-12'>
                     <label htmlFor='name' className={cx('cs-form-label')}>Tên của bạn:</label>
-                    <input
-                      type='text'
-                      className={`form-control ${cx('cs-form-input')}`}
-                      id='name'
-                      value={formData.name}
-                      onChange={handleChange}
-                      placeholder='Tên của bạn...'
-                    />
+                    <input type='text' className={`form-control ${cx('cs-form-input')}`} id='name' value={formData.name} onChange={handleChange} />
                   </div>
-                  {/* Phone Input */}
                   <div className='mb-3 col-md-10 col-12'>
                     <label htmlFor='phone_number' className={cx('cs-form-label')}>Số điện thoại của bạn:</label>
-                    <input
-                      type='tel'
-                      className={`form-control ${cx('cs-form-input')}`}
-                      id='phone_number'
-                      value={formData.phone_number}
-                      onChange={handleChange}
-                      placeholder='Số điện thoại...'
-                    />
+                    <input type='tel' className={`form-control ${cx('cs-form-input')}`} id='phone_number' value={formData.phone_number} onChange={handleChange} />
                   </div>
-                  {/* Persons Input */}
                   <div className='mb-3 col-md-10 col-12'>
                     <label htmlFor='many_person' className={cx('cs-form-label')}>Bạn đi mấy người?</label>
-                    <input
-                      type='number'
-                      className={`form-control ${cx('cs-form-input')}`}
-                      id='many_person'
-                      value={formData.many_person}
-                      onChange={handleChange}
-                      placeholder='Số người...'
-                      min='1'
-                    />
+                    <input type='number' min='1' className={`form-control ${cx('cs-form-input')}`} id='many_person' value={formData.many_person} onChange={handleChange} />
                   </div>
-                  {/* Date Input */}
                   <div className='mb-3 col-md-10 col-12'>
                     <label htmlFor='date' className={cx('cs-form-label')}>Bạn có thể đến ngày nào?</label>
-                    <input
-                      type='date'
-                      className={`form-control ${cx('cs-form-input')}`}
-                      id='date'
-                      value={formData.date}
-                      onChange={handleChange}
-                      min={minDate}
-                    />
+                    <input type='date' min={minDate} className={`form-control ${cx('cs-form-input')}`} id='date' value={formData.date} onChange={handleChange} />
                   </div>
-                  {/* Time Input */}
-                  <div className= 'col-md-10 col-12'>
+                  <div className='col-md-10 col-12'>
                     <label htmlFor='hour' className={cx('cs-form-label')}>Thời gian bạn đến?</label>
-                    <input
-                      type='time'
-                      className={`form-control ${cx('cs-form-input')}`}
-                      id='hour'
-                      value={formData.hour}
-                      onChange={handleChange}
-                    />
+                    <input type='time' className={`form-control ${cx('cs-form-input')}`} id='hour' value={formData.hour} onChange={handleChange} />
                   </div>
-                  {/* Submit Button */}
-                  <button
-                    type='submit'
-                    className={`col-md-6 col-8 d-flex justify-content-center mt-3 ${cx('cs-submit-btn')}`}
-                    disabled={isLoading}
-                  >
-                    {isLoading ? (
-                      <div className="spinner-border text-light" role="status">
-                        <span className="visually-hidden">Loading...</span>
-                      </div>
-                    ) : (
-                      'Đặt bàn ngay'
-                    )}
+                  <button type='submit' className={`col-md-6 col-8 d-flex justify-content-center mt-3 ${cx('cs-submit-btn')}`} disabled={isLoading}>
+                    {isLoading ? <div className="spinner-border text-light" role="status"><span className="visually-hidden">Loading...</span></div> : 'Đặt bàn ngay'}
                   </button>
                 </form>
-
-                {/* Footer Note */}
                 <p className={cx('cs-note-text', 'text-center mt-3 mb-0')}>
                   Khách đặt tiệc hội nghị, liên hoan vui lòng gọi trực tiếp: <strong>1900 6750</strong>
                 </p>
@@ -177,6 +124,32 @@ const BookTable = () => {
           </div>
         </div>
       </div>
+
+      {/* ✅ Modal chi tiết đặt bàn */}
+      {showModal && reservationDetail && (
+        <div className="modal fade show d-block" tabIndex="-1" role="dialog" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal-dialog modal-dialog-centered" role="document">
+            <div className="modal-content p-3">
+              <div className="modal-header">
+                <h5 className="modal-title">Chi tiết đặt bàn</h5>
+                <button type="button" className="btn-close" onClick={() => setShowModal(false)}></button>
+              </div>
+              <div className="modal-body">
+                <p><strong>Tên:</strong> {reservationDetail.name}</p>
+                <p><strong>SĐT:</strong> {reservationDetail.phone_number}</p>
+                <p><strong>Số người:</strong> {reservationDetail.many_person}</p>
+                <p><strong>Ngày:</strong> {reservationDetail.date}</p>
+                <p><strong>Giờ:</strong> {reservationDetail.hour}</p>
+                <p><strong>Bàn:</strong> {reservationDetail.table || 'Chưa được gán'}</p>
+                <p><strong>Trạng thái:</strong> {reservationDetail.status}</p>
+              </div>
+              <div className="modal-footer">
+                <button className="btn btn-secondary" onClick={() => setShowModal(false)}>Đóng</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

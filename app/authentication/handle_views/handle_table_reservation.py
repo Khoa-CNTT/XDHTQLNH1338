@@ -23,6 +23,7 @@ class BookaTableViewSet(ModelViewSet):
             # ✅ Kiểm tra người dùng đã đặt bàn chưa (đang chờ hoặc đã xác nhận)
             existing_reservation = TableReservation.objects.filter(
                 phone_number=phone_number,
+                date=date,
                 status__in=['pending', 'confirmed']
             ).first()
             if existing_reservation:
