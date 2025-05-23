@@ -1,6 +1,6 @@
 import classNames from 'classnames/bind'
 import styles from './BookTable.module.scss'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { toast } from 'react-toastify'
 import axios from 'axios'
 const cx = classNames.bind(styles)
@@ -15,6 +15,16 @@ const BookTable = () => {
     hour: '00:00'
   })
   const [isLoading, setIsLoading] = useState(false)
+  const [minDate, setMinDate] = useState('')
+
+  useEffect(() => {
+    // Set the minimum date to today's date
+    const today = new Date()
+    const year = today.getFullYear()
+    const month = String(today.getMonth() + 1).padStart(2, '0')
+    const day = String(today.getDate()).padStart(2, '0')
+    setMinDate(`${year}-${month}-${day}`)
+  }, [])
 
   const handleChange = (e) => {
     const { id, value } = e.target
@@ -49,9 +59,7 @@ const BookTable = () => {
     }
 
     const selectedDate = new Date(date)
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    if (selectedDate < today) {
+    if (selectedDate < minDate) {
       toast.error('Ngày đến không được ở quá khứ!')
       setIsLoading(false)
       return
@@ -80,12 +88,12 @@ const BookTable = () => {
       <div className={cx('container')}>
         <div className={cx('cs-body')}>
           <div className='d-flex justify-content-center'>
-            <div className='col-md-8'>
+            <div className='col-md-6'>
               <div className={cx('cs-booking-form')}>
                 <h2 className={cx('cs-form-title', 'text-center mb-4')}>Liên hệ đặt bàn</h2>
-                <form className='d-flex flex-wrap justify-content-around' onSubmit={handleSubmit}>
+                <form className='d-flex flex-column align-items-center' onSubmit={handleSubmit}>
                   {/* Name Input */}
-                  <div className='mb-3 col-md-5 col-12'>
+                  <div className='mb-3 col-md-10 col-12'>
                     <label htmlFor='name' className={cx('cs-form-label')}>Tên của bạn:</label>
                     <input
                       type='text'
@@ -96,9 +104,8 @@ const BookTable = () => {
                       placeholder='Tên của bạn...'
                     />
                   </div>
-
                   {/* Phone Input */}
-                  <div className='mb-3 col-md-5 col-12'>
+                  <div className='mb-3 col-md-10 col-12'>
                     <label htmlFor='phone_number' className={cx('cs-form-label')}>Số điện thoại của bạn:</label>
                     <input
                       type='tel'
@@ -109,9 +116,8 @@ const BookTable = () => {
                       placeholder='Số điện thoại...'
                     />
                   </div>
-
                   {/* Persons Input */}
-                  <div className='mb-3 col-md-5 col-12'>
+                  <div className='mb-3 col-md-10 col-12'>
                     <label htmlFor='many_person' className={cx('cs-form-label')}>Bạn đi mấy người?</label>
                     <input
                       type='number'
@@ -123,23 +129,8 @@ const BookTable = () => {
                       min='1'
                     />
                   </div>
-
-                  {/* Table Input */}
-                  {/* <div className='mb-3 col-md-5 col-12'>
-                    <label htmlFor='table' className={cx('cs-form-label')}>Số bàn:</label>
-                    <input
-                      type='number'
-                      className={`form-control ${cx('cs-form-input')}`}
-                      id='table'
-                      value={formData.table}
-                      onChange={handleChange}
-                      placeholder='Số bàn...'
-                      min='1'
-                    />
-                  </div> */}
-
                   {/* Date Input */}
-                  <div className='col-md-5 mb-3 mb-md-0 col-12'>
+                  <div className='mb-3 col-md-10 col-12'>
                     <label htmlFor='date' className={cx('cs-form-label')}>Bạn có thể đến ngày nào?</label>
                     <input
                       type='date'
@@ -147,11 +138,11 @@ const BookTable = () => {
                       id='date'
                       value={formData.date}
                       onChange={handleChange}
+                      min={minDate}
                     />
                   </div>
-
                   {/* Time Input */}
-                  <div className='col-md-5 col-12'>
+                  <div className= 'col-md-10 col-12'>
                     <label htmlFor='hour' className={cx('cs-form-label')}>Thời gian bạn đến?</label>
                     <input
                       type='time'
@@ -161,11 +152,10 @@ const BookTable = () => {
                       onChange={handleChange}
                     />
                   </div>
-
                   {/* Submit Button */}
                   <button
                     type='submit'
-                    className={`col-md-5 d-flex justify-content-center mt-3 ${cx('cs-submit-btn')}`}
+                    className={`col-md-6 col-8 d-flex justify-content-center mt-3 ${cx('cs-submit-btn')}`}
                     disabled={isLoading}
                   >
                     {isLoading ? (
