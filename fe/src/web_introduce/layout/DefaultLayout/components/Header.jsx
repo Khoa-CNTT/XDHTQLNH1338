@@ -55,7 +55,7 @@ const Header = () => {
           <Link to={config.routes.home} className={cx('cs-text-center')}>TRANG CHỦ</Link>
           <Link to={config.routes.menu} className={cx('cs-text-center')}>THỰC ĐƠN</Link>
           <Link to={config.routes.about} className={cx('cs-text-center')}>GIỚI THIỆU</Link>
-          <Link to={config.routes.bookTable} className={cx('cs-text-center')}>ĐÁNH GIÁ</Link>
+          <Link to={config.routes.feedback} className={cx('cs-text-center')}>ĐÁNH GIÁ</Link>
         </div>
         
         <div className={cx('d-flex align-items-center', 'cs-nav-right')}>
@@ -75,7 +75,7 @@ const Header = () => {
           <Link to={config.routes.home} className={cx('cs-mobile-text-center')} onClick={toggleMobileMenu}>TRANG CHỦ</Link>
           <Link to={config.routes.menu} className={cx('cs-mobile-text-center')} onClick={toggleMobileMenu}>THỰC ĐƠN</Link>
           <Link to={config.routes.about} className={cx('cs-mobile-text-center')} onClick={toggleMobileMenu}>GIỚI THIỆU</Link>
-          <Link to={config.routes.bookTable} className={cx('cs-mobile-text-center')} onClick={toggleMobileMenu}>ĐÁNH GIÁ</Link>
+          <Link to={config.routes.feedback} className={cx('cs-mobile-text-center')} onClick={toggleMobileMenu}>ĐÁNH GIÁ</Link>
           <Link to={config.routes.bookTable} className={cx('cs-mobile-btn-primary')} onClick={toggleMobileMenu}>Đặt bàn</Link>
         </div>
       </div>

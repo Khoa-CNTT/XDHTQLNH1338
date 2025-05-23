@@ -8,6 +8,7 @@ import Menu from '../pages/Menu/Menu'
 import About from '../pages/About/About'
 import BookTable from '../pages/BookTable/BookTable'
 import ThankYou from '../../web_qr/pages/ThankYou/ThankYou'
+import FeedBack from '../pages/FeedBack/FeedBack'
 
 const web_introduce = [
   {
@@ -38,6 +39,11 @@ const web_introduce = [
   {
     path: config.routes.bookTable,
     component: BookTable,
+    layout: DefaultLayout,
+  },
+  {
+    path: config.routes.feedback,
+    component: FeedBack,
     layout: DefaultLayout,
   },
 ]
