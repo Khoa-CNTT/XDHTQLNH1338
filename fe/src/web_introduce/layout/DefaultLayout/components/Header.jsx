@@ -58,7 +58,7 @@ const Header = () => {
           <Link to={config.routes.bookTable} className={cx('cs-text-center')}>FEEDBACK</Link>
         </div>
         
-        <div className={cx('', 'cs-nav-right')}>
+        <div className={cx('d-', 'cs-nav-right')}>
           <IoSearch className={cx('cs-icon')} onClick={handleSearchFullscreen} />
           <Link to={config.routes.bookTable} className={cx('cs-btn-primary')}>Book a table</Link>
           <FaBars className={cx('cs-mobile-menu-icon')} onClick={toggleMobileMenu} />
