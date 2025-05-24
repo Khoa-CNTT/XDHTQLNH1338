@@ -194,7 +194,7 @@ class Employee(BaseModel):
         db_table = 'employee'
 
 
-class WorkShift(models.Model):
+class WorkShift(BaseModel):
     SHIFT_TYPE_CHOICES = [
         ('morning', 'Sáng'),
         ('afternoon', 'Chiều'),

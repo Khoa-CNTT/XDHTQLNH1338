@@ -95,7 +95,7 @@ class EmployeeManagementView(LoginRequiredMixin, TemplateView):
                 )
 
             total_count = employees.count()
-            employees = employees.order_by(order_column)[start:start + length]
+            employees = employees.order_by("-created_at")[start:start + length]
 
             employees_data = []
             for index, employee in enumerate(employees, start=start + 1):
