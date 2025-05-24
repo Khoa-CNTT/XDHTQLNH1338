@@ -143,10 +143,9 @@ def approve_table_reservation(request, id):
         reservation = get_object_or_404(TableReservation, id=id)
 
         if reservation.table is None:
-            # Lọc danh sách bàn đã bị đặt, loại bỏ bàn NULL
+            # Lọc danh sách bàn đã bị đặt trong cùng ngày (không phụ thuộc vào giờ)
             reserved_tables = TableReservation.objects.filter(
                 date=reservation.date,
-                hour=reservation.hour,
                 status__in=['pending', 'confirmed'],
                 table__isnull=False
             ).values_list('table_id', flat=True)
