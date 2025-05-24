@@ -540,7 +540,7 @@ Hãy hỏi tôi về một trong các chủ đề trên!
         reply = response.text
         
         # Thêm định dạng cho các bảng nếu cần
-        reply = self.enhance_markdown_tables(reply)
+        # reply = self.enhance_markdown_tables(reply)
         
         # Đảm bảo có chữ ký Bot RMS
         if "Bot RMS" not in reply:

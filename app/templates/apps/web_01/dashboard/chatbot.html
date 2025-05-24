@@ -261,10 +261,8 @@
 }
 
 .message-content th {
-    background-color: #3b7ddd;
-    color: white;
     font-weight: 600;
-    text-align: center;
+    text-align: left;
     padding: 0.75rem 0.5rem;
     border: none;
     position: sticky;
@@ -779,7 +777,7 @@
             
             tables.forEach(table => {
                 // Thêm class cho bảng
-                table.classList.add('enhanced-table');
+                table.classList.add('table table-bordered table-striped verticle-middle table-responsive-sm');
                 
                 // Xử lý các hàng và cột
                 const rows = table.querySelectorAll('tr');
