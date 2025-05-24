@@ -64,12 +64,12 @@ def chatbot_api(request):
                 # Tạo và trả về file Excel
                 if report_type and period:
                     excel_file, filename = generate_excel_report(report_type, period)
-                    
+                    report_type_vi,period_vi= convert_en_to_vi_title(report_type, period)
                     # Lưu lịch sử chat với thông báo về báo cáo đã tạo
                     bot_reply = f"""
 # Báo cáo Excel đã được tạo
 
-Bot RMS 65 đã tạo báo cáo Excel **{report_type}** cho **{get_period_name(period)}**.
+Bot RMS 65 đã tạo báo cáo Excel **{report_type_vi}** cho **{get_period_name(period_vi)}**.
 
 Bạn có thể tải xuống báo cáo bằng cách nhấp vào [đường dẫn này](/download-report/?type={report_type}&period={period}).
 
@@ -182,6 +182,32 @@ def extract_report_info(message):
         period = 'year'
     
     return report_type, period
+
+
+def convert_en_to_vi_title(report_type, period):
+    """Chuyển đổi report_type và period từ tiếng Anh sang tiếng Việt dạng title case"""
+    # Từ điển ánh xạ report_type sang tiếng Việt
+    report_type_map = {
+        'revenue': 'Doanh Thu',
+        'inventory': 'Tồn Kho',
+        'products': 'Sản Phẩm',
+        'tables': 'Bàn'
+    }
+    
+    # Từ điển ánh xạ period sang tiếng Việt
+    period_map = {
+        'today': 'Hôm Nay',
+        'yesterday': 'Hôm Qua',
+        'week': 'Tuần',
+        'month': 'Tháng',
+        'year': 'Năm'
+    }
+    
+    # Lấy giá trị tiếng Việt, mặc định giữ nguyên nếu không tìm thấy
+    report_type_vi = report_type_map.get(report_type, report_type.title())
+    period_vi = period_map.get(period, period.title())
+    
+    return report_type_vi, period_vi
 
 def get_period_name(period):
     """Trả về tên khoảng thời gian dễ đọc"""
