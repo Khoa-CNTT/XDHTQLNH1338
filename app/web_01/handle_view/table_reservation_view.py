@@ -60,7 +60,7 @@ class TableReservationManagementView(LoginRequiredMixin, TemplateView):
                 reservations = reservations.filter(table__table_number__icontains=table_number)
 
             total_count = reservations.count()
-            reservations = reservations.order_by(order_column)[start:start + length]
+            reservations = reservations.order_by("-created_at")[start:start + length]
 
             data = []
             for index, r in enumerate(reservations, start=start):
