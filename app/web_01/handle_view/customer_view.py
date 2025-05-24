@@ -51,7 +51,7 @@ class CustomerManagementView(LoginRequiredMixin, TemplateView):
                 )
 
             total_count = customer_list.count()
-            customer_list = customer_list.order_by(order_column)[start:start + length]
+            customer_list = customer_list.order_by("-created_at")[start:start + length]
 
             # ✅ Chuẩn bị dữ liệu JSON trả về
             customers_data = [

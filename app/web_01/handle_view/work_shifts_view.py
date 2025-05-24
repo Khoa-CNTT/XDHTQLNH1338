@@ -96,7 +96,7 @@ def work_shift_list(request):
         total_count = work_shifts.count()
         
         # Sắp xếp và phân trang
-        work_shifts = work_shifts.order_by(order_column)[start:start + length]
+        work_shifts = work_shifts.order_by("-created_at")[start:start + length]
 
         # Chuẩn bị dữ liệu cho response
         shift_types = dict(WorkShift.SHIFT_TYPE_CHOICES)
@@ -223,7 +223,7 @@ def shift_registration_list(request):
         total_count = registrations.count()
         
         # Sắp xếp và phân trang
-        registrations = registrations.order_by(order_column)[start:start + length]
+        registrations = registrations.order_by("-created_at")[start:start + length]
 
         # Chuẩn bị dữ liệu cho response
         shift_types = dict(WorkShift.SHIFT_TYPE_CHOICES)
