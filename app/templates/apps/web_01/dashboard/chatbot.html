@@ -251,7 +251,7 @@
 .message-content table {
     border-collapse: separate;
     border-spacing: 0;
-    width: 100%;
+    min-width:100px;
     margin: 1rem 0;
     font-size: 0.9rem;
     border-radius: 8px;
@@ -261,10 +261,8 @@
 }
 
 .message-content th {
-    background-color: #3b7ddd;
-    color: white;
     font-weight: 600;
-    text-align: center;
+    text-align: left;
     padding: 0.75rem 0.5rem;
     border: none;
     position: sticky;
@@ -290,35 +288,7 @@
     background-color: #f1f3f5;
 }
 
-/* Cột STT */
-.message-content td:first-child,
-.message-content th:first-child {
-    text-align: center;
-    width: 50px;
-}
 
-/* Cột số lượng */
-.message-content td:nth-child(3),
-.message-content th:nth-child(3) {
-    text-align: center;
-}
-
-/* Cột đơn vị */
-.message-content td:nth-child(4),
-.message-content th:nth-child(4) {
-    text-align: center;
-    width: 80px;
-}
-
-/* Hiệu ứng cho số lượng */
-.message-content td strong {
-    color: #e74c3c;
-    font-weight: 600;
-    background-color: rgba(231, 76, 60, 0.1);
-    padding: 2px 6px;
-    border-radius: 4px;
-    display: inline-block;
-}
 
 /* Biểu tượng cho hoạt động */
 .message-content .action-icon {
@@ -350,32 +320,12 @@
     font-size: 0.9em;
 }
 
-.message-content pre {
-    background-color: #f8f9fa;
-    padding: 1rem;
-    border-radius: 0.3rem;
-    overflow-x: auto;
-    margin: 1rem 0;
-    border: 1px solid #e9ecef;
-}
 
 .message-content a {
     color: #3b7ddd;
     text-decoration: none;
 }
 
-.message-content a:hover {
-    text-decoration: underline;
-}
-
-.message-content strong {
-    color: #e74c3c;
-    font-weight: 600;
-}
-
-.message-content em {
-    color: #7f8c8d;
-}
 
 /* Cải thiện hiển thị bảng trên mobile */
 @media (max-width: 576px) {
@@ -779,7 +729,7 @@
             
             tables.forEach(table => {
                 // Thêm class cho bảng
-                table.classList.add('enhanced-table');
+                table.classList.add('table table-bordered table-striped verticle-middle table-responsive-sm');
                 
                 // Xử lý các hàng và cột
                 const rows = table.querySelectorAll('tr');

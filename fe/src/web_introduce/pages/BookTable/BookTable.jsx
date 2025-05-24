@@ -1,63 +1,86 @@
 import classNames from 'classnames/bind'
 import styles from './BookTable.module.scss'
-import { useState } from 'react'
-import { toast } from 'react-toastify';
+import { useState, useEffect } from 'react'
+import { toast } from 'react-toastify'
+import axios from 'axios'
 
 const cx = classNames.bind(styles)
 
 const BookTable = () => {
   const [formData, setFormData] = useState({
     name: '',
-    phone: '',
-    email: '',
-    persons: '',
-    time: '00:00',
-    date: ''
+    phone_number: '',
+    many_person: '',
+    date: '',
+    hour: '00:00'
   })
+  const [isLoading, setIsLoading] = useState(false)
+  const [minDate, setMinDate] = useState('')
+  const [reservationDetail, setReservationDetail] = useState(null)
+  const [showModal, setShowModal] = useState(false)
+
+  useEffect(() => {
+    const today = new Date()
+    const year = today.getFullYear()
+    const month = String(today.getMonth() + 1).padStart(2, '0')
+    const day = String(today.getDate()).padStart(2, '0')
+    setMinDate(`${year}-${month}-${day}`)
+  }, [])
 
   const handleChange = (e) => {
     const { id, value } = e.target
     setFormData((prev) => ({ ...prev, [id]: value }))
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
+    setIsLoading(true)
 
-    const { name, phone, persons, time, date, email } = formData
+    const { name, phone_number, many_person, date, hour } = formData
 
-    if (!name || !phone || !persons || !time || !date || !email) {
+    if (!name || !phone_number || !many_person || !date || !hour) {
       toast.error('Vui lòng điền đầy đủ thông tin!')
+      setIsLoading(false)
       return
     }
 
     const phoneRegex = /^0\d{9}$/
-    if (!phoneRegex.test(phone)) {
+    if (!phoneRegex.test(phone_number)) {
       toast.error('Số điện thoại không hợp lệ! (10 chữ số, bắt đầu bằng 0)')
+      setIsLoading(false)
       return
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(email)) {
-      toast.error('Email không hợp lệ!')
-      return
-    }
-
-    const personNum = parseInt(persons)
+    const personNum = parseInt(many_person)
     if (isNaN(personNum) || personNum < 1) {
       toast.error('Số người phải là số nguyên >= 1!')
+      setIsLoading(false)
       return
     }
 
-    const selectedDate = new Date(date)
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    if (selectedDate < today) {
-      toast.error('Ngày đến không được ở quá khứ!')
-      return
+    try {
+      const response = await axios.post('http://localhost:8000/api/book/tables/reservations/', formData)
+      toast.success(response.data.message)
+      setFormData({
+        name: '',
+        phone_number: '',
+        many_person: '',
+        date: '',
+        hour: '00:00'
+      })
+    } catch (error) {
+      const res = error.response
+      if (res?.data?.reservation) {
+        setReservationDetail(res.data.reservation)
+        toast.error('Bạn đã có đặt bàn và đây là chi tiết bàn của bạn!', {
+          onClick: () => setShowModal(true),
+        })
+      } else {
+        toast.error(res?.data?.message || 'Có lỗi xảy ra, vui lòng thử lại!')
+      }
+    } finally {
+      setIsLoading(false)
     }
-
-    console.log('Thông tin đặt bàn:', formData)
-    toast.success('Đặt bàn thành công!')
   }
 
   return (
@@ -65,99 +88,34 @@ const BookTable = () => {
       <div className={cx('container')}>
         <div className={cx('cs-body')}>
           <div className='d-flex justify-content-center'>
-            <div className='col-md-8'>
+            <div className='col-md-6'>
               <div className={cx('cs-booking-form')}>
                 <h2 className={cx('cs-form-title', 'text-center mb-4')}>Liên hệ đặt bàn</h2>
-                <form className='d-flex flex-wrap justify-content-around' onSubmit={handleSubmit}>
-                  {/* Name */}
-                  <div className='mb-3 col-md-5 col-12'>
+                <form className='d-flex flex-column align-items-center' onSubmit={handleSubmit}>
+                  <div className='mb-3 col-md-10 col-12'>
                     <label htmlFor='name' className={cx('cs-form-label')}>Tên của bạn:</label>
-                    <input
-                      type='text'
-                      className={`form-control ${cx('cs-form-input')}`}
-                      id='name'
-                      value={formData.name}
-                      onChange={handleChange}
-                      placeholder='Tên của bạn...'
-                    />
+                    <input type='text' className={`form-control ${cx('cs-form-input')}`} id='name' value={formData.name} onChange={handleChange} />
                   </div>
-
-                  {/* Phone */}
-                  <div className='mb-3 col-md-5 col-12'>
-                    <label htmlFor='phone' className={cx('cs-form-label')}>Số điện thoại của bạn:</label>
-                    <input
-                      type='tel'
-                      className={`form-control ${cx('cs-form-input')}`}
-                      id='phone'
-                      value={formData.phone}
-                      onChange={handleChange}
-                      placeholder='Số điện thoại...'
-                    />
+                  <div className='mb-3 col-md-10 col-12'>
+                    <label htmlFor='phone_number' className={cx('cs-form-label')}>Số điện thoại của bạn:</label>
+                    <input type='tel' className={`form-control ${cx('cs-form-input')}`} id='phone_number' value={formData.phone_number} onChange={handleChange} />
                   </div>
-
-                  {/* Persons */}
-                  <div className='mb-3 col-md-5 col-12'>
-                    <label htmlFor='persons' className={cx('cs-form-label')}>Bạn đi mấy người?</label>
-                    <input
-                      type='number'
-                      className={`form-control ${cx('cs-form-input')}`}
-                      id='persons'
-                      value={formData.persons}
-                      onChange={handleChange}
-                      placeholder='Số người...'
-                      min='1'
-                    />
+                  <div className='mb-3 col-md-10 col-12'>
+                    <label htmlFor='many_person' className={cx('cs-form-label')}>Bạn đi mấy người?</label>
+                    <input type='number' min='1' className={`form-control ${cx('cs-form-input')}`} id='many_person' value={formData.many_person} onChange={handleChange} />
                   </div>
-
-                  {/* Email */}
-                  <div className='mb-3 col-md-5 col-12'>
-                    <label htmlFor='email' className={cx('cs-form-label')}>Email của bạn:</label>
-                    <input
-                      type='email'
-                      className={`form-control ${cx('cs-form-input')}`}
-                      id='email'
-                      value={formData.email}
-                      onChange={handleChange}
-                      placeholder='Email'
-                    />
-                  </div>
-
-                  {/* Date */}
-                  <div className='col-md-5 mb-3 mb-md-0 col-12'>
+                  <div className='mb-3 col-md-10 col-12'>
                     <label htmlFor='date' className={cx('cs-form-label')}>Bạn có thể đến ngày nào?</label>
-                    <input
-                      type='date'
-                      className={`form-control ${cx('cs-form-input')}`}
-                      id='date'
-                      value={formData.date}
-                      onChange={handleChange}
-                      
-                    />
+                    <input type='date' min={minDate} className={`form-control ${cx('cs-form-input')}`} id='date' value={formData.date} onChange={handleChange} />
                   </div>
-
-                  {/* Time */}
-                  <div className='col-md-5 col-12'>
-                    <label htmlFor='time' className={cx('cs-form-label')}>Thời gian bạn đến?</label>
-                    <input
-                      type='time'
-                      className={`form-control ${cx('cs-form-input')}`}
-                      id='time'
-                      value={formData.time}
-                      onChange={handleChange}
-                      
-                    />
+                  <div className='col-md-10 col-12'>
+                    <label htmlFor='hour' className={cx('cs-form-label')}>Thời gian bạn đến?</label>
+                    <input type='time' className={`form-control ${cx('cs-form-input')}`} id='hour' value={formData.hour} onChange={handleChange} />
                   </div>
-
-                  {/* Submit */}
-                  <button
-                    type='submit'
-                    className={`col-md-5 d-flex justify-content-center mt-3 ${cx('cs-submit-btn')}`}
-                  >
-                    Đặt bàn ngay
+                  <button type='submit' className={`col-md-6 col-8 d-flex justify-content-center mt-3 ${cx('cs-submit-btn')}`} disabled={isLoading}>
+                    {isLoading ? <div className="spinner-border text-light" role="status"><span className="visually-hidden">Loading...</span></div> : 'Đặt bàn ngay'}
                   </button>
                 </form>
-
-                {/* Footer */}
                 <p className={cx('cs-note-text', 'text-center mt-3 mb-0')}>
                   Khách đặt tiệc hội nghị, liên hoan vui lòng gọi trực tiếp: <strong>1900 6750</strong>
                 </p>
@@ -166,6 +124,32 @@ const BookTable = () => {
           </div>
         </div>
       </div>
+
+      {/* ✅ Modal chi tiết đặt bàn */}
+      {showModal && reservationDetail && (
+        <div className="modal fade show d-block" tabIndex="-1" role="dialog" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal-dialog modal-dialog-centered" role="document">
+            <div className="modal-content p-3">
+              <div className="modal-header">
+                <h5 className="modal-title">Chi tiết đặt bàn</h5>
+                <button type="button" className="btn-close" onClick={() => setShowModal(false)}></button>
+              </div>
+              <div className="modal-body">
+                <p><strong>Tên:</strong> {reservationDetail.name}</p>
+                <p><strong>SĐT:</strong> {reservationDetail.phone_number}</p>
+                <p><strong>Số người:</strong> {reservationDetail.many_person}</p>
+                <p><strong>Ngày:</strong> {reservationDetail.date}</p>
+                <p><strong>Giờ:</strong> {reservationDetail.hour}</p>
+                <p><strong>Bàn:</strong> {reservationDetail.table || 'Chưa được gán'}</p>
+                <p><strong>Trạng thái:</strong> {reservationDetail.status}</p>
+              </div>
+              <div className="modal-footer">
+                <button className="btn btn-secondary" onClick={() => setShowModal(false)}>Đóng</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -7,8 +7,7 @@ import { ThemeContext } from '../DarkMode/ThemeContext'
 import { useParams } from 'react-router-dom'
 import { CartProvider } from '../../context/CartContext'
 import { AuthProvider } from '../../context/AuthContext'
-
-
+import CallStaffButton from '../../components/CallStaffButton/CallStaffButton'
 
 const cx = classNames.bind(styles)
 
@@ -29,11 +28,11 @@ const MobileLayout = ({ children }) => {
                         {children}
                     </div>
                     <Footer />
+                    <CallStaffButton />
                 </div>
             </CartProvider>
         </AuthProvider>
     )
 }
-
 
 export default MobileLayout

@@ -60,7 +60,7 @@ class TableReservationManagementView(LoginRequiredMixin, TemplateView):
                 reservations = reservations.filter(table__table_number__icontains=table_number)
 
             total_count = reservations.count()
-            reservations = reservations.order_by(order_column)[start:start + length]
+            reservations = reservations.order_by("-created_at")[start:start + length]
 
             data = []
             for index, r in enumerate(reservations, start=start):
@@ -135,89 +135,42 @@ class TableReservationCreateForm(forms.ModelForm):
             'table': forms.Select(attrs={'class': 'form-control'}),
         }
 
-@require_POST
-def create_table_reservation(request):
-    """Tạo mới đặt bàn - Trả về JSON"""
-    try:
-        form = TableReservationCreateForm(request.POST)
-        if form.is_valid():
-            # Kiểm tra bàn có tồn tại không
-            table = form.cleaned_data.get('table')
-            if not table:
-                return JsonResponse({
-                    "success": False,
-                    "error": "Bàn không tồn tại"
-                }, status=404)
-
-            # Kiểm tra bàn đã được đặt chưa
-            date = form.cleaned_data.get('date')
-            if date < current_date.today():
-                return JsonResponse({
-                    "success": False,
-                    "error": "Không thể đặt bàn cho ngày trong quá khứ"
-                }, status=400)
-            hour = form.cleaned_data.get('hour')
-            existing_reservation = TableReservation.objects.filter(
-                table=table,
-                date=date,
-                hour=hour,
-                status__in=['pending', 'confirmed']
-            ).first()
-
-            if existing_reservation:
-                return JsonResponse({
-                    "success": False,
-                    "error": f"Bàn {table.table_number} đã được đặt vào {date.strftime('%d/%m/%Y')} lúc {hour.strftime('%H:%M')}"
-                }, status=400)
-
-            # Tạo đặt bàn mới
-            reservation = form.save(commit=False)
-            reservation.status = 'pending'  # Set trạng thái mặc định
-            reservation.save()
-
-            return JsonResponse({
-                "success": True,
-                "message": "Tạo đặt bàn thành công!",
-                "data": {
-                    "id": reservation.id,
-                    "name": reservation.name,
-                    "phone_number": reservation.phone_number,
-                    "many_person": reservation.many_person,
-                    "table": {
-                        "id": reservation.table.id,
-                        "table_number": reservation.table.table_number
-                    },
-                    "date": reservation.date.strftime('%Y-%m-%d'),
-                    "hour": reservation.hour.strftime('%H:%M'),
-                    "status": reservation.status,
-                    "status_display": reservation.get_status_display(),
-                    "created_at": reservation.created_at.strftime('%Y-%m-%d %H:%M:%S')
-                }
-            }, status=201)
-        else:
-            return JsonResponse({
-                "success": False,
-                "error": "Dữ liệu không hợp lệ",
-                "errors": form.errors
-            }, status=400)
-    except Exception as e:
-        return JsonResponse({
-            "success": False,
-            "error": f"Lỗi khi tạo đặt bàn: {str(e)}"
-        }, status=500)
-
 
 @require_POST
 @login_required
 def approve_table_reservation(request, id):
     try:
         reservation = get_object_or_404(TableReservation, id=id)
+
+        if reservation.table is None:
+            # Lọc danh sách bàn đã bị đặt trong cùng ngày (không phụ thuộc vào giờ)
+            reserved_tables = TableReservation.objects.filter(
+                date=reservation.date,
+                status__in=['pending', 'confirmed'],
+                table__isnull=False
+            ).values_list('table_id', flat=True)
+
+            available_tables = Table.objects.exclude(id__in=reserved_tables)
+
+            table_options = [
+                {"id": t.id, "table_number": t.table_number}
+                for t in available_tables
+            ]
+
+            print("📦 available_tables =", table_options)
+
+            return JsonResponse({
+                "require_table": True,
+                "reservation_id": reservation.id,
+                "available_tables": table_options,
+                "message": "Vui lòng chọn bàn cho khách trước khi xác nhận!"
+            })
+
         reservation.status = 'confirmed'
         reservation.save()
         return JsonResponse({"success": True, "message": "Đặt bàn đã được xác nhận!"})
     except Exception as e:
         return JsonResponse({"success": False, "message": f"Lỗi: {str(e)}"}, status=400)
-
 
 @require_POST
 @login_required
@@ -239,3 +192,35 @@ def delete_table_reservation(request, id):
         return JsonResponse({"success": True, "message": "Đã xóa đặt bàn!"})
     except Exception as e:
         return JsonResponse({"success": False, "message": f"Lỗi: {str(e)}"}, status=400)
+
+@require_POST
+@login_required
+def assign_table_to_reservation(request, id):
+    try:
+        reservation = get_object_or_404(TableReservation, id=id)
+        data = json.loads(request.body)
+        table_id = data.get("table_id")
+
+        if not table_id:
+            return JsonResponse({"success": False, "message": "Vui lòng chọn bàn!"}, status=400)
+
+        table = get_object_or_404(Table, id=table_id)
+
+        # Check xung đột
+        conflict = TableReservation.objects.filter(
+            table=table,
+            date=reservation.date,
+            hour=reservation.hour,
+            status__in=['pending', 'confirmed']
+        ).exclude(id=reservation.id).exists()
+
+        if conflict:
+            return JsonResponse({"success": False, "message": "Bàn đã có người đặt vào thời gian này!"}, status=400)
+
+        reservation.table = table
+        reservation.status = 'confirmed'
+        reservation.save()
+
+        return JsonResponse({"success": True, "message": "Gán bàn và xác nhận thành công!"})
+    except Exception as e:
+        return JsonResponse({"success": False, "message": str(e)}, status=500)

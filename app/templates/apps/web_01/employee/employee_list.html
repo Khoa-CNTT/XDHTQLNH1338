@@ -18,7 +18,12 @@
                     <div class="row">
                         <div class="col-md">
                             <label><strong>Tên Nhân viên</strong></label>
-                            <input type="text" class="form-control form-control-sm" id="filter-name" placeholder="Nhập tên">
+                            <select class="form-control form-control-sm" id="filter-name">
+                                <option value="">-- Tất cả --</option>
+                                {% for employee in employee_list %}
+                                    <option value="{{ employee.user.username }}">{{ employee.user.username }}</option>
+                                {% endfor %}
+                            </select>
                         </div>
                         <div class="col-md">
                             <label><strong>Chức vụ</strong></label>
@@ -194,7 +199,7 @@
                 type: "POST",
                 headers: { 'X-CSRFToken': '{{ csrf_token }}' },
                 data: function(d) {
-                    d.filter_name = $('#filter-name').val().trim();
+                    d.filter_name = $('#filter-name').val();  // giá trị từ dropdown
                     d.filter_role = $('#filter-role').val();
                     return d;
                 },

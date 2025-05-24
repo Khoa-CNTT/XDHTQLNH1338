@@ -4,6 +4,12 @@
     "logout": "Đăng xuất",
     "language": "Tiếng Việt",
     "search_placeholder": "Bạn muốn ăn gì...",
+    "call_staff": {
+        "title": "Gọi nhân viên",
+        "message": "Bạn có muốn gọi nhân viên để được hỗ trợ không?",
+        "confirm": "Xác nhận",
+        "cancel": "Hủy"
+    },
     "menu": {
         "title": "Thực đơn quán",
         "subtitle": "Vị ngon, trọn khoảnh khắc",
