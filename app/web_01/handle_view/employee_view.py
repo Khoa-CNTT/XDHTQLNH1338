@@ -13,6 +13,8 @@ class EmployeeManagementView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        # 📌 Lấy danh sách nhân viên không bị xóa
+        context['employee_list'] = Employee.objects.filter(is_deleted=False).select_related('user')
         return context
 
     def post(self, request, *args, **kwargs):
@@ -24,6 +26,8 @@ class EmployeeManagementView(LoginRequiredMixin, TemplateView):
 
             filter_name = request.POST.get("filter_name", "").strip()
             filter_role = request.POST.get("filter_role", "").strip()
+            filter_year = request.POST.get("filter_year")
+            filter_month = request.POST.get("filter_month")
 
             order_column_index = int(request.POST.get("order[0][column]", 0))
             order_dir = request.POST.get("order[0][dir]", "desc")
@@ -42,14 +46,20 @@ class EmployeeManagementView(LoginRequiredMixin, TemplateView):
             if order_dir == "desc":
                 order_column = "-" + order_column
 
+            now = timezone.now()
+            year = int(filter_year) if filter_year else now.year
+            month = int(filter_month) if filter_month else now.month
+
+            start_date = datetime.date(year, month, 1)
+            if month == 12:
+                end_date = datetime.date(year + 1, 1, 1)
+            else:
+                end_date = datetime.date(year, month + 1, 1)
+
             employees = Employee.objects.select_related('user').filter(~Q(role__iexact='chef'), is_deleted=False)
 
             if filter_name:
-                employees = employees.filter(
-                    Q(user__username__icontains=filter_name) |
-                    Q(user__first_name__icontains=filter_name) |
-                    Q(user__last_name__icontains=filter_name)
-                )
+                employees = employees.filter(user__username=filter_name)  # filter theo username chính xác
 
             if filter_role:
                 employees = employees.filter(role=filter_role)
@@ -62,22 +72,12 @@ class EmployeeManagementView(LoginRequiredMixin, TemplateView):
                 )
 
             total_count = employees.count()
-            employees = employees.order_by("-created_at")[start:start + length]
+            employees = employees.order_by(order_column)[start:start + length]
 
-            # 📌 Lấy tháng hiện tại (hoặc bạn có thể nhận từ request để dynamic)
-            now = timezone.now()
-            year, month = now.year, now.month
+            from django.db.models import ExpressionWrapper, F, DurationField, FloatField
 
             employees_data = []
             for index, employee in enumerate(employees, start=start + 1):
-                # Xác định tháng hiện tại (hoặc filter theo tháng/năm)
-                start_date = datetime.date(year, month, 1)
-                if month == 12:
-                    end_date = datetime.date(year + 1, 1, 1)
-                else:
-                    end_date = datetime.date(year, month + 1, 1)
-
-                # 📌 Lấy WorkShift có time_start và time_end để tính thời gian thực
                 workshifts = employee.workshifts.filter(
                     date__gte=start_date,
                     date__lt=end_date,
@@ -96,7 +96,6 @@ class EmployeeManagementView(LoginRequiredMixin, TemplateView):
                     hours = duration_seconds / 3600
                     total_hours += hours
 
-                # 📌 Tính tổng ca dựa trên tổng giờ thực tế
                 total_shifts = 0
                 if total_hours >= 8:
                     total_shifts = total_hours // 8
@@ -106,7 +105,7 @@ class EmployeeManagementView(LoginRequiredMixin, TemplateView):
                 elif total_hours >= 4:
                     total_shifts = 0.5
                 elif total_hours > 0:
-                    total_shifts = 0.25  # Hoặc có thể là 0
+                    total_shifts = 0.25
 
                 hourly_rate = employee.salary / 176 if employee.salary else 0
                 actual_salary = total_hours * hourly_rate
@@ -117,7 +116,7 @@ class EmployeeManagementView(LoginRequiredMixin, TemplateView):
                     "username": employee.user.username,
                     "role": employee.role,
                     "salary": f"{employee.salary:,} VND",
-                    "total_shifts": f"{total_shifts:.2f}",  # Hiển thị 2 chữ số thập phân
+                    "total_shifts": f"{total_shifts:.2f}",
                     "total_hours": f"{total_hours:.2f} giờ",
                     "actual_salary": f"{actual_salary:,.0f} VND",
                     "created_at": employee.user.date_joined.strftime('%d/%m/%Y') if hasattr(employee.user, 'date_joined') else ""
@@ -131,6 +130,7 @@ class EmployeeManagementView(LoginRequiredMixin, TemplateView):
             })
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=400)
+
 @login_required
 def employee_add(request):
     """Thêm nhân viên mới"""
