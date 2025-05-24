@@ -67,7 +67,6 @@ const Header = () => {
       {/* Mobile Menu */}
       <div ref={mobileMenuRef} className={cx('cs-mobile-menu', { 'cs-mobile-menu-open': mobileMenuOpen })}>
         <div className={cx('cs-mobile-menu-header')}>
-          <Link to={config.routes.home} className={cx('cs-logo')}>RYAN PHAM</Link>
           <FaTimes className={cx('cs-icon')} onClick={toggleMobileMenu} />
         </div>
         <div className={cx('cs-mobile-menu-links')}>
