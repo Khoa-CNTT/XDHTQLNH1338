@@ -42,40 +42,7 @@ class EmployeeManagementView(LoginRequiredMixin, TemplateView):
             if order_dir == "desc":
                 order_column = "-" + order_column
 
-            employees = Employee.objects.select_related('user') \
-                .filter(~Q(role__iexact='chef'), is_deleted=False) \
-                .annotate(
-                    total_shifts=Sum(
-                        Case(
-                            When(
-                                Q(workshifts__time_start__isnull=False) & Q(workshifts__time_end__isnull=False) &
-                                Q(workshifts__shift_type='allday'),
-                                then=Value(1.0)
-                            ),
-                            When(
-                                Q(workshifts__time_start__isnull=False) & Q(workshifts__time_end__isnull=False),
-                                then=Value(0.5)
-                            ),
-                            default=Value(0.0),
-                            output_field=FloatField()
-                        )
-                    ),
-                    total_hours=Sum(
-                        Case(
-                            When(
-                                Q(workshifts__time_start__isnull=False) & Q(workshifts__time_end__isnull=False) &
-                                Q(workshifts__shift_type='allday'),
-                                then=Value(8.0)
-                            ),
-                            When(
-                                Q(workshifts__time_start__isnull=False) & Q(workshifts__time_end__isnull=False),
-                                then=Value(4.0)
-                            ),
-                            default=Value(0.0),
-                            output_field=FloatField()
-                        )
-                    )
-                )
+            employees = Employee.objects.select_related('user').filter(~Q(role__iexact='chef'), is_deleted=False)
 
             if filter_name:
                 employees = employees.filter(
@@ -97,12 +64,51 @@ class EmployeeManagementView(LoginRequiredMixin, TemplateView):
             total_count = employees.count()
             employees = employees.order_by("-created_at")[start:start + length]
 
+            # 📌 Lấy tháng hiện tại (hoặc bạn có thể nhận từ request để dynamic)
+            now = timezone.now()
+            year, month = now.year, now.month
+
             employees_data = []
             for index, employee in enumerate(employees, start=start + 1):
-                total_shifts = employee.total_shifts or 0.0
-                total_hours = employee.total_hours or 0.0
+                # Xác định tháng hiện tại (hoặc filter theo tháng/năm)
+                start_date = datetime.date(year, month, 1)
+                if month == 12:
+                    end_date = datetime.date(year + 1, 1, 1)
+                else:
+                    end_date = datetime.date(year, month + 1, 1)
 
-                hourly_rate = employee.salary / 176  # giả định chuẩn 176 giờ/tháng
+                # 📌 Lấy WorkShift có time_start và time_end để tính thời gian thực
+                workshifts = employee.workshifts.filter(
+                    date__gte=start_date,
+                    date__lt=end_date,
+                    time_start__isnull=False,
+                    time_end__isnull=False
+                ).annotate(
+                    duration=ExpressionWrapper(
+                        F('time_end') - F('time_start'),
+                        output_field=DurationField()
+                    )
+                )
+
+                total_hours = 0
+                for ws in workshifts:
+                    duration_seconds = ws.duration.total_seconds()
+                    hours = duration_seconds / 3600
+                    total_hours += hours
+
+                # 📌 Tính tổng ca dựa trên tổng giờ thực tế
+                total_shifts = 0
+                if total_hours >= 8:
+                    total_shifts = total_hours // 8
+                    remainder = total_hours % 8
+                    if remainder >= 4:
+                        total_shifts += 0.5
+                elif total_hours >= 4:
+                    total_shifts = 0.5
+                elif total_hours > 0:
+                    total_shifts = 0.25  # Hoặc có thể là 0
+
+                hourly_rate = employee.salary / 176 if employee.salary else 0
                 actual_salary = total_hours * hourly_rate
 
                 employees_data.append({
@@ -111,7 +117,7 @@ class EmployeeManagementView(LoginRequiredMixin, TemplateView):
                     "username": employee.user.username,
                     "role": employee.role,
                     "salary": f"{employee.salary:,} VND",
-                    "total_shifts": f"{total_shifts:.1f}",
+                    "total_shifts": f"{total_shifts:.2f}",  # Hiển thị 2 chữ số thập phân
                     "total_hours": f"{total_hours:.2f} giờ",
                     "actual_salary": f"{actual_salary:,.0f} VND",
                     "created_at": employee.user.date_joined.strftime('%d/%m/%Y') if hasattr(employee.user, 'date_joined') else ""
