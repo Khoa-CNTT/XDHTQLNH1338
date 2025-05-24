@@ -67,37 +67,38 @@
     padding: 5rem 0 2rem;
     text-align: center;
     margin-top: 3rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    background-color: #f5f5f5;
 }
 
 .feedback-title {
     font-size: 2.5rem;
     font-weight: bold;
     margin-bottom: 0.5rem;
-    color: #ffffff;
+    color: #222831;
     font-family: 'Dancing Script', cursive;
 }
 
 .feedback-subtitle {
     font-size: 1.2rem;
-    color: #aaa;
+    color: #555;
     margin-bottom: 2rem;
 }
 
 .greeting-section {
-    background-color: rgba(255, 255, 255, 0.05);
+    background-color: rgba(255, 190, 51, 0.1);
     border-left: 4px solid #ffbe33;
     border-radius: 8px;
     padding: 1.5rem;
     margin-bottom: 3rem;
     text-align: left;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
 .greeting-text {
     margin: 0;
     line-height: 1.6;
-    color: #fff;
+    color: #333;
     
     span {
         display: block;
@@ -106,21 +107,21 @@
 }
 
 .greeting-vietnamese {
-    color: #fff;
+    color: #333;
     font-size: 1.1rem;
 }
 
 .greeting-english {
-    color: #ccc;
+    color: #555;
     font-size: 1rem;
     font-style: italic;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
     padding-bottom: 1rem;
     margin-bottom: 1rem;
 }
 
 .greeting-invitation {
-    color: #ffbe33;
+    color: #e69c00;
     font-weight: 500;
     font-size: 1.05rem;
 }
@@ -135,7 +136,7 @@
             width: 12px;
             height: 12px;
             border-radius: 50%;
-            background-color: #555;
+            background-color: #aaa;
             margin: 0 6px;
             
             &:global(.active) {
@@ -149,14 +150,14 @@
         width: 40px;
         height: 40px;
         border-radius: 50%;
-        background-color: rgba(255, 255, 255, 0.1);
+        background-color: rgba(0, 0, 0, 0.1);
         top: 50%;
         transform: translateY(-50%);
         opacity: 0.7;
         
         &:hover {
             opacity: 1;
-            background-color: rgba(255, 255, 255, 0.2);
+            background-color: rgba(0, 0, 0, 0.2);
         }
         
         :global(.carousel-control-prev-icon),
@@ -180,10 +181,10 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    background-color: rgba(255, 255, 255, 0.05);
+    background-color: #ffffff;
     border-radius: 12px;
     padding: 2.5rem;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
     margin: 0 auto;
     max-width: 800px;
     min-height: 300px;
@@ -196,7 +197,7 @@
     overflow: hidden;
     margin-bottom: 1.5rem;
     border: 4px solid #ffbe33;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     
     img {
         width: 100%;
@@ -213,7 +214,7 @@
     font-size: 1.4rem;
     font-weight: 600;
     margin-bottom: 0.5rem;
-    color: #fff;
+    color: #222831;
 }
 
 .rating {
@@ -231,7 +232,7 @@
 .feedback-review {
     font-size: 1.1rem;
     line-height: 1.6;
-    color: #ddd;
+    color: #555;
     font-style: italic;
     position: relative;
     

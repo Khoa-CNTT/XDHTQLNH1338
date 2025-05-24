@@ -79,16 +79,18 @@ const About = () => {
             <div className={cx('cs-header')}>
               <h2>We Are Five Star</h2>
             </div>
-            <p className={cx('cs-text')}>{`Nhà hàng ẩm thực hiện đại kết hợp với truyền thống, tạo nên tính mới lạ cho thực khách. Được ra đời vào năm 2025 với tiêu chí "Khách hàng là trên hết, phục vụ nhanh chóng" nên chúng tôi luôn tự hào về cách phục vụ cũng như các món ăn mà chúng tôi làm ra. Nhà hàng chúng tôi luôn luôn đặt khách hàng lên hàng đầu, tận tâm phục vụ, mang lại cho khách hàng những trãi nghiệm tuyệt với nhất. Các món ăn với công thức độc quyền sẽ mang lại hương vị mới mẻ cho thực khách. Chúng tôi xin chân thành cảm ơn.`}</p>
+            <p className={cx('cs-text')}>{`Nhà hàng ẩm thực hiện đại kết hợp với truyền thống, tạo nên tính mới lạ cho thực khách. Được ra đời vào năm 2025 với tiêu chí "Khách hàng là trên hết, phục vụ nhanh chóng" nên chúng tôi luôn tự hào về cách phục vụ cũng như các món ăn mà chúng tôi làm ra. Nhà hàng chúng tôi luôn luôn đặt khách hàng lên hàng đầu, tận tâm phục vụ, mang lại cho khách hàng những trải nghiệm tuyệt với nhất. Các món ăn với công thức độc quyền sẽ mang lại hương vị mới mẻ cho thực khách. Chúng tôi xin chân thành cảm ơn.`}</p>
             <button className={cx('cs-btn')}>Xem thêm</button>
           </div>
-          <div className={cx('col-12 col-md-6 order-md-1', 'cs-img')}>
+          <div className={cx('d-none d-md-block col-md-6 order-md-1', 'cs-img')}>
             <div className={cx('cs-img-box')}><img src="https://themewagon.github.io/feane/images/about-img.png" alt="" /></div>
           </div>
         </div>
+      </div>
 
-        {/* Feedback Section */}
-        <div className={cx('feedback-section')}>
+      {/* Feedback Section */}
+      <div className={cx('feedback-section')}>
+        <div className={cx('container')}>
           <h2 className={cx('feedback-title')}>Cảm Nhận Của Thực Khách</h2>
           <div className={cx('feedback-subtitle')}>
             Trải nghiệm hương vị Việt Nam đích thực mà mọi người đang nói đến
@@ -109,6 +111,7 @@ const About = () => {
             className={cx('feedback-carousel')}
             indicators={true}
             interval={5000}
+            touch={true}
           >
             {feedbackData.map((feedback) => (
               <Carousel.Item key={feedback.id}>
