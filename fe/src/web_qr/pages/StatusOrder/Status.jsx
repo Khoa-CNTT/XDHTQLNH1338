@@ -237,7 +237,7 @@ const Status = () => {
         <>
           {orderDetails.map((item, index) => (
             <div
-              className="row mt-3 w-100"
+              className="row w-100"
               key={`${item.product_id}-${item.order_id}-${index}`}
             >
               <div className="col-12"></div>
