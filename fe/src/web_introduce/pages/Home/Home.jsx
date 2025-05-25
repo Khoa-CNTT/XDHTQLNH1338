@@ -11,8 +11,8 @@ const Home = () => {
   return (
     <div className={cx("home")}>
       <Section />
-      <Menu />
-      <About />
+      <Menu page='home' />
+      <About page='home' />
       <BookTable />
     </div>
   );

@@ -46,7 +46,7 @@ const feedbackData = [
   }
 ]
 
-const About = () => {
+const About = ({ page }) => {
   const [index, setIndex] = useState(0)
 
   const handleSelect = (selectedIndex) => {
@@ -90,46 +90,47 @@ const About = () => {
       </div>
 
       {/* Feedback Section */}
-      <div className={cx('feedback-section')}>
-        <div className={cx('container')}>
-          <h2 className={cx('feedback-title')}>Cảm Nhận Của Thực Khách</h2>
-          <div className={cx('feedback-subtitle')}>
-            Trải nghiệm hương vị Việt Nam đích thực mà mọi người đang nói đến
-          </div>
-          
-          <div className={cx('greeting-section')}>
-            <p className={cx('greeting-text')}>
-              <span className={cx('greeting-invitation')}>
-                Hãy cùng xem những chia sẻ từ thực khách đã trải nghiệm hương vị của chúng tôi.
-                (See what our customers say about their dining experience with us.)
-              </span>
-            </p>
-          </div>
-          <Carousel 
-            activeIndex={index} 
-            onSelect={handleSelect}
-            className={cx('feedback-carousel')}
-            indicators={true}
-            interval={5000}
-            touch={true}
-          >
-            {feedbackData.map((feedback) => (
-              <Carousel.Item key={feedback.id}>
-                <div className={cx('feedback-item')}>
-                  <div className={cx('feedback-avatar')}>
-                    <img src={feedback.avatar} alt={feedback.name} />
+      {page !== 'home' && (
+        <div className={cx('feedback-section')}>
+          <div className={cx('container')}>
+            <h2 className={cx('feedback-title')}>Cảm Nhận Của Thực Khách</h2>
+            <div className={cx('feedback-subtitle')}>
+              Trải nghiệm hương vị Việt Nam đích thực mà mọi người đang nói đến
+            </div>
+            <div className={cx('greeting-section')}>
+              <p className={cx('greeting-text')}>
+                <span className={cx('greeting-invitation')}>
+                  Hãy cùng xem những chia sẻ từ thực khách đã trải nghiệm hương vị của chúng tôi.
+                  (See what our customers say about their dining experience with us.)
+                </span>
+              </p>
+            </div>
+            <Carousel
+              activeIndex={index}
+              onSelect={handleSelect}
+              className={cx('feedback-carousel')}
+              indicators={true}
+              interval={5000}
+              touch={true}
+            >
+              {feedbackData.map((feedback) => (
+                <Carousel.Item key={feedback.id}>
+                  <div className={cx('feedback-item')}>
+                    <div className={cx('feedback-avatar')}>
+                      <img src={feedback.avatar} alt={feedback.name} />
+                    </div>
+                    <div className={cx('feedback-content')}>
+                      <h3 className={cx('feedback-name')}>{feedback.name}</h3>
+                      <RatingStars rating={feedback.rating} />
+                      <p className={cx('feedback-review')}>{feedback.review}</p>
+                    </div>
                   </div>
-                  <div className={cx('feedback-content')}>
-                    <h3 className={cx('feedback-name')}>{feedback.name}</h3>
-                    <RatingStars rating={feedback.rating} />
-                    <p className={cx('feedback-review')}>{feedback.review}</p>
-                  </div>
-                </div>
-              </Carousel.Item>
-            ))}
-          </Carousel>
+                </Carousel.Item>
+              ))}
+            </Carousel>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }
