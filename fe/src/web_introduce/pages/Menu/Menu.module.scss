@@ -161,6 +161,8 @@
 }
 
 .view-more-button {
+  display: block;
+  width: fit-content;
   margin-top: 20px;
   background-color: #ffc107;
   border: none;
@@ -170,6 +172,8 @@
   border-radius: 20px;
   cursor: pointer;
   transition: all 0.3s ease;
+  text-decoration: none;
+  color: #fff;
 
   &:hover {
     background-color: #e0a800;
