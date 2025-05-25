@@ -317,13 +317,13 @@ const Status = () => {
                 <i className="fas fa-money-bill-wave"></i>
                 {t("status_order.cash_payment")}
               </button>
-              <button
+              {/* <button
                 className={styles["payment-option"]}
                 onClick={() => setSelectedPaymentMethod("bank")}
               >
                 <i className="fas fa-university"></i>
                 {t("status_order.bank_transfer")}
-              </button>
+              </button> */}
             </div>
 
             {selectedPaymentMethod === "cash" && (
