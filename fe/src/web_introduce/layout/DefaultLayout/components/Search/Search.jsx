@@ -21,6 +21,7 @@ const Search = ({ blockSearchFullscreen, handleClose }) => {
   const debounceValue = useDebounce(searchValue, 500);
 
   const inputRef = useRef();
+  const searchFullscreenRef = useRef();
 
   useEffect(() => {
     if (!searchValue.trim()) {
@@ -37,6 +38,7 @@ const Search = ({ blockSearchFullscreen, handleClose }) => {
     fetchApi();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debounceValue]);
+  
   // handle hide result
   const handleHideResult = () => {
     setShowResult(false);
@@ -61,9 +63,30 @@ const Search = ({ blockSearchFullscreen, handleClose }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
   };
+
+  // handle click outside to close on mobile
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      // Check if click is on the background (outside the search area)
+      if (
+        searchFullscreenRef.current && 
+        event.target === searchFullscreenRef.current
+      ) {
+        handleClose();
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [handleClose]);
+
   return (
     <SearchValueContext.Provider value={setSearchValue}>
       <div
+        ref={searchFullscreenRef}
         className={cx(
           "search-fullscreen",
           `${blockSearchFullscreen ? "search-fullscreen-toggle" : ""}`
