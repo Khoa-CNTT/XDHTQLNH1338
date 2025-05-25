@@ -130,11 +130,10 @@ const Status = () => {
       );
     }
 
-
-    // Hiển thị modal đánh giá sau 3 giây
+    // Chuyển hướng sang trang payment success sau 3 giây
     setTimeout(() => {
-      setShowRatingModal(true);
-    }, 3000);
+      navigate("/momo/payment/success");
+    }, 5000);
   };
 
   // Xử lý gửi đánh giá
