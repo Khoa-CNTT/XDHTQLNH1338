@@ -1,138 +1,149 @@
 .container {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: var(--bg-color-default);
+  min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
-}
-
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.3);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-  backdrop-filter: blur(2px);
-}
-
-.modal-content {
-  background-color: white;
-  padding: 2rem;
-  border-radius: 12px;
-  width: 90%;
-  max-width: 500px;
+  background: linear-gradient(135deg, #142c44 60%, #846672 100%);
+  padding: 20px;
   position: relative;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.close-rating {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  cursor: pointer;
-  color: #666;
-  padding: 0.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: color 0.2s ease;
-
-  &:hover {
-    color: #333;
+  
+  [data-theme="light"] & {
+    background: linear-gradient(135deg, #efcbcb 60%, #ffe0ec 100%);
   }
 }
 
-.modal-header {
+.thankYouCard {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 3rem;
   text-align: center;
+  max-width: 500px;
+  width: 100%;
+  margin-bottom: 100px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  animation: fadeIn 0.5s ease-out;
+
+  [data-theme="light"] & {
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+  }
+
+  @media (max-width: 768px) {
+    padding: 2rem;
+  }
+}
+
+.checkIcon {
+  width: 100px;
+  height: 100px;
+  margin: 0 auto 2rem;
+  color: #28a745;
+  animation: scaleIn 0.5s ease-out;
+
+  svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  @media (max-width: 768px) {
+    width: 80px;
+    height: 80px;
+    margin-bottom: 1.5rem;
+  }
+}
+
+.thankYouHeader {
   margin-bottom: 2rem;
-}
 
-.modal-title {
-  font-size: 1.5rem;
-  color: #333;
-  margin: 0;
-}
+  h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 1rem;
 
-.rating-section {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1.5rem;
-}
+    [data-theme="light"] & {
+      color: #333;
+    }
 
-.star-rating {
-  display: flex;
-  gap: 0.5rem;
-  justify-content: center;
-
-  label {
-    cursor: pointer;
-    padding: 0.25rem;
+    @media (max-width: 768px) {
+      font-size: 2rem;
+    }
   }
 
-  input[type="radio"] {
-    display: none;
-  }
+  p {
+    font-size: 1.2rem;
+    color: rgba(255, 255, 255, 0.8);
+    line-height: 1.6;
 
-  .star {
-    transition: transform 0.2s ease;
+    [data-theme="light"] & {
+      color: #666;
+    }
 
-    &:hover {
-      transform: scale(1.1);
+    @media (max-width: 768px) {
+      font-size: 1rem;
     }
   }
 }
 
-.feedback-input {
-  width: 100%;
-  min-height: 100px;
-  padding: 1rem;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  resize: vertical;
-  font-family: inherit;
-  font-size: 1rem;
-  transition: border-color 0.2s ease;
-
-  &:focus {
-    outline: none;
-    border-color: #ffc107;
-  }
-
-  &::placeholder {
-    color: #999;
-  }
-}
-
-.submit-rating {
-  background-color: #ffc107;
-  color: #333;
+.returnButton {
+  background: linear-gradient(90deg, #e78296 0%, #ffb6c1 100%);
+  color: white;
   border: none;
-  padding: 0.75rem 2rem;
-  border-radius: 25px;
-  font-size: 1rem;
+  padding: 1rem 2.5rem;
+  font-size: 1.2rem;
   font-weight: 600;
+  border-radius: 30px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(231, 130, 150, 0.3);
 
   &:hover {
-    background-color: #ffb300;
     transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(231, 130, 150, 0.4);
+    background: linear-gradient(90deg, #ffb6c1 0%, #e78296 100%);
   }
 
   &:active {
     transform: translateY(0);
+  }
+
+  @media (max-width: 768px) {
+    padding: 0.8rem 2rem;
+    font-size: 1.1rem;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+// Add styles for CallStaffButton container
+:global(.callStaffButtonContainer) {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 1000;
+
+  @media (max-width: 768px) {
+    bottom: 1.5rem;
+    right: 1.5rem;
   }
 }

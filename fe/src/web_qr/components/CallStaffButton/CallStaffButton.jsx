@@ -18,7 +18,7 @@ const CallStaffButton = () => {
   useEffect(() => {
     const handleScroll = () => {
       // Nếu đang ở trang order hoặc status-order, giữ nút chuông ở vị trí cố định
-      if (location.pathname.includes('/order') || location.pathname.includes('/status-order')) {
+      if (location.pathname.includes('/order') || location.pathname.includes('/status-order') || location.pathname.includes('/momo/payment/success')) {
         setBottomPosition('5rem');
         return;
       }
