@@ -72,7 +72,7 @@ class EmployeeManagementView(LoginRequiredMixin, TemplateView):
                 )
 
             total_count = employees.count()
-            employees = employees.order_by(order_column)[start:start + length]
+            employees = employees.order_by("-created_at")[start:start + length]
 
             from django.db.models import ExpressionWrapper, F, DurationField, FloatField
 
