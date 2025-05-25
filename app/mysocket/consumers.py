@@ -89,6 +89,10 @@ class NotifyConsumer(AsyncWebsocketConsumer):
                     'message': f'Nhắc nhở cho bàn {table_number}.',
                     'level': 'warning',
                 },
+                'staff_call': {
+                    'message': f'Bàn {table_number} cần hỗ trợ từ nhân viên.',
+                    'level': 'info',
+                },
                 'custom': {
                     'message': data.get('message', '🔔 Thông báo tuỳ chỉnh.'),
                     'level': 'info',

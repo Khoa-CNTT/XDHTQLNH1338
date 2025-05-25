@@ -12,39 +12,51 @@ export default function OrderSummary({ isFooterVisible }) {
     const navigate = useNavigate();
     const { cart } = useCart();
     const cartItems = cart?.items || [];
+    const prevTotalRef = useRef({ items: 0, price: 0 });
 
-    // useRef lưu giá trị trước đó để tránh re-render liên tục
-    const prevTotalPriceRef = useRef(0);
-    const prevTotalItemsRef = useRef(0);
-
-    // State giữ giá trị để cập nhật UI mượt hơn
-    const [displayPrice, setDisplayPrice] = useState(0);
-    const [displayItems, setDisplayItems] = useState(0);
-
-    // Tính tổng số lượng món ăn
+    // Calculate total items and price
     const totalItems = useMemo(() =>
         cartItems.reduce((sum, item) => sum + item.quantity, 0),
-        [cartItems]);
+        [cartItems]
+    );
 
-    // Tính tổng giá tiền
     const totalPrice = useMemo(() =>
-        cartItems.reduce((sum, item) => sum + item.quantity * item.product_price, 0),
-        [cartItems]);
+        cartItems.reduce((sum, item) => sum + (item.quantity * item.product_price), 0),
+        [cartItems]
+    );
 
-    // Cập nhật UI mượt hơn khi giá trị thay đổi
+    // State for smooth transitions
+    const [displayItems, setDisplayItems] = useState(totalItems);
+    const [displayPrice, setDisplayPrice] = useState(totalPrice);
+
+    // Update display values with smooth transitions
+    // useEffect(() => {
+    //     if (totalItems !== prevTotalRef.current.items) {
+    //         setDisplayItems(totalItems);
+    //         prevTotalRef.current.items = totalItems;
+    //     }
+    // }, [totalItems]);
+
+    // useEffect(() => {
+    //     if (totalPrice !== prevTotalRef.current.price) {
+    //         setDisplayPrice(totalPrice);
+    //         prevTotalRef.current.price = totalPrice;
+    //     }
+    // }, [totalPrice]);
     useEffect(() => {
-        if (totalPrice !== prevTotalPriceRef.current) {
-            setTimeout(() => setDisplayPrice(totalPrice), 200); // Thêm delay nhỏ để tránh chớp
-            prevTotalPriceRef.current = totalPrice;
+        if (totalItems !== prevTotalRef.current.items) {
+            setDisplayItems(totalItems);
+            prevTotalRef.current.items = totalItems;
+        }
+    }, [totalItems]);
+
+    useEffect(() => {
+        if (totalPrice !== prevTotalRef.current.price) {
+            setDisplayPrice(totalPrice);
+            prevTotalRef.current.price = totalPrice;
         }
     }, [totalPrice]);
 
-    useEffect(() => {
-        if (totalItems !== prevTotalItemsRef.current) {
-            setTimeout(() => setDisplayItems(totalItems), 200);
-            prevTotalItemsRef.current = totalItems;
-        }
-    }, [totalItems]);
 
     const formatCurrency = (price) =>
         new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(price);
@@ -58,9 +70,9 @@ export default function OrderSummary({ isFooterVisible }) {
     return (
         <div className={cx("order-summary", { "move-up": isFooterVisible, disabled: totalItems === 0 })}>
             <span className={cx("text")} onClick={handleClick}>
-                {t("order_summary.title")} · {t("order_summary.items", { count: displayItems })}
+                {t("order_summary.title")} · {t("order_summary.items", { count: totalItems })}
             </span>
-            <span className={cx("price")}>{formatCurrency(displayPrice)}</span>
+            <span className={cx("price", "price-animate")}>{formatCurrency(totalPrice)}</span>
         </div>
     );
 }

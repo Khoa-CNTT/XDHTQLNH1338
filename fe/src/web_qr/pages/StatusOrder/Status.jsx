@@ -7,10 +7,11 @@ import { ImBin } from "react-icons/im";
 import { IoClose } from "react-icons/io5";
 import { FaStar } from "react-icons/fa";
 import {
-  readCart,
+
   readInvoice,
   deleteCartItem,
   getAwaitMomoPayment,
+
 } from "../../services/api";
 import { useCart } from "../../context/CartContext";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -45,9 +46,8 @@ const Status = () => {
       try {
         const data = JSON.parse(event.data);
         console.log('data', data)
-        if (data?.type === "product_status") {
+        if (data?.type === "product_status" && data?.data.product_status) {
           fetchInvoice();
-          // toast.info(`${data?.data?.product_name} ${getStatusProductOrderENToVN(data?.data?.product_status)}`);
         }
       } catch (err) {
         console.error("Error parsing message:", err);
@@ -123,12 +123,12 @@ const Status = () => {
 
     if (socket && socket.readyState === WebSocket.OPEN) {
       socket.send(
-          JSON.stringify({
-              type: "required_payment_cash",
-              session: session
-          })
+        JSON.stringify({
+          type: "required_payment_cash",
+          session: session
+        })
       );
-  }
+    }
 
 
     // Hiển thị modal đánh giá sau 3 giây
@@ -189,7 +189,7 @@ const Status = () => {
 
 
   const getAsyncMomoPayment = async () => {
-    
+
     try {
       const response = await getAwaitMomoPayment(); // gọi API Django
       const payUrl = response?.data?.payUrl;
@@ -199,7 +199,7 @@ const Status = () => {
       }
     } catch (error) {
       console.error("Lỗi khi xử lý thanh toán:", error);
-      
+
     }
   };
 

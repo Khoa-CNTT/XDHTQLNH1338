@@ -3,7 +3,24 @@
     "order": "Order",
     "logout": "Logout",
     "language": "English",
+    "login": {
+        "welcome": "Welcome",
+        "sign_in": "Sign in to order",
+        "phone_number": "Phone number",
+        "name": "Name",
+        "errors": {
+            "phone_required": "Phone number is required!",
+            "phone_invalid": "Phone number must be 10 digits!",
+            "name_required": "Name is required!"
+        }
+    },
     "search_placeholder": "What do you want to eat...",
+    "call_staff": {
+        "title": "Call Staff",
+        "message": "Would you like to call a staff member for assistance?",
+        "confirm": "Call Staff",
+        "cancel": "Cancel"
+    },
     "menu": {
         "title": "Restaurant Menu",
         "subtitle": "Delicious moments",

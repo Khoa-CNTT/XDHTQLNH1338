@@ -6,11 +6,12 @@ from cloudinary.models import CloudinaryField
 from django.utils.functional import cached_property
 # 🔄 Model Category (Loại sản phẩm)
 from cloudinary.uploader import upload
+from django.conf import settings
 import qrcode
 from io import BytesIO
-from django.conf import settings
-
-from web_01.utils.model_consts import CATEGORY_STATUS_CHOICES
+from django.core.files.base import ContentFile
+from web_01.utils.model_consts import STATUS_ACTIVE_CHOICES
+from datetime import datetime
 
 
 class BaseModel(models.Model):
@@ -41,7 +42,7 @@ class Category(models.Model):
     name = models.CharField(max_length=100, unique=True)
     description = models.TextField(null=True, blank=True)
     parent = models.ForeignKey('self', null=True, blank=True, on_delete=models.SET_NULL)
-    status = models.CharField(max_length=10, choices=CATEGORY_STATUS_CHOICES, default='active')
+    status = models.CharField(max_length=10, choices=STATUS_ACTIVE_CHOICES, default='active')
 
 # 🔄 Model Product (Sản phẩm)
     class Meta:
@@ -134,6 +135,7 @@ class Product(BaseModel):
     description = models.TextField(null=True, blank=True)
     image = CloudinaryField('image', null=True, blank=True)
     ingredients = models.ManyToManyField(Ingredient, through='IngredientProduct', blank=True, null=True)
+    status = models.CharField(max_length=10, choices=STATUS_ACTIVE_CHOICES, default='active')
 
     class Meta:
         db_table = 'product'
@@ -186,34 +188,57 @@ class Employee(BaseModel):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     salary = models.IntegerField()
     avartar_url = CloudinaryField('avartar_url', null=True, blank=True)
-    role = models.CharField(max_length=20, choices=ROLE_CHOICES,default='staff')
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='staff')
+
     class Meta:
         db_table = 'employee'
 
 
-class WorkShift(models.Model):
+class WorkShift(BaseModel):
     SHIFT_TYPE_CHOICES = [
         ('morning', 'Sáng'),
         ('afternoon', 'Chiều'),
-        ('evening', 'Tối')
-    ]
-    STATUS_CHOICES = [
-        ('worked', 'Đã làm'),
-        ('off', 'Nghỉ')
+        ('evening', 'Tối'),
+        ('allday', 'Cả Ngày')
     ]
 
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name="workshifts")
     date = models.DateField()
     shift_type = models.CharField(max_length=10, choices=SHIFT_TYPE_CHOICES)
-    duration = models.DecimalField(max_digits=4, decimal_places=2, default=4.0)  # Mặc định mỗi ca 4 giờ
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='worked')
+    time_start = models.DateTimeField(blank=True, null=True)
+    time_end = models.DateTimeField(blank=True, null=True)
+    notes = models.TextField(blank=True, null=True)
 
     class Meta:
         db_table = 'work_shift'
-        unique_together = ['employee', 'date', 'shift_type']  # Một ca/ngày/nhân viên
+        unique_together = ('employee', 'date', 'shift_type')
 
     def __str__(self):
-        return f"{self.employee.user.username} - {self.date} - {self.shift_type} ({self.duration} giờ)"
+        return f"{self.employee.user.username} - {self.date} - {self.shift_type}"
+
+
+class ShiftRegistration(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Chờ duyệt'),
+        ('approved', 'Đã duyệt'),
+        ('rejected', 'Từ chối')
+    ]
+
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name="shift_registrations")
+    date = models.DateField()
+    shift_type = models.CharField(max_length=10, choices=WorkShift.SHIFT_TYPE_CHOICES)
+    is_off = models.BooleanField(default=False)
+    reason = models.TextField(blank=True, null=True)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'shift_registration'
+        unique_together = ('employee', 'date', 'shift_type')
+
+    def __str__(self):
+        return f"{self.employee.user.username} - {self.date} - {self.shift_type} - {'Nghỉ' if self.is_off else 'Làm việc'}"
+
 
 
 # 🔄 Model Table
@@ -223,27 +248,35 @@ class Table(models.Model):
     table_number = models.IntegerField(unique=True)
     status = models.CharField(max_length=10, choices=[('available', 'Trống'), ('occupied', 'Sử dụng'), ('reserved', 'Đã đặt')], default='available')
     qr_image = CloudinaryField('image')
+    capacity = models.IntegerField(default=4)  # Thêm trường capacity
+    is_deleted = models.BooleanField(default=False)
 
     class Meta:
         db_table = 'table'
     # 🔄 Model Ingredient
     # 🔄 Override phương thức save()
 
+    def __str__(self):
+        return f"Bàn {self.table_number}"
+
     def save(self, *args, **kwargs):
+        force_update_qr = kwargs.pop('force_update_qr', False)
+
         # Tạo URL dựa trên table_number
         url = f"{settings.FRONT_END_URL}/login-menu/?table_number={self.table_number}"
+
         # Tạo mã QR
         qr = qrcode.make(url)
         qr_bytes = BytesIO()
         qr.save(qr_bytes, format='PNG')
         qr_bytes.seek(0)
 
-        # Upload ảnh lên Cloudinary nếu chưa có hoặc cần cập nhật
-        if not self.qr_image or kwargs.get('force_update_qr', False):
-            result = upload(qr_bytes, public_id=f"table_{self.table_number}_qr")
+        # Upload ảnh QR nếu chưa có hoặc được yêu cầu cập nhật
+        if not self.qr_image or force_update_qr:
+            result = upload(qr_bytes, public_id=f"table_{self.table_number}_qr", overwrite=True)
             self.qr_image = result['url']
 
-        # Gọi phương thức save() gốc để lưu vào DB
+        # Lưu lại model bình thường
         super().save(*args, **kwargs)
 
 
@@ -264,6 +297,25 @@ class Session(models.Model):
     class Meta:
         db_table = 'session'
 
+    def save(self, *args, **kwargs):
+        if self.pk:
+            old_status = Session.objects.get(pk=self.pk).status
+            if old_status == 'active' and self.status == 'closed':
+                # Lấy tất cả các hóa đơn thuộc session
+                invoices = Invoice.objects.filter(session=self)
+                for invoice in invoices:
+                    orders = invoice.order_set.exclude(status='cancelled')
+                    # Cập nhật status Order
+                    orders.update(status='completed')
+
+                    # Cập nhật status OrderDetail tương ứng
+                    for order in orders:
+                        order.orderdetail_set.exclude(status='cancelled').update(status='completed')
+
+        if self.status == 'closed' and not self.ended_at:
+            self.ended_at = datetime.now()
+
+        super().save(*args, **kwargs)
 
 class Invoice(BaseModel):
     session = models.ForeignKey(Session, on_delete=models.CASCADE)
@@ -282,13 +334,14 @@ class Invoice(BaseModel):
 
 class Order(BaseModel):
     invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE)
-    total = models.IntegerField(default=0)
     status = models.CharField(max_length=15, choices=[
         ('pending', 'Chờ'),
         ('in_progress', 'Đang làm'),
         ('completed', 'Hoàn thành'),
         ('cancelled', 'Hủy')
     ], default='pending')
+    total = models.IntegerField(default=0)
+    discount = models.IntegerField(default=0)
 
     class Meta:
         db_table = 'order'
@@ -330,11 +383,11 @@ class OrderDetail(BaseModel):
     def export_ingredients(self):
         product_ingredient = IngredientProduct.objects.filter(product=self.product).first()
         total_quantity_used = product_ingredient.quantity_required * self.quantity
-        ingredient = product_ingredient.ingredient 
+        ingredient = product_ingredient.ingredient
         old_stock = ingredient.quantity_in_stock
         ingredient.quantity_in_stock -= total_quantity_used
         ingredient.save()
-            # Tạo log
+        # Tạo log
         InventoryLog.objects.create(
             ingredient=ingredient,
             change=-total_quantity_used,
@@ -375,6 +428,7 @@ class Notification(BaseModel):
         choices=[('read', 'Read'), ('unread', 'Unread')],
         default='unread'
     )
+    is_read = models.BooleanField(default=False)
     data = models.JSONField(blank=True, null=True)  # 👈 Thêm JSON field
 
     class Meta:
@@ -439,7 +493,7 @@ class TableReservation(models.Model):
     name = models.CharField(max_length=100)
     phone_number = models.CharField(max_length=15)
     many_person = models.IntegerField()
-    table = models.ForeignKey(Table, on_delete=models.CASCADE, related_name='reservations')
+    table = models.ForeignKey(Table, on_delete=models.CASCADE, related_name='reservations', null=True, blank=True)
 
     date = models.DateField(null=False)  # Ngày đặt bàn
     hour = models.TimeField(null=False)  # Giờ đặt bàn

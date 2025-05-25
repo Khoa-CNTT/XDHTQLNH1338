@@ -1,110 +1,157 @@
-import classNames from 'classnames/bind';
-import styles from './BookTable.module.scss';
-import { TbBrandAirtable } from "react-icons/tb";
-import { useEffect, useState } from 'react';
-import { readTable } from '../../services/api';
+import classNames from 'classnames/bind'
+import styles from './BookTable.module.scss'
+import { useState, useEffect } from 'react'
+import { toast } from 'react-toastify'
+import axios from 'axios'
 
-const cx = classNames.bind(styles);
+const cx = classNames.bind(styles)
 
 const BookTable = () => {
-  const [listTable, setListTable] = useState([]);
-  const [selectedTable, setSelectedTable] = useState(null); // Lưu bàn đang chọn
+  const [formData, setFormData] = useState({
+    name: '',
+    phone_number: '',
+    many_person: '',
+    date: '',
+    hour: '00:00'
+  })
+  const [isLoading, setIsLoading] = useState(false)
+  const [minDate, setMinDate] = useState('')
+  const [reservationDetail, setReservationDetail] = useState(null)
+  const [showModal, setShowModal] = useState(false)
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const tables = await readTable();
-        setListTable(tables?.data || []);
-      } catch (error) {
-        console.error("Error fetching table data:", error);
-      }
-    };
-    fetchData();
-  }, []);
+    const today = new Date()
+    const year = today.getFullYear()
+    const month = String(today.getMonth() + 1).padStart(2, '0')
+    const day = String(today.getDate()).padStart(2, '0')
+    setMinDate(`${year}-${month}-${day}`)
+  }, [])
 
-  const handleSelectTable = (table) => {
-    if (table.status === "available") {
-      setSelectedTable(table.table_number); // Lưu bàn đang chọn
+  const handleChange = (e) => {
+    const { id, value } = e.target
+    setFormData((prev) => ({ ...prev, [id]: value }))
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setIsLoading(true)
+
+    const { name, phone_number, many_person, date, hour } = formData
+
+    if (!name || !phone_number || !many_person || !date || !hour) {
+      toast.error('Vui lòng điền đầy đủ thông tin!')
+      setIsLoading(false)
+      return
     }
-  };
+
+    const phoneRegex = /^0\d{9}$/
+    if (!phoneRegex.test(phone_number)) {
+      toast.error('Số điện thoại không hợp lệ! (10 chữ số, bắt đầu bằng 0)')
+      setIsLoading(false)
+      return
+    }
+
+    const personNum = parseInt(many_person)
+    if (isNaN(personNum) || personNum < 1) {
+      toast.error('Số người phải là số nguyên >= 1!')
+      setIsLoading(false)
+      return
+    }
+
+    try {
+      const response = await axios.post('http://localhost:8000/api/book/tables/reservations/', formData)
+      toast.success(response.data.message)
+      setFormData({
+        name: '',
+        phone_number: '',
+        many_person: '',
+        date: '',
+        hour: '00:00'
+      })
+    } catch (error) {
+      const res = error.response
+      if (res?.data?.reservation) {
+        setReservationDetail(res.data.reservation)
+        toast.error('Bạn đã có đặt bàn và đây là chi tiết bàn của bạn!', {
+          onClick: () => setShowModal(true),
+        })
+      } else {
+        toast.error(res?.data?.message || 'Có lỗi xảy ra, vui lòng thử lại!')
+      }
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   return (
     <div className={cx('wrapper')}>
       <div className={cx('container')}>
-        <div className={cx('cx-body')}>
-          <div className='row'>
-            <div className='col-md-6 d-flex justify-content-center'>
-              <div className={cx('cs-table', 'd-flex flex-wrap justify-content-between')}>
-                {listTable.map((item, index) => {
-                  const isSelected = selectedTable === item.table_number;
-                  const tableClass = cx(
-                    'cs-table-item',
-                    'col-2 me-4 mb-4',
-                    isSelected ? 'bg-success' : item.status === "occupied" ? 'bg-danger' : 'bg-light'
-                  );
-
-                  return (
-                    <div
-                      key={index}
-                      className={tableClass}
-                      onClick={() => handleSelectTable(item)}
-                      style={{
-                        cursor: item.status === "occupied" ? 'not-allowed' : 'pointer',
-                        opacity: item.status === "occupied" ? 0.6 : 1,
-                        color: item.status === "occupied" ? '#fff' : '#000',
-                      }}
-                    >
-                      <div className={cx('cs-table-icon')}><TbBrandAirtable /></div>
-                      <div className={cx('cs-table-name')}>Table {item?.table_number}</div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
+        <div className={cx('cs-body')}>
+          <div className='d-flex justify-content-center'>
             <div className='col-md-6'>
-              <div className={cx('cs-header')}>Book A Table</div>
-              <div className={cx('cs-form-info')}>
-                <form>
-                  <div className="form-floating">
-                    <input type="text" className={cx('form-control', 'cs-form-item')} id="floatingInputName" placeholder='' required />
-                    <label htmlFor="floatingInputName">Your name?</label>
+              <div className={cx('cs-booking-form')}>
+                <h2 className={cx('cs-form-title', 'text-center mb-4')}>Liên hệ đặt bàn</h2>
+                <form className='d-flex flex-column align-items-center' onSubmit={handleSubmit}>
+                  <div className='mb-3 col-md-10 col-12'>
+                    <label htmlFor='name' className={cx('cs-form-label')}>Tên của bạn:</label>
+                    <input type='text' className={`form-control ${cx('cs-form-input')}`} id='name' value={formData.name} onChange={handleChange} />
                   </div>
-                  <div className="form-floating">
-                    <input type="text" className={cx('form-control', 'cs-form-item')} id="floatingInputPhone" placeholder='' required />
-                    <label htmlFor="floatingInputPhone">Your phone number?</label>
+                  <div className='mb-3 col-md-10 col-12'>
+                    <label htmlFor='phone_number' className={cx('cs-form-label')}>Số điện thoại của bạn:</label>
+                    <input type='tel' className={`form-control ${cx('cs-form-input')}`} id='phone_number' value={formData.phone_number} onChange={handleChange} />
                   </div>
-                  <div className="form-floating">
-                    <input type="text" className={cx('form-control', 'cs-form-item')} id="floatingInputNumber" placeholder='' />
-                    <label htmlFor="floatingInputNumber">How many persons?</label>
+                  <div className='mb-3 col-md-10 col-12'>
+                    <label htmlFor='many_person' className={cx('cs-form-label')}>Bạn đi mấy người?</label>
+                    <input type='number' min='1' className={`form-control ${cx('cs-form-input')}`} id='many_person' value={formData.many_person} onChange={handleChange} />
                   </div>
-                  <div className="form-floating">
-                    <input
-                      type="text"
-                      className={cx('form-control', 'cs-form-item')}
-                      id="floatingInputTable"
-                      placeholder=''
-                      value={selectedTable || ""}
-                      readOnly
-                    />
-                    <label htmlFor="floatingInputTable">Which table do you choose?</label>
+                  <div className='mb-3 col-md-10 col-12'>
+                    <label htmlFor='date' className={cx('cs-form-label')}>Bạn có thể đến ngày nào?</label>
+                    <input type='date' min={minDate} className={`form-control ${cx('cs-form-input')}`} id='date' value={formData.date} onChange={handleChange} />
                   </div>
-                  <div className="form-floating">
-                    <input type="time" className={cx('form-control', 'cs-form-item')} id="floatingInputTime" placeholder='' defaultValue='00:00' />
-                    <label htmlFor="floatingInputTime">What time do you book a table?</label>
+                  <div className='col-md-10 col-12'>
+                    <label htmlFor='hour' className={cx('cs-form-label')}>Thời gian bạn đến?</label>
+                    <input type='time' className={`form-control ${cx('cs-form-input')}`} id='hour' value={formData.hour} onChange={handleChange} />
                   </div>
-                  <div className="form-floating">
-                    <input type="date" className={cx('form-control', 'cs-form-item')} id="floatingInputValue" placeholder='' />
-                    <label htmlFor="floatingInputValue">What day do you book a table?</label>
-                  </div>
-                  <button type='submit' className={cx('cs-form-btn')}>BOOK NOW</button>
+                  <button type='submit' className={`col-md-6 col-8 d-flex justify-content-center mt-3 ${cx('cs-submit-btn')}`} disabled={isLoading}>
+                    {isLoading ? <div className="spinner-border text-light" role="status"><span className="visually-hidden">Loading...</span></div> : 'Đặt bàn ngay'}
+                  </button>
                 </form>
+                <p className={cx('cs-note-text', 'text-center mt-3 mb-0')}>
+                  Khách đặt tiệc hội nghị, liên hoan vui lòng gọi trực tiếp: <strong>1900 6750</strong>
+                </p>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
-  );
-};
 
-export default BookTable;
+      {/* Modal chi tiết đặt bàn */}
+      {showModal && reservationDetail && (
+        <div className="modal fade show d-block" tabIndex="-1" role="dialog" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal-dialog modal-dialog-centered" role="document">
+            <div className="modal-content p-3">
+              <div className="modal-header">
+                <h5 className="modal-title">Chi tiết đặt bàn</h5>
+                <button type="button" className="btn-close" onClick={() => setShowModal(false)}></button>
+              </div>
+              <div className="modal-body">
+                <p><strong>Tên:</strong> {reservationDetail.name}</p>
+                <p><strong>SĐT:</strong> {reservationDetail.phone_number}</p>
+                <p><strong>Số người:</strong> {reservationDetail.many_person}</p>
+                <p><strong>Ngày:</strong> {reservationDetail.date}</p>
+                <p><strong>Giờ:</strong> {reservationDetail.hour}</p>
+                <p><strong>Bàn:</strong> {reservationDetail.table || 'Chưa được gán'}</p>
+                <p><strong>Trạng thái:</strong> {reservationDetail.status}</p>
+              </div>
+              <div className="modal-footer">
+                <button className="btn btn-secondary" onClick={() => setShowModal(false)}>Đóng</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+export default BookTable

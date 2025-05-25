@@ -23,7 +23,7 @@ class ProductViewSet(ViewSet):
         name = request.query_params.get('name', None)
 
         # 🔄 Lọc sản phẩm theo các điều kiện
-        products = Product.objects.filter(category__status='active')
+        products = Product.objects.filter(category__status='active', status='active')
 
         if category_id:
             products = products.filter(category_id=category_id)

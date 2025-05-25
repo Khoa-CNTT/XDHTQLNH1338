@@ -6,22 +6,22 @@ const cx = classNames.bind(styles);
 
 const slides = [
   {
-    id: 1,
-    title: "Fast Food Restaurant",
-    text: "Doloremque, itaque aperiam facilis rerum, commodi, temporibus sapiente ad mollitia laborum quam quisquam esse error unde. Tempora ex doloremque, labore, sunt repellat dolore, iste magni quos nihil ducimus libero ipsam.",
-    image: "https://themewagon.github.io/feane/images/f1.png"
+    "id": 1,
+    "title": "Nhà hàng Fast Food",
+    "text": "Thưởng thức các món ăn nhanh ngon miệng, tiện lợi và luôn sẵn sàng phục vụ bạn mọi lúc!",
+    "image": "https://themewagon.github.io/feane/images/f1.png"
   },
   {
-    id: 2,
-    title: "Delicious Burgers",
-    text: "Experience the best and juiciest burgers with the freshest ingredients. Made with love and care to give you the best taste ever!",
-    image: "https://themewagon.github.io/feane/images/f1.png"
+    "id": 2,
+    "title": "Burger thơm ngon",
+    "text": "Trải nghiệm burger nóng hổi, đầy đặn với nguyên liệu tươi ngon – làm từ tâm để bạn mê từ miếng đầu tiên!",
+    "image": "https://themewagon.github.io/feane/images/f1.png"
   },
   {
-    id: 3,
-    title: "Tasty Fries & Drinks",
-    text: "Enjoy crispy fries and refreshing beverages that perfectly complement your meal. A treat for your taste buds!",
-    image: "https://themewagon.github.io/feane/images/f1.png"
+    "id": 3,
+    "title": "Khoai tây & Đồ uống hấp dẫn",
+    "text": "Khoai tây chiên giòn rụm cùng đồ uống mát lạnh – combo hoàn hảo cho bữa ăn trọn vẹn!",
+    "image": "https://themewagon.github.io/feane/images/f1.png"
   }
 ];
 
@@ -42,7 +42,7 @@ const Section = () => {
           <div className={cx('hero-content')}>
             <h1 className={cx('hero-title')}>{slides[currentSlide].title}</h1>
             <p className={cx('hero-text')}>{slides[currentSlide].text}</p>
-            <button className={cx('hero-btn')}>Order Now</button>
+            <button className={cx('hero-btn')}>Đặt món ngay</button>
           </div>
           <div className={cx('hero-image')}>
             <img src={slides[currentSlide].image} alt="Fast Food" className={cx('fade-in')} />

@@ -1,5 +1,3 @@
-{% if user.is_superuser %}
-
 <div id="chatbot-icon" class="chatbot-icon">
     <div class="chatbot-icon-inner">
         <i class="fas fa-robot"></i>
@@ -12,7 +10,7 @@
 <div id="chatbot-container" class="chatbot-container">
     <div class="card mb-0">
         <div class="card-header d-flex justify-content-between align-items-center p-3">
-            <h5 class="mb-0"><i class="fas fa-robot me-2"></i> Trợ lý Nhà hàng</h5>
+            <h5 class="mb-0"><i class="fas fa-robot me-2"></i> Bot RMS - Trợ lý Nhà hàng</h5>
             <div>
                 <button id="minimize-btn" class="btn btn-sm btn-link text-dark p-0 me-2">
                     <i class="fas fa-minus"></i>
@@ -39,7 +37,6 @@
         </div>
     </div>
 </div>
-{%endif%}
 
 <style>
 /* Chatbot Icon */
@@ -213,51 +210,106 @@
 
 /* Markdown Styling */
 .message-content p {
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.75rem;
 }
 
 .message-content h1, 
 .message-content h2, 
 .message-content h3 {
     margin-top: 1rem;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.75rem;
     font-weight: 600;
+    line-height: 1.3;
 }
 
 .message-content h1 {
     font-size: 1.5rem;
+    color: #2c3e50;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 0.3rem;
 }
 
 .message-content h2 {
     font-size: 1.25rem;
+    color: #3b7ddd;
+    margin-top: 1.2rem;
 }
 
 .message-content h3 {
     font-size: 1.1rem;
+    color: #495057;
 }
 
 .message-content ul, 
 .message-content ol {
     margin-top: 0.5rem;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.75rem;
     padding-left: 1.5rem;
 }
 
+/* Cải tiến hiển thị bảng */
 .message-content table {
-    border-collapse: collapse;
-    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    min-width:100px;
     margin: 1rem 0;
-}
-
-.message-content th,
-.message-content td {
-    border: 1px solid #dee2e6;
-    padding: 0.5rem;
-    text-align: left;
+    font-size: 0.9rem;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    background-color: white;
 }
 
 .message-content th {
+    font-weight: 600;
+    text-align: left;
+    padding: 0.75rem 0.5rem;
+    border: none;
+    position: sticky;
+    top: 0;
+}
+
+.message-content td {
+    padding: 0.75rem 0.5rem;
+    border-bottom: 1px solid #e9ecef;
+    text-align: left;
+    vertical-align: middle;
+}
+
+.message-content tr:last-child td {
+    border-bottom: none;
+}
+
+.message-content tr:nth-child(even) {
     background-color: #f8f9fa;
+}
+
+.message-content tr:hover {
+    background-color: #f1f3f5;
+}
+
+
+
+/* Biểu tượng cho hoạt động */
+.message-content .action-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    margin-right: 5px;
+    font-size: 12px;
+}
+
+.message-content .action-icon.import {
+    background-color: #2ecc71;
+    color: white;
+}
+
+.message-content .action-icon.export {
+    background-color: #e74c3c;
+    color: white;
 }
 
 .message-content code {
@@ -265,14 +317,23 @@
     padding: 0.2rem 0.4rem;
     border-radius: 0.2rem;
     font-family: monospace;
+    font-size: 0.9em;
 }
 
-.message-content pre {
-    background-color: #f8f9fa;
-    padding: 1rem;
-    border-radius: 0.3rem;
-    overflow-x: auto;
-    margin: 1rem 0;
+
+.message-content a {
+    color: #3b7ddd;
+    text-decoration: none;
+}
+
+
+/* Cải thiện hiển thị bảng trên mobile */
+@media (max-width: 576px) {
+    .message-content table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
 }
 
 /* Chat Suggestions */
@@ -363,262 +424,355 @@
     }
 }
 </style>
-
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const chatbotIcon = document.getElementById('chatbot-icon');
-    const chatbotBubble = document.getElementById('chatbot-bubble');
-    const chatbotContainer = document.getElementById('chatbot-container');
-    const chatContent = document.querySelector('.chat-content');
-    const chatSuggestions = document.querySelector('.chat-suggestions');
-    const chatInput = document.getElementById('chat-input');
-    const sendBtn = document.getElementById('send-btn');
-    const minimizeBtn = document.getElementById('minimize-btn');
-    const fullscreenBtn = document.getElementById('fullscreen-btn');
-    const closeBtn = document.getElementById('close-btn');
-    
-    // Hiển thị chat bubble khi trang tải xong
-    setTimeout(() => {
-        chatbotBubble.style.display = 'block';
-    }, 2000);
-    
-    // Xoay vòng các tin nhắn gợi ý
-    const suggestedMessages = [
-        "Tôi là trợ lý AI, bạn cần giúp gì không?",
-        "Doanh thu hôm nay thế nào?",
-        "Kiểm tra tồn kho nguyên liệu?",
-        "Món nào bán chạy nhất hôm nay?",
-        "Bạn cần hỗ trợ gì không?"
-    ];
-    
-    let currentMessageIndex = 0;
-    setInterval(() => {
-        currentMessageIndex = (currentMessageIndex + 1) % suggestedMessages.length;
-        if (chatbotBubble.style.display === 'block') {
-            chatbotBubble.style.opacity = 0;
-            setTimeout(() => {
-                chatbotBubble.textContent = suggestedMessages[currentMessageIndex];
-                chatbotBubble.style.opacity = 1;
-            }, 300);
-        }
-    }, 5000);
-    
-    // Mở chatbot khi click vào icon
-    chatbotIcon.addEventListener('click', () => {
-        chatbotBubble.style.display = 'none';
-        chatbotContainer.style.display = 'block';
-        getChatHistory();
-        showSuggestedPrompts();
-    });
-    
-    // Đóng chatbot
-    closeBtn.addEventListener('click', () => {
-        chatbotContainer.style.display = 'none';
+    document.addEventListener('DOMContentLoaded', function() {
+        const chatbotIcon = document.getElementById('chatbot-icon');
+        const chatbotBubble = document.getElementById('chatbot-bubble');
+        const chatbotContainer = document.getElementById('chatbot-container');
+        const chatContent = document.querySelector('.chat-content');
+        const chatSuggestions = document.querySelector('.chat-suggestions');
+        const chatInput = document.getElementById('chat-input');
+        const sendBtn = document.getElementById('send-btn');
+        const minimizeBtn = document.getElementById('minimize-btn');
+        const fullscreenBtn = document.getElementById('fullscreen-btn');
+        const closeBtn = document.getElementById('close-btn');
+        
+        // Hiển thị chat bubble khi trang tải xong
         setTimeout(() => {
             chatbotBubble.style.display = 'block';
-        }, 1000);
-    });
-    
-    // Thu nhỏ chatbot
-    minimizeBtn.addEventListener('click', () => {
-        chatbotContainer.style.display = 'none';
-        chatbotBubble.style.display = 'block';
-    });
-    
-    // Chế độ toàn màn hình
-    fullscreenBtn.addEventListener('click', () => {
-        chatbotContainer.classList.toggle('fullscreen');
-        const icon = chatbotContainer.classList.contains('fullscreen') ? 'fa-compress' : 'fa-expand';
-        fullscreenBtn.innerHTML = `<i class="fas ${icon}"></i>`;
-        scrollToBottom();
-    });
-    
-    // Gửi tin nhắn khi nhấn Enter
-    chatInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            sendMessage();
-        }
-    });
-    
-    // Gửi tin nhắn khi nhấn nút gửi
-    sendBtn.addEventListener('click', sendMessage);
-    
-    // Hiển thị các gợi ý
-    function showSuggestedPrompts() {
-        const prompts = [
-            "Doanh thu hôm nay",
-            "Doanh thu tháng này",
-            "Tồn kho nguyên liệu",
-            "Món bán chạy nhất",
-            "Trạng thái bàn"
+        }, 2000);
+        
+        // Xoay vòng các tin nhắn gợi ý
+        const suggestedMessages = [
+            "Tôi là trợ lý AI, bạn cần giúp gì không?",
+            "Doanh thu hôm nay thế nào?",
+            "Kiểm tra tồn kho nguyên liệu?",
+            "Món nào bán chạy nhất hôm nay?",
+            "Bạn cần hỗ trợ gì không?"
         ];
         
-        chatSuggestions.innerHTML = '';
-        prompts.forEach(prompt => {
-            const btn = document.createElement('button');
-            btn.className = 'suggestion-btn';
-            btn.textContent = prompt;
-            btn.addEventListener('click', () => {
-                chatInput.value = prompt;
-                sendMessage();
-            });
-            chatSuggestions.appendChild(btn);
+        let currentMessageIndex = 0;
+        setInterval(() => {
+            currentMessageIndex = (currentMessageIndex + 1) % suggestedMessages.length;
+            if (chatbotBubble.style.display === 'block') {
+                chatbotBubble.style.opacity = 0;
+                setTimeout(() => {
+                    chatbotBubble.textContent = suggestedMessages[currentMessageIndex];
+                    chatbotBubble.style.opacity = 1;
+                }, 300);
+            }
+        }, 5000);
+        
+        // Mở chatbot khi click vào icon
+        chatbotIcon.addEventListener('click', () => {
+            chatbotBubble.style.display = 'none';
+            chatbotContainer.style.display = 'block';
+            getChatHistory();
+            showSuggestedPrompts();
         });
-    }
-    
-    // Lấy lịch sử chat
-    function getChatHistory() {
-        fetch('/get-chat-history/')
+        
+        // Đóng chatbot
+        closeBtn.addEventListener('click', () => {
+            chatbotContainer.style.display = 'none';
+            setTimeout(() => {
+                chatbotBubble.style.display = 'block';
+            }, 1000);
+        });
+        
+        // Thu nhỏ chatbot
+        minimizeBtn.addEventListener('click', () => {
+            chatbotContainer.style.display = 'none';
+            chatbotBubble.style.display = 'block';
+        });
+        
+        // Chế độ toàn màn hình
+        fullscreenBtn.addEventListener('click', () => {
+            chatbotContainer.classList.toggle('fullscreen');
+            const icon = chatbotContainer.classList.contains('fullscreen') ? 'fa-compress' : 'fa-expand';
+            fullscreenBtn.innerHTML = `<i class="fas ${icon}"></i>`;
+            scrollToBottom();
+        });
+        
+        // Gửi tin nhắn khi nhấn Enter
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+        
+        // Gửi tin nhắn khi nhấn nút gửi
+        sendBtn.addEventListener('click', sendMessage);
+        
+        // Hiển thị các gợi ý
+        function showSuggestedPrompts() {
+            const prompts = [
+                "Doanh thu hôm nay",
+                "Doanh thu tháng này",
+                "Tồn kho nguyên liệu",
+                "Món bán chạy nhất",
+                "Trạng thái bàn"
+            ];
+            
+            chatSuggestions.innerHTML = '';
+            prompts.forEach(prompt => {
+                const btn = document.createElement('button');
+                btn.className = 'suggestion-btn';
+                btn.textContent = prompt;
+                btn.addEventListener('click', () => {
+                    chatInput.value = prompt;
+                    sendMessage();
+                });
+                chatSuggestions.appendChild(btn);
+            });
+        }
+        
+        // Lấy lịch sử chat
+        function getChatHistory() {
+            fetch('/get-chat-history/')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        chatContent.innerHTML = '';
+                        data.chat_history.forEach(chat => {
+                            addMessage(chat.user_message, 'user');
+                            addMessage(chat.bot_reply, 'bot');
+                        });
+                        scrollToBottom();
+                        
+                        // Áp dụng cải tiến cho bảng sau khi tải lịch sử
+                        enhanceTables();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching chat history:', error);
+                });
+        }
+        
+        // Gửi tin nhắn
+        function sendMessage() {
+            const message = chatInput.value.trim();
+            if (!message) return;
+            
+            // Hiển thị tin nhắn người dùng
+            addMessage(message, 'user');
+            chatInput.value = '';
+            
+            // Hiển thị đang nhập
+            const loadingId = showTypingIndicator();
+            
+            // Lấy CSRF token từ cookie
+            function getCookie(name) {
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    const cookies = document.cookie.split(';');
+                    for (let i = 0; i < cookies.length; i++) {
+                        const cookie = cookies[i].trim();
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+            const csrftoken = getCookie('csrftoken');
+            
+            // Gửi tin nhắn đến server
+            fetch('/chatbot/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
+                body: JSON.stringify({ message: message })
+            })
             .then(response => response.json())
             .then(data => {
+                // Xóa typing indicator
+                hideTypingIndicator(loadingId);
+                
                 if (data.status === 'success') {
-                    chatContent.innerHTML = '';
-                    data.chat_history.forEach(chat => {
-                        addMessage(chat.user_message, 'user');
-                        addMessage(chat.bot_reply, 'bot');
-                    });
-                    scrollToBottom();
+                    // Hiển thị phản hồi từ bot
+                    addMessage(data.reply, 'bot');
+                    
+                    // Nếu có URL báo cáo, hiển thị nút tải xuống
+                    if (data.report_url) {
+                        addDownloadButton(data.report_url);
+                    }
+                    
+                    // Áp dụng cải tiến cho bảng
+                    setTimeout(() => {
+                        enhanceTables();
+                    }, 100);
+                } else {
+                    // Hiển thị lỗi
+                    addMessage('Xin lỗi, tôi không thể xử lý yêu cầu của bạn lúc này.', 'bot');
                 }
+                
+                // Hiển thị lại các gợi ý
+                showSuggestedPrompts();
+                scrollToBottom();
             })
             .catch(error => {
-                console.error('Error fetching chat history:', error);
+                hideTypingIndicator(loadingId);
+                addMessage('Đã xảy ra lỗi khi kết nối với server.', 'bot');
+                console.error('Error:', error);
             });
-    }
-    
-    // Gửi tin nhắn
-    function sendMessage() {
-        const message = chatInput.value.trim();
-        if (!message) return;
+        }
         
-        // Hiển thị tin nhắn người dùng
-        addMessage(message, 'user');
-        chatInput.value = '';
-        
-        // Hiển thị đang nhập
-        const loadingId = showTypingIndicator();
-        
-        // Gửi tin nhắn đến server
-        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-        
-        fetch('/chatbot/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrfToken
-            },
-            body: JSON.stringify({ message: message })
-        })
-        .then(response => response.json())
-        .then(data => {
-            // Xóa typing indicator
-            hideTypingIndicator(loadingId);
-            
-            if (data.status === 'success') {
-                // Hiển thị phản hồi từ bot
-                addMessage(data.reply, 'bot');
-            } else {
-                // Hiển thị lỗi
-                addMessage('Xin lỗi, tôi không thể xử lý yêu cầu của bạn lúc này.', 'bot');
-            }
-            
-            // Hiển thị lại các gợi ý
-            showSuggestedPrompts();
-            scrollToBottom();
-        })
-        .catch(error => {
-            hideTypingIndicator(loadingId);
-            addMessage('Đã xảy ra lỗi khi kết nối với server.', 'bot');
-            console.error('Error:', error);
-        });
-    }
-    
-    // Hiển thị typing indicator
-    function showTypingIndicator() {
-        const loadingId = 'typing-' + Date.now();
-        const loadingHtml = `
-            <div class="chat-message bot" id="${loadingId}">
-                <div class="d-flex">
-                    <div class="message-avatar">
-                        <i class="fas fa-robot"></i>
-                    </div>
-                    <div class="message-content">
-                        <div class="typing-indicator">
-                            <span></span>
-                            <span></span>
-                            <span></span>
+        // Hiển thị typing indicator
+        function showTypingIndicator() {
+            const loadingId = 'typing-' + Date.now();
+            const loadingHtml = `
+                <div class="chat-message bot" id="${loadingId}">
+                    <div class="d-flex">
+                        <div class="message-avatar">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <div class="message-content">
+                            <div class="typing-indicator">
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        `;
-        chatContent.insertAdjacentHTML('beforeend', loadingHtml);
-        scrollToBottom();
-        return loadingId;
-    }
-    
-    // Ẩn typing indicator
-    function hideTypingIndicator(id) {
-        const element = document.getElementById(id);
-        if (element) {
-            element.remove();
-        }
-    }
-    
-    // Thêm tin nhắn vào chat
-    function addMessage(message, sender) {
-        const time = getCurrentTime();
-        let avatar = '';
-        
-        if (sender === 'user') {
-            avatar = '<i class="fas fa-user"></i>';
-        } else {
-            avatar = '<i class="fas fa-robot"></i>';
+            `;
+            chatContent.insertAdjacentHTML('beforeend', loadingHtml);
+            scrollToBottom();
+            return loadingId;
         }
         
-        let messageContent = message;
-        if (sender === 'bot') {
-            // Sử dụng marked để chuyển đổi Markdown thành HTML
-            messageContent = marked.parse(message);
+        // Ẩn typing indicator
+        function hideTypingIndicator(id) {
+            const element = document.getElementById(id);
+            if (element) {
+                element.remove();
+            }
         }
         
-        const messageHtml = `
-            <div class="chat-message ${sender}">
-                <div class="d-flex">
-                    ${sender === 'bot' ? `
-                    <div class="message-avatar">
-                        ${avatar}
+        // Thêm nút tải xuống báo cáo
+        function addDownloadButton(url) {
+            const buttonHtml = `
+                <div class="chat-message bot">
+                    <div class="d-flex">
+                        <div class="message-avatar">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <div class="message-content">
+                            <a href="${url}" class="btn btn-success btn-sm" target="_blank">
+                                <i class="fas fa-download me-2"></i> Download Excel Report
+                            </a>
+                        </div>
                     </div>
-                    ` : ''}
-                    <div class="message-content">
-                        ${sender === 'bot' ? messageContent : `<p>${messageContent}</p>`}
-                    </div>
-                    ${sender === 'user' ? `
-                    <div class="message-avatar ms-2">
-                        ${avatar}
-                    </div>
-                    ` : ''}
                 </div>
-                <div class="message-time ${sender === 'user' ? 'text-end' : ''}">
-                    ${time}
-                </div>
-            </div>
-        `;
+            `;
+            chatContent.insertAdjacentHTML('beforeend', buttonHtml);
+            scrollToBottom();
+        }
         
-        chatContent.insertAdjacentHTML('beforeend', messageHtml);
-        scrollToBottom();
-    }
+        // Thêm tin nhắn vào chat
+        function addMessage(message, sender) {
+            const time = getCurrentTime();
+            let avatar = '';
+            let senderName = '';
+            
+            if (sender === 'user') {
+                avatar = '<i class="fas fa-user"></i>';
+                senderName = 'Bạn';
+            } else {
+                avatar = '<i class="fas fa-robot"></i>';
+                senderName = 'Bot RMS';
+            }
+            
+            let messageContent = message;
+            if (sender === 'bot') {
+                // Sử dụng marked để chuyển đổi Markdown thành HTML
+                messageContent = marked.parse(message);
+            }
+            
+            const messageHtml = `
+                <div class="chat-message ${sender}">
+                    <div class="d-flex">
+                        ${sender === 'bot' ? `
+                        <div class="message-avatar">
+                            ${avatar}
+                        </div>
+                        ` : ''}
+                        <div class="message-content">
+                            ${sender === 'bot' ? 
+                                `<div class="sender-name text-primary mb-1">${senderName}</div>${messageContent}` : 
+                                `<div class="sender-name text-end text-secondary mb-1">${senderName}</div><p>${messageContent}</p>`}
+                        </div>
+                        ${sender === 'user' ? `
+                        <div class="message-avatar ms-2">
+                            ${avatar}
+                        </div>
+                        ` : ''}
+                    </div>
+                    <div class="message-time ${sender === 'user' ? 'text-end' : ''}">
+                        ${time}
+                    </div>
+                </div>
+            `;
+            
+            chatContent.insertAdjacentHTML('beforeend', messageHtml);
+            scrollToBottom();
+        }
+        
+        // Cải tiến hiển thị bảng
+        function enhanceTables() {
+            // Tìm tất cả các bảng trong tin nhắn của bot
+            const tables = document.querySelectorAll('.bot .message-content table');
+            
+            tables.forEach(table => {
+                // Thêm class cho bảng
+                table.classList.add('table table-bordered table-striped verticle-middle table-responsive-sm');
+                
+                // Xử lý các hàng và cột
+                const rows = table.querySelectorAll('tr');
+                
+                rows.forEach((row, rowIndex) => {
+                    const cells = row.querySelectorAll('th, td');
+                    
+                    cells.forEach((cell, cellIndex) => {
+                        // Xử lý cột hoạt động (nhập/xuất)
+                        if (cellIndex === 1 && rowIndex > 0 && cell.textContent.includes('nhập')) {
+                            cell.innerHTML = cell.innerHTML.replace('nhập', '<span class="action-icon import"><i class="fas fa-arrow-down"></i></span>nhập');
+                        } else if (cellIndex === 1 && rowIndex > 0 && cell.textContent.includes('xuất')) {
+                            cell.innerHTML = cell.innerHTML.replace('xuất', '<span class="action-icon export"><i class="fas fa-arrow-up"></i></span>xuất');
+                        }
+                        
+                        // Thêm tooltip cho số lượng tồn thấp
+                        if (cellIndex === 2 && rowIndex > 0 && cell.querySelector('strong')) {
+                            const quantity = parseInt(cell.querySelector('strong').textContent);
+                            if (quantity <= 20) {
+                                cell.setAttribute('title', 'Số lượng tồn thấp, cần nhập thêm!');
+                                cell.style.color = '#e74c3c';
+                            }
+                        }
+                    });
+                });
+            });
+        }
+        
+        // Cuộn xuống dưới cùng
+        function scrollToBottom() {
+            chatContent.scrollTop = chatContent.scrollHeight;
+        }
+        
+        // Lấy thời gian hiện tại
+        function getCurrentTime() {
+            const now = new Date();
+            return now.getHours().toString().padStart(2, '0') + ':' + 
+                   now.getMinutes().toString().padStart(2, '0');
+        }
     
-    // Cuộn xuống dưới cùng
-    function scrollToBottom() {
-        chatContent.scrollTop = chatContent.scrollHeight;
-    }
-    
-    // Lấy thời gian hiện tại
-    function getCurrentTime() {
-        const now = new Date();
-        return now.getHours().toString().padStart(2, '0') + ':' + 
-               now.getMinutes().toString().padStart(2, '0');
-    }
-});
+        // Thêm tin nhắn chào mừng
+        setTimeout(() => {
+            addMessage("# 👋 Xin chào! Tôi là Bot RMS\n\nTôi có thể giúp bạn với các thông tin về:\n\n- 💰 Doanh thu và báo cáo\n- 📦 Tồn kho nguyên liệu\n- 🍽️ Món ăn bán chạy\n- 🪑 Trạng thái bàn\n\nHãy hỏi tôi bất cứ điều gì về nhà hàng của bạn!\n\n*Bot RMS*", 'bot');
+        }, 500);
+    });
 </script>

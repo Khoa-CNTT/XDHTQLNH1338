@@ -32,6 +32,9 @@ def upload_avatar_and_update_employee(user, avatar_url):
             }
         if user.username == 'chef':
             defaults['role'] = 'chef'
+            
+        if user.username == 'manager':
+            defaults['role'] = 'manager'
         # Bước 3: Tạo hoặc update Employee
         employee, created = Employee.objects.get_or_create(
             user=user,
@@ -56,6 +59,7 @@ class Command(BaseCommand):
         ("phu", "123456", 'Châu', 'Phú', PHU_AVATAR_URL),
         ("anh", "123456", 'Công', 'Anh', ANH_AVATAR_URL),
         ("admin", "123456", '', 'Admin', ADMIN_AVATAR_URL),
+        ("manager", "123456", 'manager', 'Manager', ADMIN_AVATAR_URL),
         ("chef", "123456", 'Chef', 'Chef', ADMIN_AVATAR_URL),
     ]
 

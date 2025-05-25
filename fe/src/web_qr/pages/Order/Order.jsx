@@ -13,8 +13,6 @@ import { FaArrowLeft } from "react-icons/fa";
 import { SocketContext } from "../../../main/context/SocketContext";
 import { useAuth } from "../../context/AuthContext";
 
-
-
 const cx = classNames.bind(styles);
 
 const Order = () => {
@@ -45,7 +43,6 @@ const Order = () => {
 
     useEffect(() => { fetchCart(); }, []);
 
-    // Tăng số lượng sản phẩm
     const handleIncreaseQuantity = async (product_id, currentQuantity) => {
         try {
             await updateQuantityCart({ product_id, quantity: currentQuantity + 1 });
@@ -78,16 +75,12 @@ const Order = () => {
         }
     };
 
-    // Xóa sản phẩm khỏi giỏ hàng
     const handleDeleteItem = async (product_id) => {
-        setCart((prevCart) => ({
-            ...prevCart,
-            items: prevCart.items.filter((item) => item.product !== product_id),
-        }));
-
         try {
+            const newItems = cart.items.filter((item) => item.product !== product_id);
+            setCart({ ...cart, items: newItems });
+
             await updateQuantityCart({ product_id, quantity: 0 });
-            fetchCart();
 
         } catch (error) {
             toast.error("Lỗi khi xóa sản phẩm:", error);
@@ -95,20 +88,17 @@ const Order = () => {
         }
     };
 
-    // Tính tổng tiền đơn hàng
+
     const totalOrderPrice = cartItems.reduce((total, item) => total + item.product_price * item.quantity, 0);
 
-    // Tính tổng số lượng món
     const totalQuantity = cartItems.reduce((total, item) => total + item.quantity, 0);
 
-    // Dat mon
     const handleOrderSubmit = async () => {
         try {
             const response = await createInvoice();
             const statusCode = response?.status || response?.headers?.status;
 
             if (statusCode === 201) {
-                // 📤 Gửi message lên WebSocket Server
                 if (socket && socket.readyState === WebSocket.OPEN) {
                     socket.send(
                         JSON.stringify({
@@ -121,7 +111,6 @@ const Order = () => {
                 toast.success("Đặt món thành công!!", {
                     autoClose: 1000,
                     onClose: async () => {
-                        // Đợi 1 tí cho chắc chắn toast biến mất (nếu cần)
                         await new Promise(resolve => setTimeout(resolve, 50));
                         await fetchCart();
                         await setCart({ items: [] });
@@ -219,7 +208,7 @@ const Order = () => {
                                             <button
                                                 className={cx("button")}
                                                 onClick={() => handleDecreaseQuantity(item.product, item.quantity)}
-                                                disabled={item.quantity <= 1} // Không giảm số lượng dưới 1
+                                                disabled={item.quantity <= 1}
                                             >
                                                 −
                                             </button>

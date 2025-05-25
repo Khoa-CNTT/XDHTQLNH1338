@@ -7,6 +7,7 @@ import Home from '../pages/Home'
 import Menu from '../pages/Menu/Menu'
 import About from '../pages/About/About'
 import BookTable from '../pages/BookTable/BookTable'
+import ThankYou from '../../web_qr/pages/ThankYou/ThankYou'
 
 const web_introduce = [
   {
@@ -17,6 +18,11 @@ const web_introduce = [
   {
     path: config.routes.home,
     component: Home,
+    layout: DefaultLayout,
+  },
+  {
+    path: '/thank-you',
+    component: ThankYou,
     layout: DefaultLayout,
   },
   {

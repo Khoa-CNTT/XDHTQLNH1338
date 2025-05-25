@@ -30,7 +30,13 @@
             <div class="d-flex align-items-center gap-3">
                 <!-- Tổng tiền -->
                 <span class="text-muted small">
+                    Giảm: <strong class="text-dark">{{ order.order_discount }}%</strong>
+                </span>
+                <span class="text-muted small">
                     Tổng: <strong class="text-dark">{{ macros.format_currency(order.order_total) }}</strong>
+                </span>
+                <span class="text-muted small">
+                    Thành tiền: <strong class="text-dark">{{ macros.format_currency(order.order_total - order.order_total * order.order_discount/100) }}</strong>
                 </span>
             </div>
         </div>
