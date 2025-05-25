@@ -33,7 +33,7 @@ export const SocketProvider = ({ children }) => {
 
   // Initialize WebSocket connection on mount
   useEffect(() => {
-    const ws = new WebSocket("ws://192.168.1.21:5001/ws/notifications/order/");
+    const ws = new WebSocket("ws://localhost:5001/ws/notifications/order/");
 
     ws.onopen = () => console.log("✅ WebSocket connected!");
     ws.onclose = (event) => console.log("❌ WebSocket disconnected!", event);
@@ -55,7 +55,10 @@ export const SocketProvider = ({ children }) => {
       try {
         const data = JSON.parse(event.data);
         const session = await fetchUserProfile();
-        if (data?.type === "end_session" && session?.data?.session?.session_id === data?.data?.session_id) {
+        if (
+          data?.type === "end_session" &&
+          session?.data?.session?.session_id === data?.data?.session_id
+        ) {
           asyncEndSession();
         }
 
