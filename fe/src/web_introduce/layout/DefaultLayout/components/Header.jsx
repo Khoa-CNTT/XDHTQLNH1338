@@ -1,7 +1,6 @@
 import classNames from 'classnames/bind'
 import styles from './Header.module.scss'
-
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { IoSearch } from "react-icons/io5";
 import { FaUser, FaBars, FaTimes } from "react-icons/fa";
 import config from "../../../config";
@@ -10,12 +9,13 @@ import Search from './Search/Search';
 
 const cx = classNames.bind(styles)
 
-
 export const ToggleSearchFullscreenContext = createContext(null);
+
 const Header = () => {
   const [blockSearchFullscreen, setBlockSearchFullscreen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const mobileMenuRef = useRef(null);
+  const location = useLocation();
 
   const handleSearchFullscreen = (e) => {
     e.preventDefault();
@@ -45,15 +45,37 @@ const Header = () => {
     };
   }, []);
 
+  const isActive = (path) => {
+    if (path === config.routes.home) {
+      return location.pathname === path;
+    }
+    return location.pathname.startsWith(path);
+  };
+
   return (
     <header className={cx('cs-bg-header')}>
       <div className={cx('container h-100 d-flex justify-content-between align-items-center')}>
         <Link to={config.routes.home} className={cx('cs-logo')}>RMS</Link>
         {/* Desktop Menu */}
         <div className={cx('cs-desktop-menu', 'd-flex justify-content-between', 'd-none d-md-flex')}>
-          <Link to={config.routes.home} className={cx('cs-text-center')}>TRANG CHỦ</Link>
-          <Link to={config.routes.menu} className={cx('cs-text-center')}>THỰC ĐƠN</Link>
-          <Link to={config.routes.about} className={cx('cs-text-center')}>GIỚI THIỆU</Link>
+          <Link 
+            to={config.routes.home} 
+            className={cx('cs-text-center', { active: isActive(config.routes.home) })}
+          >
+            TRANG CHỦ
+          </Link>
+          <Link 
+            to={config.routes.menu} 
+            className={cx('cs-text-center', { active: isActive(config.routes.menu) })}
+          >
+            THỰC ĐƠN
+          </Link>
+          <Link 
+            to={config.routes.about} 
+            className={cx('cs-text-center', { active: isActive(config.routes.about) })}
+          >
+            GIỚI THIỆU
+          </Link>
         </div>
         <div className={cx('d-flex align-items-center', 'cs-nav-right')}>
           <IoSearch className={cx('cs-icon')} onClick={handleSearchFullscreen} />
@@ -67,9 +89,27 @@ const Header = () => {
           <FaTimes className={cx('cs-icon')} onClick={toggleMobileMenu} />
         </div>
         <div className={cx('cs-mobile-menu-links')}>
-          <Link to={config.routes.home} className={cx('cs-mobile-text-center')} onClick={toggleMobileMenu}>TRANG CHỦ</Link>
-          <Link to={config.routes.menu} className={cx('cs-mobile-text-center')} onClick={toggleMobileMenu}>THỰC ĐƠN</Link>
-          <Link to={config.routes.about} className={cx('cs-mobile-text-center')} onClick={toggleMobileMenu}>GIỚI THIỆU</Link>
+          <Link 
+            to={config.routes.home} 
+            className={cx('cs-mobile-text-center', { active: isActive(config.routes.home) })} 
+            onClick={toggleMobileMenu}
+          >
+            TRANG CHỦ
+          </Link>
+          <Link 
+            to={config.routes.menu} 
+            className={cx('cs-mobile-text-center', { active: isActive(config.routes.menu) })} 
+            onClick={toggleMobileMenu}
+          >
+            THỰC ĐƠN
+          </Link>
+          <Link 
+            to={config.routes.about} 
+            className={cx('cs-mobile-text-center', { active: isActive(config.routes.about) })} 
+            onClick={toggleMobileMenu}
+          >
+            GIỚI THIỆU
+          </Link>
           <Link to={config.routes.bookTable} className={cx('cs-mobile-btn-primary')} onClick={toggleMobileMenu}>Đặt bàn</Link>
         </div>
       </div>
@@ -85,7 +125,6 @@ const Header = () => {
     </header>
   )
 }
-
 
 export default Header
 

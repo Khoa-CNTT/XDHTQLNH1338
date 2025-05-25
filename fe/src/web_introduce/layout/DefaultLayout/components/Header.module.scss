@@ -37,10 +37,26 @@
   color          : #fff;
   padding        : 5px 20px;
   text-decoration: none;
+  position: relative;
 
   &:hover {
     cursor: pointer;
     color : var(--foreignKey);
+  }
+
+  &.active {
+    color: var(--foreignKey);
+    
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: -5px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 30px;
+      height: 2px;
+      background-color: var(--foreignKey);
+    }
   }
 }
 
