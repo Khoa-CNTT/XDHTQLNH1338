@@ -3,10 +3,11 @@ import styles from './About.module.scss'
 import { Carousel } from 'react-bootstrap'
 import { useState } from 'react'
 import { FaStar, FaStarHalfAlt, FaRegStar } from 'react-icons/fa'
+import { Link } from 'react-router-dom'
+import config from '../../config'
 
 const cx = classNames.bind(styles)
 
-// Sample feedback data
 const feedbackData = [
   {
     id: 1,
@@ -74,13 +75,13 @@ const About = () => {
   return (
     <div className={cx('wrapper')}>
       <div className={cx('container')}>
-        <div className={cx('row d-flex align-items-center justify-content-center')}>
+        <div className={cx('row d-flex align-items-center justify-content-center pt-5')}>
           <div className={cx('col-12 col-md-6 order-md-2', 'cs-content')}>
             <div className={cx('cs-header')}>
-              <h2>We Are Five Star</h2>
+              <h2>Giới thiệu về nhà hàng</h2>
             </div>
             <p className={cx('cs-text')}>{`Nhà hàng ẩm thực hiện đại kết hợp với truyền thống, tạo nên tính mới lạ cho thực khách. Được ra đời vào năm 2025 với tiêu chí "Khách hàng là trên hết, phục vụ nhanh chóng" nên chúng tôi luôn tự hào về cách phục vụ cũng như các món ăn mà chúng tôi làm ra. Nhà hàng chúng tôi luôn luôn đặt khách hàng lên hàng đầu, tận tâm phục vụ, mang lại cho khách hàng những trải nghiệm tuyệt với nhất. Các món ăn với công thức độc quyền sẽ mang lại hương vị mới mẻ cho thực khách. Chúng tôi xin chân thành cảm ơn.`}</p>
-            <button className={cx('cs-btn')}>Xem thêm</button>
+            <Link to={config.routes.about} className={cx('cs-btn')}>Xem thêm</Link>
           </div>
           <div className={cx('d-none d-md-block col-md-6 order-md-1', 'cs-img')}>
             <div className={cx('cs-img-box')}><img src="https://themewagon.github.io/feane/images/about-img.png" alt="" /></div>
@@ -104,7 +105,6 @@ const About = () => {
               </span>
             </p>
           </div>
-          
           <Carousel 
             activeIndex={index} 
             onSelect={handleSelect}

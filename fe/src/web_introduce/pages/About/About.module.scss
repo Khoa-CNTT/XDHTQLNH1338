@@ -1,7 +1,6 @@
 .wrapper {
     background-color: #222831;
-    padding: 90px 0;
-
+    padding-top: 50px;
 }
 
 .cs-content {
@@ -37,7 +36,7 @@
         border: none;
         margin-top: 15px;
         font-size: 16px;
-
+        text-decoration: none;
         &:hover {
             background-color: #e69c00;
         }

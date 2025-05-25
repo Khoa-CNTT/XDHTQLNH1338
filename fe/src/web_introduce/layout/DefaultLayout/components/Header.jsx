@@ -48,7 +48,11 @@ const Header = () => {
   return (
     <header className={cx('cs-bg-header')}>
       <div className={cx('container h-100 d-flex justify-content-between align-items-center')}>
+<<<<<<< HEAD
         <Link to={config.routes.home} className={cx('cs-logo')}>FIVE START</Link>
+=======
+        <Link to={config.routes.home} className={cx('cs-logo')}>RMS</Link>
+>>>>>>> 7b3c6dbcc8f6b1dd6d85dc7663381bc8b6f253eb
         
         {/* Desktop Menu */}
         <div className={cx('cs-desktop-menu', 'd-flex justify-content-between', 'd-none d-md-flex')}>
