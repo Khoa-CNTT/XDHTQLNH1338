@@ -3,6 +3,17 @@
     "order": "Đơn hàng",
     "logout": "Đăng xuất",
     "language": "Tiếng Việt",
+    "login": {
+        "welcome": "Chào mừng",
+        "sign_in": "Đăng nhập gọi món",
+        "phone_number": "Số điện thoại",
+        "name": "Tên",
+        "errors": {
+            "phone_required": "Số điện thoại không được để trống!",
+            "phone_invalid": "Số điện thoại phải có 10 chữ số!",
+            "name_required": "Tên không được để trống!"
+        }
+    },
     "search_placeholder": "Bạn muốn ăn gì...",
     "call_staff": {
         "title": "Gọi nhân viên",

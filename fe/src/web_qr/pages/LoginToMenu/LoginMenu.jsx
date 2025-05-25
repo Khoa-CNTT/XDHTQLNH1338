@@ -5,12 +5,14 @@ import { useNavigate } from "react-router-dom";
 import { ClipLoader } from "react-spinners";
 import { useAuth } from '../../context/AuthContext'
 import { toast } from 'react-toastify';
+import { useTranslation } from 'react-i18next';
 
 const cx = classNames.bind(styles);
 
 const LoginPage = () => {
     const { login, user } = useAuth()
     const navigate = useNavigate();
+    const { t, i18n } = useTranslation();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [tableNumber, setTableNumber] = useState(null);
@@ -40,18 +42,18 @@ const LoginPage = () => {
         setError(null);
 
         if (!formData.phoneNumber.trim()) {
-            toast.error("Số điện thoại không được để trống!");
+            toast.error(t('login.errors.phone_required'));
             setLoading(false);
             return;
         }
         if (!/^\d{10}$/.test(formData.phoneNumber)) {
-            toast.error("Số điện thoại phải có 10 chữ số!");
+            toast.error(t('login.errors.phone_invalid'));
             setLoading(false);
             return;
         }
     
         if (!formData.firstName.trim()) {
-            toast.error("Tên không được để trống!");
+            toast.error(t('login.errors.name_required'));
             setLoading(false);
             return;
         }
@@ -72,11 +74,15 @@ const LoginPage = () => {
                     toast.error(res?.response?.data?.error);
                 }
             } catch (err) {
-                toast.error(res?.response?.data?.error);
+                toast.error(err?.response?.data?.error || 'An error occurred');
             } finally {
                 setLoading(false);
             }
         }, 1000);
+    };
+
+    const handleChangeLanguage = (lang) => {
+        i18n.changeLanguage(lang);
     };
 
     return (
@@ -84,18 +90,35 @@ const LoginPage = () => {
             <div className="row">
                 <div className="col-12">
                     <div className={cx("login-box")}>
-                        <h2 className={cx("welcome-text")}>Welcome</h2>
+                       
+                        <h2 className={cx("welcome-text")}>{t('login.welcome')}</h2>
                         <div className={cx("form-container")}>
-                            <h3 className={cx("sign-in-text")}>Đăng nhập gọi món</h3>
+                            <h3 className={cx("sign-in-text")}>{t('login.sign_in')}</h3>
                             <form onSubmit={handleSubmit}>
-                                <input type="text" name="phoneNumber" placeholder="Số điện thoại"
-                                    value={formData.phoneNumber} onChange={handleChange} />
+                                <input 
+                                    type="text" 
+                                    name="phoneNumber" 
+                                    placeholder={t('login.phone_number')}
+                                    value={formData.phoneNumber} 
+                                    onChange={handleChange} 
+                                />
 
-                                <input hidden type="text" name="username" placeholder="Tên đăng nhập"
-                                    value={formData.phoneNumber} onChange={handleChange} />
+                                <input 
+                                    hidden 
+                                    type="text" 
+                                    name="username" 
+                                    placeholder={t('login.phone_number')}
+                                    value={formData.phoneNumber} 
+                                    onChange={handleChange} 
+                                />
 
-                                <input type="text" name="firstName" placeholder="Tên"
-                                    value={formData.firstName} onChange={handleChange} />
+                                <input 
+                                    type="text" 
+                                    name="firstName" 
+                                    placeholder={t('login.name')}
+                                    value={formData.firstName} 
+                                    onChange={handleChange} 
+                                />
 
                                 <button type="submit" className={cx("arrow-button")} disabled={loading}>
                                     {loading ? <ClipLoader size={25} /> : "→"}
