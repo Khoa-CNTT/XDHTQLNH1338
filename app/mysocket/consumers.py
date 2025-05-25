@@ -91,7 +91,7 @@ class NotifyConsumer(AsyncWebsocketConsumer):
                 },
                 'staff_call': {
                     'message': f'Bàn {table_number} cần hỗ trợ từ nhân viên.',
-                    'level': 'warning',
+                    'level': 'info',
                 },
                 'custom': {
                     'message': data.get('message', '🔔 Thông báo tuỳ chỉnh.'),
