@@ -4,7 +4,7 @@ import google.generativeai as genai
 from django.conf import settings
 from django.db.models import Sum, Count, F
 from django.utils import timezone
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 from web_01.models import (
     ChatHistory, Invoice, Order, OrderDetail,
@@ -234,10 +234,15 @@ Bot RMS
             'category_stats': category_stats
         }
 
-    def get_sales_stats(self, period='today'):
+    def get_sales_stats(self, period='today', specific_date=None):
         """Lấy thống kê doanh thu"""
         today = timezone.now().date()
-        if period == 'today':
+
+        if specific_date:
+            # Handle specific date query
+            start_date = specific_date
+            period_name = f"ngày {start_date.strftime('%d/%m/%Y')}"
+        elif period == 'today':
             start_date = today
             period_name = "hôm nay"
         elif period == 'yesterday':
@@ -255,46 +260,69 @@ Bot RMS
         else:
             start_date = today
             period_name = "hôm nay"
+
+        # Define end date (exclusive) for filtering
+        end_date = start_date + timedelta(days=1) if specific_date else today + timedelta(days=1)
+
+        # Doanh thu
         revenue = Invoice.objects.filter(
             created_at__date__gte=start_date,
+            created_at__date__lt=end_date,
             is_deleted=False
         ).aggregate(total=Sum('total_amount'))['total'] or 0
+
+        # Số đơn hàng
         orders = Order.objects.filter(
             created_at__date__gte=start_date,
+            created_at__date__lt=end_date,
             is_deleted=False
         )
         order_count = orders.count()
+
+        # Doanh thu trung bình mỗi đơn
         avg_order_value = revenue / order_count if order_count > 0 else 0
+
+        # Món bán chạy
         best_selling = OrderDetail.objects.filter(
             created_at__date__gte=start_date,
+            created_at__date__lt=end_date,
             is_deleted=False
         ).values('product__name').annotate(
             total_sold=Sum('quantity'),
             revenue=Sum(F('price') * F('quantity'))
         ).order_by('-total_sold')[:5]
+
+        # Thống kê theo trạng thái đơn hàng
         order_status = orders.values('status').annotate(
             count=Count('id')
         ).order_by('status')
+
+        # Thống kê theo giờ (chỉ cho ngày cụ thể hoặc hôm nay)
         hourly_stats = []
-        if period == 'today':
+        if specific_date or period == 'today':
+            target_date = specific_date or today
             for hour in range(24):
-                hour_start = safe_make_aware(timezone.datetime.combine(today, timezone.datetime.min.time()) + timedelta(hours=hour))
+                hour_start = safe_make_aware(datetime.combine(target_date, datetime.min.time()) + timedelta(hours=hour))
                 hour_end = hour_start + timedelta(hours=1)
+
                 hour_revenue = Invoice.objects.filter(
                     created_at__gte=hour_start,
                     created_at__lt=hour_end,
                     is_deleted=False
                 ).aggregate(total=Sum('total_amount'))['total'] or 0
+
                 hour_orders = Order.objects.filter(
                     created_at__gte=hour_start,
                     created_at__lt=hour_end,
                     is_deleted=False
                 ).count()
+
                 hourly_stats.append({
                     'hour': f"{hour:02d}:00",
                     'revenue': hour_revenue,
                     'orders': hour_orders
                 })
+
         return {
             'period': period_name,
             'revenue': revenue,
@@ -462,6 +490,24 @@ Bot RMS
         """Xử lý câu hỏi của người dùng"""
         user_message_lower = user_message.lower()
 
+        # Date parsing for specific date queries
+        date_patterns = [
+            r'ngày\s*(\d{1,2})[/-](\d{1,2})(?:\s*năm\s*(\d{4}))?',  # e.g., "ngày 25/02" or "ngày 25/02/2025"
+            r'ngày\s*(\d{1,2})\s*tháng\s*(\d{1,2})(?:\s*năm\s*(\d{4}))?'  # e.g., "ngày 25 tháng 02" or "ngày 25 tháng 02 năm 2025"
+        ]
+        specific_date = None
+        for pattern in date_patterns:
+            match = re.search(pattern, user_message_lower)
+            if match:
+                day = int(match.group(1))
+                month = int(match.group(2))
+                year = int(match.group(3)) if match.group(3) else timezone.now().year  # Default to current year
+                try:
+                    specific_date = datetime(year, month, day).date()
+                    break
+                except ValueError:
+                    specific_date = None  # Invalid date, handle below
+
         # Xử lý câu hỏi về thành viên hoặc mentor
         if "thành viên" in user_message_lower or "đội ngũ" in user_message_lower:
             team_data = self.get_team_info(query_type="team")
@@ -531,14 +577,20 @@ Bot RMS
 *Dữ liệu được cập nhật vào {timezone.now().strftime('%d/%m/%Y %H:%M')}*
 """
         elif "doanh thu" in user_message_lower or "bán hàng" in user_message_lower:
-            period = 'today'
-            if "hôm qua" in user_message_lower:
-                period = 'yesterday'
-            elif "tuần" in user_message_lower:
-                period = 'week'
-            elif "tháng" in user_message_lower:
-                period = 'month'
-            sales_data = self.get_sales_stats(period)
+            if specific_date:
+                # Handle specific date
+                sales_data = self.get_sales_stats(specific_date=specific_date)
+            else:
+                # Handle period-based queries
+                period = 'today'
+                if "hôm qua" in user_message_lower:
+                    period = 'yesterday'
+                elif "tuần" in user_message_lower:
+                    period = 'week'
+                elif "tháng" in user_message_lower:
+                    period = 'month'
+                sales_data = self.get_sales_stats(period=period)
+
             formatted_data = self.format_data_for_display('sales', sales_data)
             context = f"""
 # Thống Kê Doanh Thu {sales_data['period'].title()}
@@ -590,12 +642,27 @@ Tôi là trợ lý siêu "mặn mà" của nhà hàng, sẵn sàng giúp bạn t
 - **Mentor**: Hỏi về người dẫn dắt dự án, như đầu bếp trưởng của nhóm!
 
 Ví dụ câu hỏi:  
-1. "Doanh thu hôm nay là bao nhiêu?"  
+1. "Doanh thu ngày 25/02/2025 là bao nhiêu?"  
 2. "Kiểm tra tồn kho nguyên liệu"  
 3. "Thành viên của dự án là ai?"  
 4. "Mentor là ai?"
 
 Hỏi đi, tôi trả lời nhanh hơn đầu bếp xào món ăn!
+
+Bot RMS
+"""
+        # Handle invalid date
+        if specific_date is None and ("doanh thu" in user_message_lower or "bán hàng" in user_message_lower) and any(pat in user_message_lower for pat in ['ngày', 'tháng']):
+            context = """
+# Lỗi Định Dạng Ngày
+
+Ôi, ngày bạn nhập có vẻ không đúng chuẩn nhà hàng! Hãy thử định dạng như "ngày 25/02" hoặc "ngày 25 tháng 02 năm 2025" nhé!
+
+## Gợi ý
+- Kiểm tra lại ngày, tháng, năm.
+- Ví dụ: "Doanh thu ngày 25/02/2025"
+
+Hỏi lại tôi, tôi vẫn đang chờ như khách đợi món ăn đây!
 
 Bot RMS
 """
