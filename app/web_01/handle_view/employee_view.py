@@ -7,6 +7,7 @@ from django.utils import timezone
 import datetime
 from django.views.generic import TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
+from web_01.management.commands.create_admins import upload_avatar_and_update_employee
 
 class EmployeeManagementView(LoginRequiredMixin, TemplateView):
     template_name = '/apps/web_01/employee/employee_list.html'
@@ -57,7 +58,7 @@ class EmployeeManagementView(LoginRequiredMixin, TemplateView):
                 end_date = datetime.date(year, month + 1, 1)
 
             employees = Employee.objects.select_related('user').filter(~Q(role__iexact='chef'), is_deleted=False)
-
+            
             if filter_name:
                 employees = employees.filter(user__username=filter_name)  # filter theo username chính xác
 
@@ -131,26 +132,27 @@ class EmployeeManagementView(LoginRequiredMixin, TemplateView):
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=400)
 
+
 @login_required
 def employee_add(request):
     """Thêm nhân viên mới"""
     if request.method != 'POST':
         return JsonResponse({'success': False, 'message': 'Phương thức không được hỗ trợ'})
-    
+
     try:
         username = request.POST.get('username')
         salary = request.POST.get('salary')
         role = request.POST.get('role', 'staff')  # Default to 'staff' if not provided
         total_shifts = request.POST.get('total_shifts', '0')
         total_hours = request.POST.get('total_hours', '0')
-        
+
         # Validate input
         if not all([username, salary]):
             return JsonResponse({
                 'success': False,
                 'message': 'Vui lòng điền đầy đủ thông tin'
             })
-        
+
         # Convert salary to integer (remove commas)
         try:
             salary = int(salary.replace(',', ''))
@@ -161,44 +163,45 @@ def employee_add(request):
                 'success': False,
                 'message': 'Dữ liệu không hợp lệ'
             })
-        
+
         # Check if user exists
         user = User.objects.filter(username=username).first()
         if not user:
             # Create new user if not exists
-            user = User.objects.create(
+            user = User.objects.create_user(
                 username=username,
                 first_name=username,
+                password='123456',
                 is_active=True
             )
-        
+
         # Create employee
         employee = Employee.objects.create(
             user=user,
             salary=salary,
-            role=role 
+            role=role
         )
-        
+        upload_avatar_and_update_employee(user,'')
+
         # Create initial work shift with current date
         if total_shifts > 0:
             current_date = timezone.now().date()
             hours_per_shift = total_hours / total_shifts if total_shifts > 0 else 0
-            
+
             # Create shifts for the employee
             for i in range(total_shifts):
                 shift_date = current_date - datetime.timedelta(days=i)
                 WorkShift.objects.create(
                     employee=employee,
-                    date=shift_date,
-                    duration=hours_per_shift
+                    date=shift_date
+                    # duration=hours_per_shift
                 )
-        
+
         return JsonResponse({
             'success': True,
             'message': 'Thêm nhân viên thành công'
         })
-        
-        
+
     except Exception as e:
         print("🔥 Exception:", str(e))
         return JsonResponse({
@@ -206,25 +209,26 @@ def employee_add(request):
             'message': f'Lỗi: {str(e)}'
         })
 
+
 @login_required
 def employee_update(request):
     """Cập nhật thông tin nhân viên"""
     if request.method != 'POST':
         return JsonResponse({'success': False, 'message': 'Phương thức không được hỗ trợ'})
-    
+
     try:
         employee_id = request.POST.get('employee_id')
         username = request.POST.get('username')
         salary = request.POST.get('salary')
         role = request.POST.get('role')  # Get role from form
-        
+
         # Validate input
         if not all([employee_id, username, salary]):
             return JsonResponse({
                 'success': False,
                 'message': 'Vui lòng điền đầy đủ thông tin'
             })
-        
+
         # Convert salary to integer (remove commas)
         try:
             salary = int(salary.replace(',', ''))
@@ -233,7 +237,7 @@ def employee_update(request):
                 'success': False,
                 'message': 'Lương không hợp lệ'
             })
-        
+
         # Get employee
         employee = Employee.objects.filter(user_id=employee_id, is_deleted=False).first()
         if not employee:
@@ -241,28 +245,28 @@ def employee_update(request):
                 'success': False,
                 'message': 'Không tìm thấy nhân viên'
             })
-        
+
         # Update employee
         employee.salary = salary
         if role:
             employee.role = role  # Update role if provided
         employee.save()
-        
+
         # Update user
         user = employee.user
         if user:
             user.username = username
             user.save()
-        
+
         # Create new work shift with updated status and type
         current_date = timezone.now().date()
-        
+
         # Check if a shift already exists for this employee, date, and shift type
         existing_shift = WorkShift.objects.filter(
             employee=employee,
             date=current_date,
         ).first()
-        
+
         if existing_shift:
             # Update existing shift
             existing_shift.save()
@@ -273,12 +277,12 @@ def employee_update(request):
                 date=current_date,  # Add the date field
                 duration=4.0  # Default duration is 4 hours
             )
-        
+
         return JsonResponse({
             'success': True,
             'message': 'Cập nhật nhân viên thành công'
         })
-        
+
     except Exception as e:
         print("🔥 Exception:", str(e))
         return JsonResponse({
@@ -286,22 +290,23 @@ def employee_update(request):
             'message': f'Lỗi: {str(e)}'
         })
 
+
 @login_required
 def employee_delete(request):
     """Xóa nhân viên (soft delete)"""
     if request.method != 'POST':
         return JsonResponse({'success': False, 'message': 'Phương thức không được hỗ trợ'})
-    
+
     try:
         employee_id = request.POST.get('employee_id')
-        
+
         # Validate input
         if not employee_id:
             return JsonResponse({
                 'success': False,
                 'message': 'ID nhân viên không hợp lệ'
             })
-        
+
         # Get employee
         employee = Employee.objects.filter(user_id=employee_id, is_deleted=False).first()
         if not employee:
@@ -309,20 +314,19 @@ def employee_delete(request):
                 'success': False,
                 'message': 'Không tìm thấy nhân viên'
             })
-        
+
         # Soft delete employee
         employee.is_deleted = True
         employee.save()
-        
+
         return JsonResponse({
             'success': True,
             'message': 'Xóa nhân viên thành công'
         })
-        
+
     except Exception as e:
         print("🔥 Exception:", str(e))
         return JsonResponse({
             'success': False,
             'message': f'Lỗi: {str(e)}'
         })
-

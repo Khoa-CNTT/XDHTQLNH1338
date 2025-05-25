@@ -153,7 +153,10 @@
             </div>
         </div>
 
-		{% include '/apps/web_01/dashboard/chatbot.html' %}
+
+		{% if is_admin %}
+			{% include '/apps/web_01/dashboard/chatbot.html' %}
+		{%endif%}
 
         <!--**********************************
             Footer end
