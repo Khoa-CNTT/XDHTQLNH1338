@@ -1,10 +1,9 @@
 import React, { useContext, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { SocketContext } from "../../../main/context/SocketContext";
-import { endSession, fetchAwaitPaymentStatus } from "../../services/api";
+import { fetchAwaitPaymentStatus } from "../../services/api";
 import styles from "./Payment.module.scss";
 import { useTranslation } from "react-i18next";
-import CallStaffButton from "../../components/CallStaffButton/CallStaffButton";
 import { FaCheckCircle } from "react-icons/fa";
 
 const PaymentSuccess = () => {
@@ -38,11 +37,8 @@ const PaymentSuccess = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, socket]);
 
-  const handleReturnToMenu = async () => {
-    const response = await endSession();
-    if (response?.status === 200) {
-      navigate("/menu-order");
-    }
+  const handleReturnToMenu = () => {
+    navigate("/menu-order");
   };
 
   return (
