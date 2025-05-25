@@ -3,13 +3,17 @@ import classNames from "classnames/bind";
 import styles from "./Menu.module.scss";
 import { readProduct, readCategory } from "../../services/api";
 import { FaRegEye } from "react-icons/fa";
+import config from "../../config";
+import { Link } from "react-router-dom";
 
 const cx = classNames.bind(styles);
 
-const Menu = () => {
+const Menu = ({ page }) => {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [displayCount, setDisplayCount] = useState(8);
+  const [allProducts, setAllProducts] = useState([]);
 
   const fetchCategories = async () => {
     try {
@@ -23,7 +27,14 @@ const Menu = () => {
   const fetchData = async (categoryId = null) => {
     try {
       const response = await readProduct({ category_id: categoryId });
-      setProducts(response?.data?.results || []);
+      const results = response?.data?.results || [];
+      setAllProducts(results);
+      setDisplayCount(8); // Reset display count to 8 when fetching new data
+      if (page === "home") {
+        setProducts(results.slice(0, 8));
+      } else {
+        setProducts(results.slice(0, 8)); // Always show first 8 items initially
+      }
     } catch (error) {
       console.error("Error fetching product data:", error);
     }
@@ -37,6 +48,12 @@ const Menu = () => {
   const handleCategoryChange = (categoryId) => {
     setSelectedCategory(categoryId);
     fetchData(categoryId === "All" ? null : categoryId);
+  };
+
+  const handleViewMore = () => {
+    const newCount = displayCount + 8;
+    setDisplayCount(newCount);
+    setProducts(allProducts.slice(0, newCount));
   };
 
   return (
@@ -86,7 +103,19 @@ const Menu = () => {
         )}
       </div>
 
-      <button className={cx("view-more-button")}>Xem thêm</button>
+      {/* view more button */}
+      {page !== "home" && allProducts.length > displayCount && (
+        <div className='d-flex justify-content-center'>
+          <button onClick={handleViewMore} className={cx("view-more-button")}>
+            Xem thêm
+          </button>
+        </div>
+      )}
+      {page === "home" && (
+        <div className='d-flex justify-content-center'>
+          <Link to={config.routes.menu} className={cx("view-more-button")}>Xem tất cả</Link>
+        </div>
+      )}
     </div>
   );
 };
