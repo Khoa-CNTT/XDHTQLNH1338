@@ -33,8 +33,8 @@ const Header = () => {
   // Close mobile menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target) && 
-          !event.target.classList.contains(cx('cs-mobile-menu-icon'))) {
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target) &&
+        !event.target.classList.contains(cx('cs-mobile-menu-icon'))) {
         setMobileMenuOpen(false);
       }
     };
@@ -48,22 +48,19 @@ const Header = () => {
   return (
     <header className={cx('cs-bg-header')}>
       <div className={cx('container h-100 d-flex justify-content-between align-items-center')}>
-        <Link to={config.routes.home} className={cx('cs-logo')}>FIVE START</Link>
-        
+        <Link to={config.routes.home} className={cx('cs-logo')}>RMS</Link>
         {/* Desktop Menu */}
         <div className={cx('cs-desktop-menu', 'd-flex justify-content-between', 'd-none d-md-flex')}>
           <Link to={config.routes.home} className={cx('cs-text-center')}>TRANG CHỦ</Link>
           <Link to={config.routes.menu} className={cx('cs-text-center')}>THỰC ĐƠN</Link>
           <Link to={config.routes.about} className={cx('cs-text-center')}>GIỚI THIỆU</Link>
         </div>
-        
         <div className={cx('d-flex align-items-center', 'cs-nav-right')}>
           <IoSearch className={cx('cs-icon')} onClick={handleSearchFullscreen} />
           <Link to={config.routes.bookTable} className={cx('cs-btn-primary')}>Đặt bàn</Link>
           <FaBars className={cx('cs-mobile-menu-icon')} onClick={toggleMobileMenu} />
         </div>
       </div>
-      
       {/* Mobile Menu */}
       <div ref={mobileMenuRef} className={cx('cs-mobile-menu', { 'cs-mobile-menu-open': mobileMenuOpen })}>
         <div className={cx('cs-mobile-menu-header')}>
@@ -76,7 +73,7 @@ const Header = () => {
           <Link to={config.routes.bookTable} className={cx('cs-mobile-btn-primary')} onClick={toggleMobileMenu}>Đặt bàn</Link>
         </div>
       </div>
-      
+
       <div className={cx('cs-logo-large')}><img className={cx('cs-img-large')} src='https://res.cloudinary.com/daehcveku/image/upload/v1741257938/upload_local/ihd7hrj43mlqt4xoetlh.jpg' /></div>
       {/* search fullscreen */}
       <ToggleSearchFullscreenContext.Provider value={handleClose}>
