@@ -8,21 +8,22 @@ import requests
 from django.conf import settings
 from web_01.analyzer import analyze_message, handle_intent
 
-from web_01.handle_view.table_view import (TableManagementView, edit_table, add_table, table_qr, table_create)
+from web_01.handle_view.table_view import (TableManagementView, edit_table, add_table, table_qr, table_create, reset_all_qr)
 from web_01.handle_view.order_view import (OrderManagementView, detail_order, detail_invoice)
-from web_01.handle_view.product_view import (ExportProductsView,ProductManagementView, add_product, import_product, detail_product, best_seller,ProductEditView)
+from web_01.handle_view.product_view import (ExportProductsView, ProductManagementView, add_product, import_product, detail_product, best_seller, ProductEditView)
 from web_01.handle_view.service_view import (service_dashboard, get_order_by_table, complete_payment, get_product_service,
                                              complete_payment_multi_order, update_item_status, end_session, add_product_to_order)
 from web_01.handle_view.customer_view import (CustomerManagementView, update_customer, delete_customer)
 from web_01.handle_view.employee_view import (EmployeeManagementView, employee_add, employee_update, employee_delete)
-from web_01.handle_view.table_reservation_view import (TableReservationManagementView, edit_table_reservation, delete_table_reservation, approve_table_reservation, reject_table_reservation, assign_table_to_reservation)
+from web_01.handle_view.table_reservation_view import (TableReservationManagementView, edit_table_reservation, delete_table_reservation,
+                                                       approve_table_reservation, reject_table_reservation, assign_table_to_reservation)
 from web_01.handle_view.inventory_view import (InventoryManagementView, inventory_log_list, import_ingredient)
 from web_01.handle_view.inventory_view import (InventoryManagementView, inventory_log_list, import_ingredient, export_ingredient,
                                                add_ingredient,
                                                ingredient_request,
                                                inventory_dashboard,
-                                               inventory_report,inventory_dashboard_stats)
-from web_01.handle_view.work_shifts_view import (WorkShiftManagementView,work_shift_list, shift_registration_list, register_shift, approve_registration, check_in, check_out, )
+                                               inventory_report, inventory_dashboard_stats)
+from web_01.handle_view.work_shifts_view import (WorkShiftManagementView, work_shift_list, shift_registration_list, register_shift, approve_registration, check_in, check_out, )
 from web_01.decorator import admin_required
 
 GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
@@ -249,50 +250,51 @@ def mark_notification_read(request):
     try:
         data = json.loads(request.body)
         notification_id = data.get('notification_id')
-        
+
         # Đánh dấu một thông báo cụ thể đã đọc
         if notification_id:
             notification = get_object_or_404(Notification, id=notification_id)
             notification.is_read = True
             notification.save()
             return JsonResponse({'status': 'success', 'message': 'Đã đánh dấu thông báo đã đọc'})
-        
+
         # Đánh dấu tất cả thông báo đã đọc
         elif data.get('mark_all', False):
             Notification.objects.filter(is_read=False).update(is_read=True)
             return JsonResponse({'status': 'success', 'message': 'Đã đánh dấu tất cả thông báo đã đọc'})
-        
+
         return JsonResponse({'status': 'error', 'message': 'Thiếu thông tin thông báo'}, status=400)
-    
+
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
 
 class NotificationListView(LoginRequiredMixin, ListView):
     model = Notification
     template_name = 'apps/web_01/notifications/notification_list.html'
     context_object_name = 'notifications'
     paginate_by = 20
-    
+
     def get_queryset(self):
         queryset = Notification.objects.filter()
-        
+
         # Lọc theo loại thông báo
         notification_type = self.request.GET.get('type')
         if notification_type:
             queryset = queryset.filter(type=notification_type)
-        
+
         # Lọc theo trạng thái đã đọc/chưa đọc
         read_status = self.request.GET.get('read')
         if read_status == 'read':
             queryset = queryset.filter(is_read=True)
         elif read_status == 'unread':
             queryset = queryset.filter(is_read=False)
-        
+
         # Tìm kiếm theo nội dung
         search_query = self.request.GET.get('search')
         if search_query:
             queryset = queryset.filter(message__icontains=search_query)
-        
+
         return queryset
 
 
@@ -300,7 +302,7 @@ class NotificationListView(LoginRequiredMixin, ListView):
 def get_notification_detail(request, notification_id):
     try:
         notification = get_object_or_404(Notification, id=notification_id)
-        
+
         # Chuyển đổi thông báo thành JSON
         notification_data = {
             'id': notification.id,
@@ -309,7 +311,7 @@ def get_notification_detail(request, notification_id):
             'is_read': notification.is_read,
             'created_at': notification.created_at.strftime('%d/%m/%Y %H:%M'),
         }
-        
+
         return JsonResponse({
             'status': 'success',
             'notification': notification_data
@@ -320,23 +322,24 @@ def get_notification_detail(request, notification_id):
             'message': str(e)
         }, status=500)
 
+
 @login_required
 def delete_notifications(request):
     try:
         data = json.loads(request.body)
         notification_ids = data.get('notification_ids', [])
-        
+
         if not notification_ids:
             return JsonResponse({
                 'status': 'error',
                 'message': 'Không có thông báo nào được chọn'
             }, status=400)
-        
+
         # Xóa các thông báo
         deleted_count = Notification.objects.filter(
             id__in=notification_ids
         ).delete()[0]
-        
+
         return JsonResponse({
             'status': 'success',
             'message': f'Đã xóa {deleted_count} thông báo',
@@ -347,7 +350,7 @@ def delete_notifications(request):
             'status': 'error',
             'message': str(e)
         }, status=500)
-    
+
 
 def call_gemini(prompt):
     try:
@@ -423,10 +426,10 @@ def get_chat_history(request):
     try:
         # Lấy 10 cuộc trò chuyện gần nhất
         chat_history = ChatHistory.objects.all().order_by('-created_at')[:10]
-        
+
         # Đảo ngược để hiển thị theo thứ tự thời gian
         chat_history = reversed(list(chat_history))
-        
+
         # Chuyển đổi thành JSON
         history_data = []
         for chat in chat_history:
@@ -435,12 +438,12 @@ def get_chat_history(request):
                 'bot_reply': chat.bot_reply,
                 'created_at': chat.created_at.strftime('%d/%m/%Y %H:%M:%S')
             })
-        
+
         return JsonResponse({
             'status': 'success',
             'chat_history': history_data
         })
-        
+
     except Exception as e:
         return JsonResponse({
             'status': 'error',

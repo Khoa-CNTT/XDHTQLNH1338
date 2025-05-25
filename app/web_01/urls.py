@@ -29,6 +29,7 @@ urlpatterns = [
             path('<int:id>/', views.edit_table, name='edit_table'),
             # path('add', views.add_table, name='add_table'),
             path('<int:table_id>/qr/', views.table_qr, name='manager_table_qr'),
+            path('reset-all-qr', views.reset_all_qr, name='reset_all_qr'),
             path('create', views.table_create, name='manager_table_create'),
         ])),
         path('service/', include([
