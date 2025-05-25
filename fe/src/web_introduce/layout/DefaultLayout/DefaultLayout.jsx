@@ -7,6 +7,9 @@ import styles from "./DefaultLayout.module.scss"
 import Header from "./components/Header"
 import Footer from "./components/Footer"
 import { useParams } from "react-router-dom"
+import MessengerIcon from "../../components/MessengerIcon/MessengerIcon"
+import GoToTop from "../../components/GoToTop/GoToTop"
+import PhoneIcon from "../../components/PhoneIcon/PhoneIcon"
 
 const cx = classNames.bind(styles)
 
@@ -19,6 +22,9 @@ const DefaultLayout = ({ children }) => {
         <Header lang={lang} />
         <div className={cx('cs-container')}>{children}</div>
         <Footer />
+        <PhoneIcon />
+        <MessengerIcon />
+        <GoToTop />
       </ThemeContext.Provider>
     // </SocketProvider>
   )

@@ -1,7 +1,7 @@
 from core.__Include_Library import *
 from django.shortcuts import render
 from django.http import JsonResponse
-from django.db.models import Q, Sum, Count, F, ExpressionWrapper, DurationField
+from django.db.models import Q, Sum, Count, F, ExpressionWrapper, DurationField, Case, When, FloatField, Value
 from web_01.models import Employee, WorkShift, User
 from django.utils import timezone
 import datetime
@@ -13,6 +13,8 @@ class EmployeeManagementView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        # 📌 Lấy danh sách nhân viên không bị xóa
+        context['employee_list'] = Employee.objects.filter(is_deleted=False).select_related('user')
         return context
 
     def post(self, request, *args, **kwargs):
@@ -24,6 +26,8 @@ class EmployeeManagementView(LoginRequiredMixin, TemplateView):
 
             filter_name = request.POST.get("filter_name", "").strip()
             filter_role = request.POST.get("filter_role", "").strip()
+            filter_year = request.POST.get("filter_year")
+            filter_month = request.POST.get("filter_month")
 
             order_column_index = int(request.POST.get("order[0][column]", 0))
             order_dir = request.POST.get("order[0][dir]", "desc")
@@ -42,25 +46,20 @@ class EmployeeManagementView(LoginRequiredMixin, TemplateView):
             if order_dir == "desc":
                 order_column = "-" + order_column
 
-            employees = Employee.objects.select_related('user') \
-                .filter(~Q(role__iexact='chef')) \
-                .annotate(
-                    total_shifts=Count('workshifts', distinct=True),
-                    total_hours=Sum(
-                        ExpressionWrapper(
-                            F('workshifts__time_end') - F('workshifts__time_start'),
-                            output_field=DurationField()
-                        ),
-                        filter=Q(workshifts__time_start__isnull=False, workshifts__time_end__isnull=False)
-                    ),
-                )
+            now = timezone.now()
+            year = int(filter_year) if filter_year else now.year
+            month = int(filter_month) if filter_month else now.month
+
+            start_date = datetime.date(year, month, 1)
+            if month == 12:
+                end_date = datetime.date(year + 1, 1, 1)
+            else:
+                end_date = datetime.date(year, month + 1, 1)
+
+            employees = Employee.objects.select_related('user').filter(~Q(role__iexact='chef'), is_deleted=False)
 
             if filter_name:
-                employees = employees.filter(
-                    Q(user__username__icontains=filter_name) |
-                    Q(user__first_name__icontains=filter_name) |
-                    Q(user__last_name__icontains=filter_name)
-                )
+                employees = employees.filter(user__username=filter_name)  # filter theo username chính xác
 
             if filter_role:
                 employees = employees.filter(role=filter_role)
@@ -75,15 +74,40 @@ class EmployeeManagementView(LoginRequiredMixin, TemplateView):
             total_count = employees.count()
             employees = employees.order_by(order_column)[start:start + length]
 
+            from django.db.models import ExpressionWrapper, F, DurationField, FloatField
+
             employees_data = []
             for index, employee in enumerate(employees, start=start + 1):
-                if employee.total_hours:
-                    total_hours = employee.total_hours.total_seconds() / 3600
-                else:
-                    # fallback: giả định mỗi ca là 4 tiếng nếu không có time_start/time_end
-                    total_hours = employee.total_shifts * 4
+                workshifts = employee.workshifts.filter(
+                    date__gte=start_date,
+                    date__lt=end_date,
+                    time_start__isnull=False,
+                    time_end__isnull=False
+                ).annotate(
+                    duration=ExpressionWrapper(
+                        F('time_end') - F('time_start'),
+                        output_field=DurationField()
+                    )
+                )
 
-                hourly_rate = employee.salary / 176  # Giả định 176 giờ mỗi tháng
+                total_hours = 0
+                for ws in workshifts:
+                    duration_seconds = ws.duration.total_seconds()
+                    hours = duration_seconds / 3600
+                    total_hours += hours
+
+                total_shifts = 0
+                if total_hours >= 8:
+                    total_shifts = total_hours // 8
+                    remainder = total_hours % 8
+                    if remainder >= 4:
+                        total_shifts += 0.5
+                elif total_hours >= 4:
+                    total_shifts = 0.5
+                elif total_hours > 0:
+                    total_shifts = 0.25
+
+                hourly_rate = employee.salary / 176 if employee.salary else 0
                 actual_salary = total_hours * hourly_rate
 
                 employees_data.append({
@@ -92,7 +116,7 @@ class EmployeeManagementView(LoginRequiredMixin, TemplateView):
                     "username": employee.user.username,
                     "role": employee.role,
                     "salary": f"{employee.salary:,} VND",
-                    "total_shifts": employee.total_shifts,
+                    "total_shifts": f"{total_shifts:.2f}",
                     "total_hours": f"{total_hours:.2f} giờ",
                     "actual_salary": f"{actual_salary:,.0f} VND",
                     "created_at": employee.user.date_joined.strftime('%d/%m/%Y') if hasattr(employee.user, 'date_joined') else ""
