@@ -73,5 +73,10 @@
             "canceled": "Hủy",
             "completed": "Hoàn thành"
         }
+    },
+    "payment": {
+        "thank_you": "Cảm ơn quý khách!",
+        "success_message": "Đơn hàng của bạn đã được xác nhận",
+        "return_to_menu": "Quay lại menu"
     }
 }

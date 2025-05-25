@@ -132,6 +132,11 @@
             }
         });
         }
+
+        const message = data.message;
+        const level = data.level;
+        displayNotification(message, level);
+        load_notification_list();
     };
 
 

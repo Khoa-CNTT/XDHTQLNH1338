@@ -35,14 +35,28 @@ const Section = () => {
     return () => clearInterval(interval);
   }, []);
 
+  const handleBookTable = () => {
+    const bookTableSection = document.getElementById('book-table');
+    if (bookTableSection) {
+      const offset = 80; // Offset để tránh bị che bởi header
+      const elementPosition = bookTableSection.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - offset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+    }
+  };
+
   return (
-    <section className={cx("hero-section")}> 
+    <section className={cx("hero-section")}>
       <div className={cx('hero-wrapper')}>
         <div className={cx('hero-container')}>
           <div className={cx('hero-content')}>
             <h1 className={cx('hero-title')}>{slides[currentSlide].title}</h1>
             <p className={cx('hero-text')}>{slides[currentSlide].text}</p>
-            <button className={cx('hero-btn')}>Đặt món ngay</button>
+            <button className={cx('hero-btn')} onClick={handleBookTable}>Đặt bàn ngay</button>
           </div>
           <div className={cx('hero-image')}>
             <img src={slides[currentSlide].image} alt="Fast Food" className={cx('fade-in')} />
@@ -51,8 +65,8 @@ const Section = () => {
         {/* Pagination Dots */}
         <div className={cx('hero-dots')}>
           {slides.map((_, index) => (
-            <span 
-              key={index} 
+            <span
+              key={index}
               className={cx('dot', { active: index === currentSlide })}
               onClick={() => setCurrentSlide(index)}
             ></span>

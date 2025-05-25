@@ -36,7 +36,6 @@
                                 <div class="col-md-3">
                                     <label><strong>Nhân viên</strong></label>
                                     <select class="form-control form-control-sm" id="filter-employee-shift">
-                                        <option value="">-- Tất cả nhân viên --</option>
                                         {% for employee in employees %}
                                         <option value="{{ employee.user_id }}">{{ employee.user.username }}</option>
                                         {% endfor %}
@@ -124,7 +123,6 @@
                                 <div class="col-md-3">
                                     <label><strong>Nhân viên</strong></label>
                                     <select class="form-control form-control-sm" id="filter-employee-reg">
-                                        <option value="">-- Tất cả nhân viên --</option>
                                         {% for employee in employees %}
                                         <option value="{{ employee.user_id }}">{{ employee.user.username }}</option>
                                         {% endfor %}
@@ -180,7 +178,9 @@
                                     <th>Lý do</th>
                                     <th>Trạng thái</th>
                                     <th>Ngày tạo</th>
+                                    {% if is_manager %}
                                     <th>Thao tác</th>
+                                    {%endif%}
                                 </tr>
                             </thead>
                             <tbody>
@@ -206,7 +206,6 @@
                     <div class="mb-3">
                         <label for="employee_id" class="form-label">Nhân viên</label>
                         <select class="form-control" id="employee_id" name="employee_id" required>
-                            <option value="">-- Chọn nhân viên --</option>
                             {% for employee in employees %}
                             <option value="{{ employee.user_id }}">{{ employee.user.username }}</option>
                             {% endfor %}
@@ -249,7 +248,6 @@
                     <div class="mb-3">
                         <label for="employee_id_off" class="form-label">Nhân viên</label>
                         <select class="form-control" id="employee_id_off" name="employee_id" required>
-                            <option value="">-- Chọn nhân viên --</option>
                             {% for employee in employees %}
                             <option value="{{ employee.user_id }}">{{ employee.user.username }}</option>
                             {% endfor %}
@@ -582,10 +580,12 @@
                         return `<i class="fa-solid fa-clock"></i> ${data}`;
                     }
                 },
+                {% if is_manager %}
                 { 
                     data: "id", title: "Thao tác",
                     render: function(data, type, row) {
                         // Chỉ hiển thị nút duyệt nếu trạng thái là "pending"
+                       
                         if (row.status === 'pending') {
                             return `
                                 <button type='button' class="btn btn-light btn-sm approve-registration"
@@ -601,6 +601,7 @@
                         return '<span class="text-muted">-</span>';
                     }
                 }
+                {%endif%}
             ]
         });
 

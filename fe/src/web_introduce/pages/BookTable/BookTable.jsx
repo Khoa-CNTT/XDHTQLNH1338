@@ -84,7 +84,7 @@ const BookTable = () => {
   }
 
   return (
-    <div className={cx('wrapper')}>
+    <section id="book-table" className={cx('book-table')}>
       <div className={cx('container')}>
         <div className={cx('cs-body')}>
           <div className='d-flex justify-content-center'>
@@ -150,7 +150,7 @@ const BookTable = () => {
           </div>
         </div>
       )}
-    </div>
+    </section>
   )
 }
 

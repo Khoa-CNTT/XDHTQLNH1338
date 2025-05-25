@@ -98,7 +98,7 @@ class InvoiceViewSet(AuthenticationPermissionMixin, ViewSet):
         secretKey = "K951B6PE1waDMi640xX08PD3vg6EkVlz"
         orderInfo = "PAY WITH MOMO"
         partnerCode = "MOMO"
-        redirectUrl = f"{settings.FRONT_END_URL}/thank-you"
+        redirectUrl = f"{settings.FRONT_END_URL}/momo/payment/success"
         ipnUrl = f"{settings.CURRENT_URL}/api/invoice/momo-ipn/"
         amount = f"{invoice.total_amount}"
         orderId = f'INVOICE_{str(random.randint(0, 10000))}_00{invoice.id}'

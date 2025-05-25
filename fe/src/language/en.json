@@ -72,5 +72,10 @@
             "canceled": "Canceled",
             "completed": "Completed"
         }
+    },
+    "payment": {
+        "thank_you": "Thank you!",
+        "success_message": "Your order has been confirmed",
+        "return_to_menu": "Return to Menu"
     }
 }

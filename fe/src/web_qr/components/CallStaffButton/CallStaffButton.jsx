@@ -14,8 +14,15 @@ const CallStaffButton = () => {
   const { t } = useTranslation();
   const location = useLocation();
   const socket = useContext(SocketContext);
+
   useEffect(() => {
     const handleScroll = () => {
+      // Nếu đang ở trang order hoặc status-order, giữ nút chuông ở vị trí cố định
+      if (location.pathname.includes('/order') || location.pathname.includes('/status-order') || location.pathname.includes('/momo/payment/success')) {
+        setBottomPosition('5rem');
+        return;
+      }
+
       const scrollPosition = window.scrollY + window.innerHeight;
       const documentHeight = document.documentElement.scrollHeight;
 
@@ -28,7 +35,7 @@ const CallStaffButton = () => {
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [location.pathname]);
 
   const handleCallStaff = () => {
     setShowModal(true);
@@ -49,7 +56,8 @@ const CallStaffButton = () => {
     setShowModal(false);
   };
 
-  if (location.pathname.includes('/order') || location.pathname.includes('/status-order')) {
+  // Hide button only on login page
+  if (location.pathname.includes('/login-menu')) {
     return null;
   }
 
