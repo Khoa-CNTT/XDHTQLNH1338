@@ -1,0 +1,55 @@
+.messenger-icon {
+    position: fixed;
+    bottom: 75px;
+    right: 20px;
+    width: 60px;
+    height: 60px;
+    background-color: #0084ff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease;
+    z-index: 1000;
+
+    &:hover {
+        transform: scale(1.1);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+    }
+
+    .icon {
+        color: white;
+        font-size: 32px;
+    }
+
+    // Animation for the icon
+    animation: bounce 2s infinite;
+
+    @keyframes bounce {
+        0%, 20%, 50%, 80%, 100% {
+            transform: translateY(0);
+        }
+        40% {
+            transform: translateY(-10px);
+        }
+        60% {
+            transform: translateY(-5px);
+        }
+    }
+}
+
+// Responsive styles
+@media screen and (max-width: 768px) {
+    .messenger-icon {
+        width: 50px;
+        height: 50px;
+        bottom: 65px;
+        right: 15px;
+
+        .icon {
+            font-size: 28px;
+        }
+    }
+} 

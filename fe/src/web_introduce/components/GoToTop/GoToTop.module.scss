@@ -1,0 +1,50 @@
+.go-to-top {
+    position: fixed;
+    bottom: 20px;
+    right: 20px; // Align with messenger icon
+    width: 45px;
+    height: 45px;
+    background-color: var(--foreignKey, #ffbe33);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(20px);
+
+    &.visible {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+
+    &:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+        background-color: darken(#ffbe33, 10%);
+    }
+
+    .icon {
+        color: white;
+        font-size: 20px;
+    }
+}
+
+// Responsive styles
+@media screen and (max-width: 768px) {
+    .go-to-top {
+        width: 40px;
+        height: 40px;
+        bottom: 15px;
+        right: 15px; // Align with messenger icon on mobile
+
+        .icon {
+            font-size: 18px;
+        }
+    }
+} 
