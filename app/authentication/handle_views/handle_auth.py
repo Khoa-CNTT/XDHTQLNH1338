@@ -76,7 +76,7 @@ class LoginView(APIView):
 
             customer, customer_created = Customer.objects.get_or_create(
                 user=user,
-                defaults={'loyalty_points': 0}
+                defaults={'loyalty_points': 100}
             )
 
             session = Session.objects.filter(customer=customer, table=table, status='active').first()
