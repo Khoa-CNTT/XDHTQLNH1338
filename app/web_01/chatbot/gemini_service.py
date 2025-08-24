@@ -102,36 +102,36 @@ Bot RMS
         
         self.team_members = [
             {
-                'name': "Nguyễn Viết Tài",
-                'role': "Product Owner & Scrum Master",
-                'image_url': "/static/members/nguyen_viet_tai.png"
+                'name': "",
+                'role': "",
+                'image_url': ""
             },
             {
-                'name': "Lê Công Anh",
-                'role': "Member",
-                'image_url': "/static/members/le_cong_an.png"
+                'name': "",
+                'role': "",
+                'image_url': ""
             },
             {
-                'name': "Phạm Nguyễn Trường Ân",
-                'role': "Member",
-                'image_url': "/static/members/truong_an.png"
+                'name': "",
+                'role': "",
+                'image_url': ""
             },
             {
-                'name': "Phạm Quốc Hoàng",
-                'role': "Member",
-                'image_url': "/static/members/quoc_hoang.png"
+                'name': "",
+                'role': "",
+                'image_url': ""
             },
             {
-                'name': "Trần Châu Phú",
-                'role': "Member",
-                'image_url': "/static/members/chau_phu.png"
+                'name': "",
+                'role': "",
+                'image_url': ""
             }
         ]
         self.mentor = {
-            'name': "Nguyễn Minh Nhật",
-            'title': "Giảng viên Khoa CNTT – ĐH Duy Tân",
-            'email': "nhatnm2010@gmail.com",
-            'image_url': "/static/members/minh_nhat.png"
+            'name': "",
+            'title': "",
+            'email': "",
+            'image_url': ""
         }
         
         # Khởi tạo chat history
