@@ -110,6 +110,17 @@ class TableReservationSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class BookTableSerializer(serializers.ModelSerializer):
+    table = serializers.PrimaryKeyRelatedField(
+        queryset=Table.objects.all(),
+        required=False,       
+        allow_null=True      
+    )
+
+    class Meta:
+        model = TableReservation
+        fields = '__all__'
+
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category

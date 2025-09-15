@@ -18,7 +18,7 @@ ADMIN_AVATAR_URL = 'https://taimienphi.vn/tmp/cf/aut/anh-avatar-viet-nam-cute-ng
 
 def upload_avatar_and_update_employee(user, avatar_url):
     # Bước 1: Download ảnh từ avatar_url cũ
-    response = requests.get(avatar_url)
+    response = requests.get(ADMIN_AVATAR_URL)
     if response.status_code == 200:
         image_bytes = response.content
         

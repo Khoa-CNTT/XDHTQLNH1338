@@ -130,11 +130,10 @@ const Status = () => {
       );
     }
 
-
-    // Hiển thị modal đánh giá sau 3 giây
+    // Chuyển hướng sang trang payment success sau 3 giây
     setTimeout(() => {
-      setShowRatingModal(true);
-    }, 3000);
+      navigate("/momo/payment/success");
+    }, 5000);
   };
 
   // Xử lý gửi đánh giá
@@ -238,7 +237,7 @@ const Status = () => {
         <>
           {orderDetails.map((item, index) => (
             <div
-              className="row mt-3 w-100"
+              className="row w-100"
               key={`${item.product_id}-${item.order_id}-${index}`}
             >
               <div className="col-12"></div>
@@ -318,13 +317,13 @@ const Status = () => {
                 <i className="fas fa-money-bill-wave"></i>
                 {t("status_order.cash_payment")}
               </button>
-              <button
+              {/* <button
                 className={styles["payment-option"]}
                 onClick={() => setSelectedPaymentMethod("bank")}
               >
                 <i className="fas fa-university"></i>
                 {t("status_order.bank_transfer")}
-              </button>
+              </button> */}
             </div>
 
             {selectedPaymentMethod === "cash" && (

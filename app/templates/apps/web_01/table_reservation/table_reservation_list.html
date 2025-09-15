@@ -64,6 +64,34 @@
 
 </div>
 
+<!-- Modal Assign Table-->
+
+<div class="modal fade" id="modalAssignTable" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-md">
+      <div class="modal-content">
+        <form id="assignTableForm">
+          <div class="modal-header">
+            <h5 class="modal-title">Chọn bàn cho khách</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label for="tableSelect" class="form-label">Bàn trống khả dụng:</label>
+              <select id="tableSelect" class="form-select" name="table_id" required>
+                <!-- JS sẽ đổ option tại đây -->
+              </select>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <input type="hidden" id="reservationIdToAssign" />
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+            <button type="submit" class="btn btn-primary">Xác nhận & Gán bàn</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
 {% with 
     modal_id = 'modalEditReservation',
     modal_title = 'Cập nhật đặt bàn',
@@ -150,6 +178,9 @@
                 { 
                     data: "table_number", title: "Bàn",
                     render: function(data) {
+                        if (data === "N/A") {
+                            return `<span>Chưa có bàn</span>`;
+                        }
                         return `<i class="fa-solid fa-chair"></i> Bàn ${data}`;
                     }
                 },
@@ -276,7 +307,54 @@
 
         $('#table_reservation_data').on('click', '.confirm-reservation', function () {
             const id = $(this).data('id');
-            sendReservationAction(id, 'approve', 'Bạn có muốn xác nhận đặt bàn này không?', 'Xác nhận');
+            fetch(`/management/table-reservation/${id}/approve/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.require_table) {
+        
+                    $('#reservationIdToAssign').val(data.reservation_id);
+        
+                    const $select = $('#tableSelect');
+                    $select.empty(); // Xóa hết option cũ
+        
+                    if (data.available_tables.length === 0) {
+                        $select.append(`<option disabled selected>Không có bàn trống</option>`);
+                    } else {
+                        $select.append(`<option disabled selected>-- Chọn bàn --</option>`);
+                        data.available_tables.forEach(t => {
+                            if (t.table_number) {
+                                $select.append(`<option value="${t.id}">Bàn ${t.table_number}</option>`);
+                            } else {
+                                console.warn("🚫 Bàn bị thiếu table_number:", t);
+                            }
+                        });
+                    }
+        
+                    $('#modalAssignTable').modal('show');
+                    return;
+                }
+        
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: data.message || 'Xác nhận thành công!',
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                    $('#table_reservation_data').DataTable().ajax.reload();
+                } else {
+                    Swal.fire('Lỗi', data.message || 'Xác nhận thất bại', 'error');
+                }
+            })
+            .catch(error => {
+                console.error("❌ Lỗi fetch approve:", error);
+                Swal.fire("Lỗi", "Không thể xác nhận. Vui lòng thử lại.", "error");
+            });
         });
         
         $('#table_reservation_data').on('click', '.cancel-reservation', function () {
@@ -298,6 +376,36 @@
             $('#filter-name, #filter-phone, #filter-table').val('');
             updateUrlParams();
             table.ajax.reload(); // Xóa filter và reload
+        });
+
+        $('#assignTableForm').on('submit', function(e) {
+            e.preventDefault();
+            const id = $('#reservationIdToAssign').val();
+            const tableId = $('#tableSelect').val();
+        
+            fetch(`/management/table-reservation/${id}/assign-table/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ table_id: tableId })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    $('#modalAssignTable').modal('hide');
+                    Swal.fire({
+                        icon: 'success',
+                        title: "Đặt bàn đã được xác nhận và gán bàn!",
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                    $('#table_reservation_data').DataTable().ajax.reload();
+                } else {
+                    Swal.fire("Lỗi", data.message || "Gán bàn thất bại", "error");
+                }
+            });
         });
     });
 

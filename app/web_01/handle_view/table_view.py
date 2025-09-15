@@ -76,6 +76,15 @@ def table_qr(request, table_id):
         return render(request, '/apps/web_01/table/table_qr_popup.html', {'table': table})
 
 
+def reset_all_qr(request):
+    """Reset all QR code of tables"""
+    for table in Table.objects.all():
+        table.save(force_update_qr=True)
+    # Table.objects.all().update(force_update_qr=True)
+    messages.success(request, "Reset all QR code of tables successfully!")
+    return redirect('web_01:table_list')
+
+
 def table_create(request):
     """Tạo bàn mới"""
     # Kiểm tra nếu là AJAX request để hiển thị popup
